@@ -1,7 +1,13 @@
+*.pyo
+*.pyc
+
+__pycache__/
+.ipynb_checkpoints/
+_build/
+
 session.json
 gen*.csv
 initial*.csv
 simulated*.csv
 validated*.csv
 *.pdf
-_build

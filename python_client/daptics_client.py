@@ -38,6 +38,7 @@ import gql
 import gql.transport.requests
 import json
 import pprint
+import random
 import requests
 import requests.auth
 import time
@@ -83,6 +84,10 @@ class SessionParametersNotValidatedError(Exception):
     def __init__(self):
         self.message = 'The session parameters have not been validated.'
 
+class InvalidParameterError(Exception):
+    def __init__(self, space_type, param):
+        self.message = 'Invalid parameter for space type {}: {}.'.format(space_type, param)
+
 class NextGenerationError(Exception):
     def __init__(self, gen):
         self.message = 'The next requested generation must be {}.'.format(gen)
@@ -94,6 +99,10 @@ class CsvFileEmptyError(Exception):
 class CsvNoDataRowsError(Exception):
     def __init__(self, fname):
         self.message = 'No data rows were found in the file {}.'.format(fname)
+
+class SpaceOrDesignRequiredError(Exception):
+    def __init__(self):
+        self.message = 'To generate random experiments you must supply experimental space or design.'
 
 
 class DapticsClient(object):
@@ -261,7 +270,6 @@ mutation Login($email:String!, $password:String!) {
             self.user_id = data['login']['user']['userId']
         return data
 
-
     def create_session(self, name, description, demo):
         """Create a new PDT session.
 
@@ -361,15 +369,6 @@ query GetSession($sessionId:String!) {
                 self.validated_params = None
         return data
 
-    def make_space_col_headers(self, params):
-        """Format colHeaders canonically."""
-        param_rows = params['space']['table']['data']
-        if len(param_rows) > 0:
-            n_value_cols = len(param_rows[0]) - 2
-            col_headers = [ 'Name', 'Type'] + [ 'Value.{0}'.format(i + 1) for i in range(0, n_value_cols) ]
-            params['space']['table']['colHeaders'] = col_headers
-        return params
-
     def save_experimental_and_space_parameters(self, params):
         """Start a "save experimental space" task in the session, specifying the
         desired experimental space parameters.
@@ -413,30 +412,30 @@ query GetSession($sessionId:String!) {
             an example below. the `colHeaders` value is ignored when importing
             or validating the experimental space definition.
 
-            To maintain uniformity, header and data row elements should be
-            Python strings, even if they represent numeric values.
+        To maintain uniformity, header and data row elements should be
+        Python strings, even if they represent numeric values.
 
-            For `mixture` type spaces, there should only be 4 columns of data
-            in each row: the name of the parameter, the type of the parameter
-            (which must always be the string "unit"), the minimum value of the
-            parameter (a non-negative integer) and the maximum value of the
-            parameter (a positive integer, less than or equal to the `totalUnits`
-            constraint parameter).
+        For `mixture` type spaces, there should only be 4 columns of data
+        in each row: the name of the parameter, the type of the parameter
+        (which must always be the string "unit"), the minimum value of the
+        parameter (a non-negative integer) and the maximum value of the
+        parameter (a positive integer, less than or equal to the `totalUnits`
+        constraint parameter).
 
-            For `factorial` type spaces, there must be at least 4 columns of data
-            in each row: the name of the parameter, the type of the parameter
-            (a string, either "numerical" or "categorical"), and at least
-            two possible distinct values that the parameter can have in an experiment.
-            Different parameters can have either 2 or more than 2 possible values.
-            The rows must be all be of the same size, so make sure to pad the
-            rows with fewer values with empty strings at the end.
+        For `factorial` type spaces, there must be at least 4 columns of data
+        in each row: the name of the parameter, the type of the parameter
+        (a string, either "numerical" or "categorical"), and at least
+        two possible distinct values that the parameter can have in an experiment.
+        Different parameters can have either 2 or more than 2 possible values.
+        The rows must be all be of the same size, so make sure to pad the
+        rows with fewer values with empty strings at the end.
 
         Examples
         --------
         Here is a mixture space design that will have enough combinations to be
         validated by the backend.
 
-        params = {
+        >>> params = {
             'populationSize': 30,
             'replicates': 2,
             'space': {
@@ -458,7 +457,7 @@ query GetSession($sessionId:String!) {
         Here is a factorial space design that will have enough combinations to be
         validated by the backend.
 
-        params = {
+        >>> params = {
             'populationSize': 30,
             'replicates': 2,
             'space': {
@@ -477,10 +476,11 @@ query GetSession($sessionId:String!) {
         }
         """
 
-        params_with_headers = self.make_space_col_headers(params)
+        col_headers = self.space_table_column_names(params['space'])
+        params['space']['table']['colHeaders'] = col_headers
         vars = {
             'sessionId': self.session_id,
-            'params': params_with_headers
+            'params': params
         }
 
         # The 'saveSessionParameters' mutation must be run to validate the
@@ -550,7 +550,7 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
         Here is a space design that will have enough combinations to be
         validated by the backend.
 
-        params = {
+        >>> params = {
             'populationSize': 30,
             'replicates': 2,
             'space': {
@@ -560,7 +560,7 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
 
         The contents of an example CSV file for a `factorial` space might be:
 
-        param1,numerical,0,1,2,3
+        >>> param1,numerical,0,1,2,3
         param2,numerical,2,3,4,
         param3,numerical,0,1,,
         param4,numerical,0,1,2,3
@@ -571,7 +571,7 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
 
         The contents of an example CSV file for a `mixture` space might be:
 
-        param1,unit,0,10
+        >>> param1,unit,0,10
         param2,unit,5,10
         param3,unit,0,10
         param4,unit,0,5
@@ -583,22 +583,12 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
         rows.
         """
 
-        datarows = []
+        param_rows = []
         with open(fname, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
-            datarows = [r for r in reader]
-        params['space']['table'] = { 'data': datarows }
+            param_rows = [r for r in reader]
+        params['space']['table'] = { 'data': param_rows }
         return self.save_experimental_and_space_parameters(params)
-
-    def get_experiments_col_headers(self, space):
-        """Format colHeaders canonically."""
-        param_names = [row[0] for row in space['table']['data']]
-        return param_names + ['Response']
-
-    def make_empty_experiments_table(self, timeout=5*60):
-        space = self.get_validated_experimental_space(timeout)
-        col_headers = self.get_experiments_col_headers(space)
-        return {'colHeaders': col_headers, 'data': [] }
 
     def save_initial_experiments(self, experiments=None):
         """Save any initial experiments in the session and generate the first design.
@@ -625,17 +615,20 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
 
         Examples
         --------
-            experiments = {
-                'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
-                'data': [
-                    ['0', '4', '1', '1', '3.25'],
-                    ['1', '4', '1', '1', '4.5']
-                ]
-            }
+        Here's an example of an experiments table:
+
+        >>> experiments = {
+            'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
+            'data': [
+                ['0', '4', '1', '1', '3.25'],
+                ['1', '4', '1', '1', '4.5']
+            ]
+        }
         """
 
         if experiments is None:
-            experiments = self.make_empty_experiments_table()
+            space = self.get_validated_experimental_space()
+            experiments = self.experiments_table_template(space)
         vars = {
             'sessionId': self.session_id,
             'experiments': {
@@ -701,18 +694,17 @@ mutation InitialExperiments($sessionId:String!, $experiments:ExperimentsInput!) 
 
         experiments = None
         if fname is not None:
-            rows = []
+            header_and_experiments = []
             with open(fname, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
-                rows = [r for r in reader]
-            nrows = len(rows)
-            if nrows > 0:
+                header_and_experiments = [r for r in reader]
+            if len(header_and_experiments) > 0:
                 experiments = {
-                    'colHeaders': rows[0],
-                    'data': rows[1:]
+                    'colHeaders': header_and_experiments[0],
+                    'data': header_and_experiments[1:]
                 }
             else:
-                raise CsvFileEmptyError()
+                raise CsvFileEmptyError(fname)
         return self.save_initial_experiments(experiments)
 
     def get_experiments(self, gen=None):
@@ -754,6 +746,72 @@ query GetExperiments($sessionId:String!, $gen:Int!){
             self.design = data['experiments']
         return data
 
+    def simulate_experiment_responses(self, experiments = None):
+        """Generate values for the "Response" column.
+        TODO: Add an explanation for how these responses are generated.
+
+        Parameters
+        ---------
+        experiments : dict
+            A "table" of experiments that includes columns,
+            defined in the `colHeaders` value of the table, for each of the defined
+            space parameters, and a column named 'Response' to record the result of
+            experiments.
+
+            Each row in the `data` value for the table represents
+            an individual experiment.
+
+        Returns
+        -------
+        The JSON response from the gql request, a Python dict with `simulateExperiments` and/or
+        `errors` keys."""
+
+        vars = {
+            'sessionId': self.session_id
+        }
+        if experiments is not None:
+            vars['experiments'] = experiments
+
+        # A 'simulateResponses' mutation may supply an `experiments` table.
+        doc = gql.gql("""
+mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
+    simulateResponses(sessionId:$sessionId, experiments:$experiments) {
+        validated designRows table { colHeaders data }
+    }
+}
+        """)
+        return self.gql.execute(doc, variable_values=vars)
+
+    def simulate_experiment_responses_csv(self, fname):
+        """Generate values for the "Response" column.
+        TODO: Copy the explanation for how these responses are generated from
+        the "simulate_experiment_responses" method above.
+
+        Parameters
+        ---------
+        fname : str
+            The location on the filesystem for a CSV file that will define
+            the parameters for designed and any extra experiments.
+
+        Returns
+        -------
+        The JSON response from the gql request, a Python dict with `simulateExperiments` and/or
+        `errors` keys."""
+
+        experiments = None
+        header_and_experiments = []
+        with open(fname, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            header_and_experiments = [r for r in reader]
+        if len(header_and_experiments) > 1:
+            experiments = {
+                'colHeaders': header_and_experiments[0],
+                'data': header_and_experiments[1:]
+            }
+        else:
+            raise CsvNoDataRowsError(fname)
+        return self.simulate_experiment_responses(experiments)
+
     def save_experiment_responses(self, experiments):
         """Save designed or extra experiments for the last designed generation in the session,
         and generate the next design. If the experments are successfully validated against the
@@ -781,14 +839,16 @@ query GetExperiments($sessionId:String!, $gen:Int!){
 
         Examples
         --------
-            experiments = {
-                'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
-                'data': [
-                    ['0', '4', '1', '1', '3.25'],
-                    ['1', '4', '1', '1', '4.5'],
-                    ... etc, matching generated design rows
-                ]
-            }
+        Here's an expamle of an experiments table:
+
+        >>> experiments = {
+            'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
+            'data': [
+                ['0', '4', '1', '1', '3.25'],
+                ['1', '4', '1', '1', '4.5'],
+                ... etc, matching generated design rows
+            ]
+        }
         """
 
         vars = {
@@ -802,7 +862,6 @@ query GetExperiments($sessionId:String!, $gen:Int!){
         # A 'saveExperiments' mutation for a designed generation ('gen' > 0) requires
         # responses for the designed generation (and any optional additional non-designed
         # experiments and their responses), sent in the 'table' variable.
-        # In this demo we generate random responses for the designed experiments.
         # If the generation number and saved responses are valid, information
         # about the long running 'generate' task is returned, and the user should
         # poll until the task has completed.
@@ -855,15 +914,15 @@ mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
         rows can also be provided.
         """
         experiments = { 'colHeaders': '', 'data': [] }
-        rows = []
+        header_and_experiments = []
         with open(fname, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
-            rows = [r for r in reader]
-        if len(rows) > 1:
-            experiments['colHeaders'] = rows[0]
-            experiments['data'] = rows[1:]
+            header_and_experiments = [r for r in reader]
+        if len(header_and_experiments) > 1:
+            experiments['colHeaders'] = header_and_experiments[0]
+            experiments['data'] = header_and_experiments[1:]
         else:
-            raise CsvNoDataRowsError()
+            raise CsvNoDataRowsError(fname)
         return self.save_experiment_responses(experiments)
 
     def poll_for_current_task(self, task_type=None):
@@ -999,6 +1058,24 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         return data
 
     def get_validated_experimental_space(self, timeout=5*60):
+        """Utility method to retrieve the validated experimental space from
+        the session. If the session was restarted and the experimental space
+        had been previously validated, it will be in the `validated_params`
+        attribute, and this method will return it. If the space was saved,
+        and the "space" task is still running, invoking this method will poll
+        until either the timeout is reached, or the space result is returned.
+
+        Parameters
+        ----------
+        timeout : int
+            The maximum number of seconds that the client will poll the session.
+
+        Returns
+        -------
+        The validated space, a Python dict with `type`, and `table` keys, and
+        a `totalUnits` key if the space type is "mixture".
+        """
+
         if self.validated_params is not None:
             return self.validated_params['space']
 
@@ -1023,24 +1100,30 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 raise TaskTimeoutError()
             time.sleep(1.0)
 
-    def export_validated_experimental_space_csv(self, fname, timeout=5*60):
-        space = self.get_validated_experimental_space(timeout)
-        with open(fname, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
-            for row in space['table']['data']:
-                writer.writerow(row)
-        return space
-
-    def export_initial_experiments_template_csv(self, fname, timeout=5*60):
-        space = self.get_validated_experimental_space(timeout)
-        col_headers = self.get_experiments_col_headers(space)
-        with open(fname, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
-            writer.writerow(col_headers)
-        return col_headers
-
     def get_generated_design(self, gen, timeout=30*60):
-        if self.gen < 0:
+        """Utility method to retrieve a design generation from
+        the session. If the session was restarted and the design for the
+        specified generation number is available, it will be in the `design`
+        attribute, and this method will return it. If the "generate" task
+        is still running, invoking this method will poll until either the
+        timeout is reached, or the design result is returned.
+
+        Parameters
+        ----------
+        gen : int
+            The generation number for the design to be retrieved.
+
+        timeout : int
+            The maximum number of seconds that the client will poll the session
+            to retrieve the generated design.
+
+        Returns
+        -------
+        The generated design, a Python dict representing an experiments table
+        with empty responses with `colHeaders`, and `data` keys.
+        """
+
+        if self.validated_params is None or gen < 0:
             raise SessionParametersNotValidatedError()
 
         if gen is None:
@@ -1074,16 +1157,6 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             if tmax < time.time():
                 raise TaskTimeoutError()
             time.sleep(1.0)
-
-    def export_generated_design_csv(self, gen, fname, timeout=30*60):
-        design = self.get_generated_design(gen, timeout)
-        if design is not None:
-            with open(fname, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
-                writer.writerow(design['table']['colHeaders'])
-                for row in design['table']['data']:
-                    writer.writerow(row)
-        return design
 
     def get_analytics(self):
         """Get a list of the available analytics files for the session's current
@@ -1133,8 +1206,331 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
         -------
         The "Requests" library's `response` object for the authenticated HTTP request.
         """
+
         response = requests.get(url, auth=self.auth)
         if save_as is not None and response.status_code == requests.codes.ok and response.content is not None:
             with open(save_as, "wb") as pdf_file:
                 pdf_file.write(response.content)
         return response
+
+    def export_csv(self, table, fname, headers=True):
+        """Utility method to write an expeimental space or experiments table to
+        a CSV file on disk.
+
+        Parameters
+        ----------
+        table : dict
+            A Python dict with `colHeaders` and `data` values, representing an
+            experimental space or experiments table.
+
+        fname : str
+            The filesystem path where the file will be written.
+
+        headers : bool
+            If False, no header row will be written (this is the standard for
+            experimental space CSV files). If True, the header row will be
+            written to the file.
+
+        Returns
+        -------
+        Nothing.
+        """
+
+        if table is not None and 'data' in table:
+            with open(fname, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
+                if headers and 'colHeaders' in table and table['colHeaders'] is not None:
+                    writer.writerow(table['colHeaders'])
+                if table['data'] is not None:
+                    for row in table['data']:
+                        writer.writerow(row)
+
+    def export_validated_experimental_space_csv(self, fname, timeout=5*60):
+        """Retrieves the validated experimental space table and writes the table to
+        a CSV file on disk.
+
+        Parameters
+        ----------
+        fname : str
+            The filesystem path where the file will be written.
+
+        timeout : int
+            The maximum number of seconds that the client will poll the session
+            to retrieve the experimental space.
+
+        Returns
+        -------
+        A Python dict representing the validated experimental space.
+        """
+
+        space = self.get_validated_experimental_space(timeout)
+        self.export_csv(space['table'], fname, False)
+        return space
+
+    def export_initial_experiments_template_csv(self, fname, timeout=5*60):
+        """Retrieves the validated experimental space table and writes an
+        empty initial experiments table to a CSV file on disk.
+
+        Parameters
+        ----------
+        fname : str
+            The filesystem path where the file will be written.
+
+        timeout : int
+            The maximum number of seconds that the client will poll the session
+            to retrieve the experimental space.
+
+        Returns
+        -------
+        A list of strings, representing the experiments table' header that was
+        written to disk.
+        """
+
+        space = self.get_validated_experimental_space(timeout)
+        col_headers = self.experiments_table_column_names(space)
+        self.export_csv({'colHeaders': colHeaders, 'data':[]}, fname)
+        return col_headers
+
+    def export_generated_design_csv(self, gen, fname, timeout=30*60):
+        """Retrieves a design generation from the session, adn writes the
+        experiments table (with empty responses) to a CSV file on disk.
+
+        Parameters
+        ----------
+        gen : int
+            The generation number for the design to be retrieved.
+
+        fname : str
+            The filesystem path where the file will be written.
+
+        timeout : int
+            The maximum number of seconds that the client will poll the session
+            to retrieve the generated design.
+
+        Returns
+        -------
+        The generated design, a Python dict representing an experiments table
+        with empty responses with `colHeaders`, and `data` keys.
+        """
+
+        design = self.get_generated_design(gen, timeout)
+        self.export_csv(design['table'], fname)
+        return design
+
+    def space_table_value_column_name(self, space_type, i):
+        """Utility method to format a header column name for in an
+        experimental space table.
+
+        Parameters
+        ----------
+        space_type : str
+            "mixture" or "factorial"
+
+        i : int
+            Index of the value column (starting at zero).
+
+        Returns
+        -------
+        A string: "Min" or "Max" for a "mixture" space type, or "Value.1", "Value.2", etc.
+        for a "factorial" space type.
+        """
+
+        if space_type == 'mixture':
+            if i == 0:
+                return 'Min'
+            elif i == 1:
+                return 'Max'
+        return 'Value.{0}'.format(i + 1)
+
+    def space_table_column_names(self, space):
+        """Generates the canonically formatted column header names for
+        the experimental space table.
+
+        Parameters
+        ----------
+        space : dict
+            A Python dict that defines the experimental space.
+
+        Returns
+        -------
+        A list of strings: "Name", "Type", "Min" and "Max" for a "mixture" space.
+        or "Name", "Type", "Value.1", "Value.2", etc. for a "factorial" space.
+        """
+
+        params = space['table']['data']
+        if len(params) > 0:
+            space_type = space['type']
+            n_value_cols = len(params[0]) - 2
+            value_cols = [ self.space_table_value_column_name(space_type, i) for i in range(0, n_value_cols) ]
+            return [ 'Name', 'Type' ] + value_cols
+        return []
+
+    def experiments_table_column_names(self, space):
+        """Generates the required header for the experiments table, including the
+        names of each parameter in the experimental space, and the reserved name
+        "Response" for the experiment response value.
+
+        Parameters
+        ----------
+        space : dict
+            A Python dict that defines the experimental space.
+
+        Returns
+        -------
+        A list of strings.
+        """
+
+        params = space['table']['data']
+        if len(params) > 0:
+            param_names = [param[0] for param in params]
+            return param_names + ['Response']
+        return []
+
+    def experiment_with_random_response(self, experiment, max_response_value):
+        """Uses a random number generator to generate a numerical response value
+        in the range [0, n] and then replaces any existing response value with
+        the generated value.
+
+        Parameters
+        ----------
+        experiment : list
+            A list of values representing an experiment, including a (possibly
+            empty) response value.
+
+        max_response_value: float
+            The maximum random response value to be generated for the experiment.
+
+        Returns
+        -------
+        The list of parameter values for the specified experiment, with a generated
+        response value, encoded as a string.
+        """
+
+        response = '{:.3f}'.format(random.uniform(0.0, max_response_value))
+        new_experiment = experiment[0:-1]
+        new_experiment.append(response)
+        return new_experiment
+
+    def random_parameter_value(self, space_type, param):
+        """Uses a random number generator to select a parameter value that is valid
+        for the space type and specified parameter definition.
+
+        Parameters
+        ----------
+        space_type : str
+            The space type, either "mixture" or "factorial".
+
+        param : list
+            The row from the experimental space definition table that defines
+            a particular parameter in the space.
+
+        Returns
+        -------
+        A valid value for the parameter, encoded as a string.
+        """
+
+        if len(param) < 4:
+            raise InvalidParameterError(space_type, param)
+        if space_type == 'mixture':
+            if param[1] != 'unit':
+                raise InvalidParameterError(space_type, param)
+            min_value = int(param[2])
+            max_value = int(param[3])
+            return str(random.randint(min_value, max_value))
+        else:
+            if param[1] not in ['factorial', 'numerical']:
+                raise InvalidParameterError(space_type, param)
+            values = [s for s in param[2:] if s != '']
+            return random.choice(values)
+
+    def random_experiment_for_space(self, space, max_response_value=None):
+        """Uses a random number generator to select parameter values and
+        optionally to create a random response value.
+
+        Parameters
+        ----------
+        space : dict
+            A Python dict that defines the experimental space.
+
+        max_response_value : None or float
+            If None, the experiment is generated with an empty response.
+            If a number, the response value is a randomly generated number
+            in the range [0.0, max_response_value].
+
+        Returns
+        -------
+        A valid value for the parameter, encoded as a string.
+        """
+
+        space_type = space['type']
+        params = space['table']['data']
+        experiment = [self.random_parameter_value(space_type, param) for param in params] + ['']
+        if max_response_value is not None:
+            return self.experiment_with_random_response(experiment, max_response_value)
+        return experiment
+
+    def experiments_table_template(self, space):
+        """Generate the column header for the experiments table, with no data
+        rows. Can be used to export an empty experiments table template CSV file,
+        or to submit "empty" initial experiments.
+
+        Parameters
+        ----------
+        space : dict
+            A Python dict that defines the experimental space.
+
+        Returns
+        -------
+        A Python dict with `colHeaders` and `data` values, representing an
+        empty experiments table.
+        """
+
+        col_headers = self.experiments_table_column_names(space)
+        if col_headers is None:
+            raise SpaceOrDesignRequiredError()
+        return {'colHeaders': col_headers, 'data': [] }
+
+    def random_experiments_with_responses(self, space, design, num_extras=0, max_response_value=5.0):
+        """Generate an experiments table with where each experiment row
+        contains a randomly generated response value. The experiment rows
+        are optionally  composed of "designed" rows and "extra" rows.
+        The "designed" rows have one experiment row for each row in the
+        currently generated design. And the "extra" rows contain randomly
+        generated parameter values as well as responses.
+
+        Parameters
+        ----------
+        space : dict
+            A Python dict that defines the experimental space.
+
+        design : dict or None
+            If supplied, a Python dict that defines the currently generated
+            design as a table. The dict has `colHeaders` and `data` keys.
+
+        num_extras: int
+            If non-zero, generate this number of extra rows. The extra rows
+            will be appended to any designed rows.
+
+        max_response_value : float
+            The maximum value for generated responses. Each genreated response value
+            is a randomly generated number in the range [0.0, max_response_value].
+
+        Returns
+        -------
+        A Python dict with `colHeaders` and `data` values, representing an
+        experiments table.
+        """
+
+        col_headers = None
+        designed_experiments = []
+        extra_experiments = []
+        if space is not None:
+            col_headers = self.experiments_table_column_names(space)
+            if num_extras > 0:
+                extra_experiments = [self.random_experiment_for_space(space, max_response_value) for i in range(0, num_extras)]
+        if design is not None:
+            col_headers = design['table']['colHeaders']
+            designed_experiments = [self.experiment_with_random_response(experiment, max_response_value) for experiment in design['table']['data']]
+        if col_headers is None:
+            raise SpaceOrDesignRequiredError()
+        return { 'colHeaders': col_headers, 'data': designed_experiments + extra_experiments }

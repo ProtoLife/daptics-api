@@ -747,8 +747,15 @@ query GetExperiments($sessionId:String!, $gen:Int!){
         return data
 
     def simulate_experiment_responses(self, experiments = None):
-        """Generate values for the "Response" column.
-        TODO: Add an explanation for how these responses are generated.
+        """Generate values for the "Response" column.  The values are a
+        substitute for actual experimental results, computed with a
+        synthetic data generator that takes as an input each
+        experiment (i.e. each row of the experiments argument) and
+        gives as output a single number, added as a 'Response'.  The
+        data generator samples a complex surface, constructed to have
+        several peaks that are randomly placed in the space.  There is
+        a global optimum (highest peak), but optimization runs often
+        will find one of the lower peaks.
 
         Parameters
         ---------
@@ -783,9 +790,15 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
         return self.gql.execute(doc, variable_values=vars)
 
     def simulate_experiment_responses_csv(self, fname):
-        """Generate values for the "Response" column.
-        TODO: Copy the explanation for how these responses are generated from
-        the "simulate_experiment_responses" method above.
+        """Generate values for the "Response" column.  The values are a
+        substitute for actual experimental results, computed with a
+        synthetic data generator that takes as an input each
+        experiment (i.e. each row of the experiments argument) and
+        gives as output a single number, added as a 'Response'.  The
+        data generator samples a complex surface, constructed to have
+        several peaks that are randomly placed in the space.  There is
+        a global optimum (highest peak), but optimization runs often
+        will find one of the lower peaks.
 
         Parameters
         ---------

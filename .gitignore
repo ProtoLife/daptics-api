@@ -1,0 +1,7 @@
+session.json
+gen*.csv
+initial*.csv
+simulated*.csv
+validated*.csv
+*.pdf
+_build

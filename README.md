@@ -5,6 +5,9 @@ Documentation and clients for the Daptics design of experiments GraphQL API.
 For more information on Daptics technology, please see the Documentation section
 of the [Daptics website](https://daptics.ai).
 
+To use the Daptics API, you must first register at the [Daptics website](https://daptics.ai) 
+to establish your login and password for API authentication.
+
 
 ## Python Client
 

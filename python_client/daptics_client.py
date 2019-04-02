@@ -322,6 +322,24 @@ mutation CreateSession($session:NewSessionInput!) {
             self.initial_params = data['createSession']['params']
         return data
 
+    def list_sessions(self):
+        """Show all the user's sessions.
+
+        Returns
+        -------
+        The JSON response from the gql request, a Python dict with `createSession` and/or
+        `errors` keys. On successful creation, the session id and initial parameters
+        are stored in the client's `session_id` and `initial_params` attributes.
+        """
+
+        # The 'sessions' query will return a list of sessions.
+        doc = gql.gql("""
+query GetSessions {
+    sessions { sessionId tag name description active demo }
+}
+        """)
+        return self.gql.execute(doc, variable_values=None)
+
     def reconnect_session(self, session_id):
         """Find an existing session.
 

@@ -1189,7 +1189,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 raise TaskTimeoutError()
             time.sleep(1.0)
 
-    def get_analytics(self):
+    def get_analytics(self, gen=None):
         """Get a list of the available analytics files for the session's current
         generation number.
 
@@ -1200,9 +1200,13 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         returned in the `createAnalytics` value.  Each file will have a `url` and
         `filename` value, that can be passed to the `get_analytics_file` method.
         """
+
+        if gen is None:
+            gen = max(self.gen, 0)
+
         vars = {
             'sessionId': self.session_id,
-            'gen': min(self.gen, 0)
+            'gen': gen
         }
 
         # The 'createAnalytics' mutation generates PDF files on the Rserve

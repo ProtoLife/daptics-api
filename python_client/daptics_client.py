@@ -1099,7 +1099,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         Parameters
         ----------
         timeout : int
-            The maximum number of seconds that the client will poll the session.
+            The maximum number of seconds that the client will poll the session
+            for a result. The default is 300 (5 minutes).
 
         Returns
         -------
@@ -1146,7 +1147,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         timeout : int
             The maximum number of seconds that the client will poll the session
-            to retrieve the generated design.
+            to retrieve the generated design. The default is 1800 (30 minutes).
 
         Returns
         -------
@@ -1189,16 +1190,31 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 raise TaskTimeoutError()
             time.sleep(1.0)
 
-    def get_analytics(self, gen=None):
+    def get_analytics(self, gen=None, timeout=30):
         """Get a list of the available analytics files for the session's current
         generation number.
+
+        Parameters
+        ----------
+        gen : int
+            The (optional) generation number for which the analytics files are requested.
+            If omitted (gen is None), the current generation number will be used.
+
+        timeout : int
+            The maximum number of seconds that the client will wait for a
+            response from the session. The default is 30 seconds.
 
         Returns
         -------
         The JSON response from the gql request, a Python dict with `createAnalytics` and/or
-        `errors` keys. If there are any files available, the list of files will be
-        returned in the `createAnalytics` value.  Each file will have a `url` and
-        `filename` value, that can be passed to the `get_analytics_file` method.
+        `errors` keys. If there are any files available, they will be returned in the
+        `createAnalytics` value. This value will have two keys:
+
+        `files` - A list of the availiable files. Each file will have a `url` and
+        `filename` value that can be passed to the `get_analytics_file` method.
+
+        `gen` - The generation number for which the files were actually created. This
+        may be different from the `gen` number that was requested.
         """
 
         if gen is None:
@@ -1222,7 +1238,7 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
     }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars)
+        return self.gql.execute(doc, variable_values=vars, timeout=timeout)
 
     def get_analytics_file(self, url, save_as=None):
         """Fetch the contents of an analytics file. Once a URL to a particular analytics file
@@ -1291,7 +1307,7 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
 
         timeout : int
             The maximum number of seconds that the client will poll the session
-            to retrieve the experimental space.
+            to retrieve the experimental space. The default is 300 (5 minutes).
 
         Returns
         -------
@@ -1313,7 +1329,7 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
 
         timeout : int
             The maximum number of seconds that the client will poll the session
-            to retrieve the experimental space.
+            to retrieve the experimental space. The default is 300 (5 minutes).
 
         Returns
         -------
@@ -1340,7 +1356,7 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
 
         timeout : int
             The maximum number of seconds that the client will poll the session
-            to retrieve the generated design.
+            to retrieve the generated design. The default is 1800 (30 minutes).
 
         Returns
         -------

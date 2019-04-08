@@ -48,10 +48,10 @@ pip install --upgrade pip
 pip install --upgrade requests gql ipython jupyter
 ```
 
-Start the notebook in the tutorial directory:
+Start the notebook in the python_client directory:
 
 ```
-cd tutorials
+cd python_client
 jupyter notebook
 ```
 

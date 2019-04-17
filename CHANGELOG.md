@@ -2,6 +2,8 @@
 
 ## v0.6.0 (17/04/2019)
 
+### Improved handling of exceptions and tasks
+
 API changes in `daptics_client.py`:
 
 * Wrapped all GraphQL calls in `call_api` method to trap exceptions
@@ -17,6 +19,8 @@ Notebook changes:
 ---
 
 ## v0.5.1 (02/04/2019)
+
+### get_analytics fix, more examples
 
 API changes in `daptics_client.py`:
 
@@ -34,6 +38,8 @@ Added two more interactive notebooks:
 ---
 
 ## v0.5.0 (29/03/2019)
+
+### First release of public repository
 
 Initial public API release with Python client and interactive notebook:
 

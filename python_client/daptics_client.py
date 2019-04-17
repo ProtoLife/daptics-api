@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.5.1
+Daptics API Version 0.6.0
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -187,7 +187,7 @@ class DapticsClient(object):
                     print("\t",x,":  ",self.validated_params[x])
         else:
             print("Experimental Space Definition validated_params = None")
-                        
+
         if self.design is not None:
             print("Design:")
             print(self.design['table']['colHeaders'])
@@ -195,7 +195,7 @@ class DapticsClient(object):
                 print(dd)
         else:
             print("design: None")
-        
+
     def call_api(self, doc, vars, timeout=None):
         data = None
         try:
@@ -1142,7 +1142,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
     def wait_for_current_task(self):
         """Wraps poll_for_current_task() in a loop
-        
+
         Returns
         _______
         None for normal exit.
@@ -1151,7 +1151,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         # Poll the task. Repeat until task disappears, when `status` is `success` (or `failure`).
         cnt = 0
         while True:
-            task = self.poll_for_current_task() 
+            task = self.poll_for_current_task()
             if task['currentTask'] is not None:
                 sys.stdout.write("\r")
                 if task['currentTask']['status'] == 'error':

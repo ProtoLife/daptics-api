@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.5.1
+Daptics API Version 0.6.0
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,7 +42,8 @@ import random
 import requests
 import requests.auth
 import time
-
+import sys
+from time import sleep
 
 class TokenAuth(requests.auth.AuthBase):
     """A callable authentication object for the Python "requests" moudule.
@@ -162,6 +163,47 @@ class DapticsClient(object):
         self.validated_params = None
         self.design = None
 
+    def print(self):
+        print("host = ",self.host)
+        print("user_id = ",self.user_id)
+        print("session_id = ",self.session_id)
+        print("current_task = ",self.current_task)
+        print("gen = ",self.gen)
+        if self.validated_params is not None:
+            print("Experimental Space Definition:")
+            for x in self.validated_params:
+                if x == 'space':
+                    sp = self.validated_params[x]
+                    for y in sp:
+                        if y == 'table':
+                            print('\t ESD Data:')
+                            print("\t\t",sp['table']['colHeaders'])
+                            for z in sp['table']['data']:
+                                zz = [z[i] for i in range(len(z)) if z[i] != '']
+                                print('\t\t',zz)
+                        else:
+                            print("\t",y,":  ",sp[y])
+                else:
+                    print("\t",x,":  ",self.validated_params[x])
+        else:
+            print("Experimental Space Definition validated_params = None")
+
+        if self.design is not None:
+            print("Design:")
+            print(self.design['table']['colHeaders'])
+            for dd in self.design['table']['data']:
+                print(dd)
+        else:
+            print("design: None")
+
+    def call_api(self, doc, vars, timeout=None):
+        data = None
+        try:
+            data = self.gql.execute(doc, variable_values=vars,timeout = timeout)
+        except Exception as e:
+            data = {'error': str(e)}
+        return data
+
     def save(self, fname):
         """Save the user and session id to a JSON file.
 
@@ -270,7 +312,7 @@ mutation Login($email:String!, $password:String!) {
             self.user_id = data['login']['user']['userId']
         return data
 
-    def create_session(self, name, description, demo):
+    def create_session(self, name, description):
         """Create a new PDT session.
 
         Parameters
@@ -279,8 +321,6 @@ mutation Login($email:String!, $password:String!) {
             The unique name for the session among the authenticated user's sessions.
         description : str
             A description for the session.
-        is_demo : bool
-            If True, this will be a demo session with simulated designs and responses.
 
         Returns
         -------
@@ -293,10 +333,9 @@ mutation Login($email:String!, $password:String!) {
                 'userId': self.user_id,
                 'name': name,
                 'description': description,
-                'demo': demo
+                'demo': False # If True, this will be a demo session with simulated designs and responses.
             }
         }
-
         # The 'createSession' mutation will add a new session to the backend's database,
         # copy runtime files to a fresh Rserve session directory on the Rserve filesystem,
         # start the session and return initial session information.
@@ -316,7 +355,13 @@ mutation CreateSession($session:NewSessionInput!) {
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        # data = self.gql.execute(doc, variable_values=vars)
+        data = self.call_api(doc,vars)
+        if 'error' in data:
+            print("Problem creating session!")
+            print("Error:  {}".format(data['error']))
+            print("Hint: session name may have already been taken, in which case choose another one.")
+            return None
         if 'createSession' in data and data['createSession'] is not None:
             self.session_id = data['createSession']['sessionId']
             self.initial_params = data['createSession']['params']
@@ -1054,7 +1099,14 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+
+        data = self.call_api(doc, vars)
+
+        if 'error' in data:
+            print("Problem finding current task!")
+            print("Error:  {}".format(data['error']))
+            return None
+
         if 'currentTask' in data and data['currentTask'] is not None \
             and 'status' in data['currentTask'] \
             and 'type' in data['currentTask']:
@@ -1066,11 +1118,11 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 self.current_task = data['currentTask']
             elif status == 'canceled':
                 # Message will be in response error
-                # TESTME: will we ever get here, or will exception be thown first?
+                # TESTME: will we ever get here, or will exception be thrown first?
                 self.current_task = None
             elif status == 'error':
                 # Message will be in response error
-                # TESTME: will we ever get here, or will exception be thown first?
+                # TESTME: will we ever get here, or will exception be thrown first?
                 self.current_task = None
             elif status == 'success':
                 # Fetch non-error result
@@ -1087,6 +1139,37 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         if self.current_task is not None:
             self.current_task['pollRetries'] = retries + 1
         return data
+
+    def wait_for_current_task(self):
+        """Wraps poll_for_current_task() in a loop
+
+        Returns
+        _______
+        None for normal exit.
+        task['currentTask']['errors'] if ever task['currentTask']['status'] == 'error'.
+        """
+        # Poll the task. Repeat until task disappears, when `status` is `success` (or `failure`).
+        cnt = 0
+        while True:
+            task = self.poll_for_current_task()
+            if task['currentTask'] is not None:
+                sys.stdout.write("\r")
+                if task['currentTask']['status'] == 'error':
+                    sys.stdout.write("\n")
+                    print("Error!  Messages are:")
+                    # print(task)
+                    for ee in task['currentTask']['errors'][0]:
+                        print(ee,'\t',task['currentTask']['errors'][0][ee])
+                    print("------------ end of error messages.")
+                    return
+                mystr = "status = "+str(task['currentTask']['status'])+" -- "+str(cnt)+" seconds."
+                sys.stdout.write(mystr)
+                sleep(1)
+                cnt = cnt+1
+            else:
+                sys.stdout.write("\n")
+                print("Error: no client found!")
+                break
 
     def get_validated_experimental_space(self, timeout=5*60):
         """Utility method to retrieve the validated experimental space from
@@ -1114,25 +1197,24 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         tmax = time.time()
         if timeout is not None and timeout > 0:
             tmax += timeout
-        while True:
-            data = self.poll_for_current_task('space')
-            if 'currentTask' in data and data['currentTask'] is not None:
-                type_ = data['currentTask']['type']
-                if type_ == 'space':
-                    status = data['currentTask']['status']
-                    if status == 'success' and self.validated_params is not None:
-                        return self.validated_params['space']
-                    elif status != 'new' and status != 'running':
-                        raise TaskFailedError('space')
-                else:
-                    raise TaskTypeError('space')
+        if 'currentTask' in data and data['currentTask'] is not None:
+            type_ = data['currentTask']['type']
+            if type_ == 'space':
+                status = data['currentTask']['status']
+                if status == 'success' and self.validated_params is not None:
+                    return self.validated_params['space']
+                elif status != 'new' and status != 'running':
+                    raise TaskFailedError('space')
             else:
-                raise NoCurrentTaskError()
-            if tmax < time.time():
-                raise TaskTimeoutError()
-            time.sleep(1.0)
+                raise TaskTypeError('space')
+        else:
+            raise NoCurrentTaskError()
+        if tmax < time.time():
+            raise TaskTimeoutError()
+        time.sleep(1.0)
 
-    def get_generated_design(self, gen, timeout=30*60):
+
+    def get_generated_design(self, gen=None, timeout=30*60):
         """Utility method to retrieve a design generation from
         the session. If the session was restarted and the design for the
         specified generation number is available, it will be in the `design`
@@ -1155,6 +1237,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         with empty responses with `colHeaders`, and `data` keys.
         """
 
+        if gen == None:
+            gen = self.gen
         if self.validated_params is None or gen < 0:
             raise SessionParametersNotValidatedError()
 
@@ -1339,20 +1423,21 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
 
         space = self.get_validated_experimental_space(timeout)
         col_headers = self.experiments_table_column_names(space)
-        self.export_csv({'colHeaders': colHeaders, 'data':[]}, fname)
+        self.export_csv({'colHeaders': col_headers, 'data':[]}, fname)
         return col_headers
 
-    def export_generated_design_csv(self, gen, fname, timeout=30*60):
+    def export_generated_design_csv(self, fname, gen = None, timeout=30*60):
         """Retrieves a design generation from the session, adn writes the
         experiments table (with empty responses) to a CSV file on disk.
 
         Parameters
         ----------
-        gen : int
-            The generation number for the design to be retrieved.
-
         fname : str
             The filesystem path where the file will be written.
+
+        gen : int
+            The generation number for the design to be retrieved.  Default current
+            generation.
 
         timeout : int
             The maximum number of seconds that the client will poll the session
@@ -1364,6 +1449,8 @@ mutation CreateAnalytics($sessionId:String!, $gen:Int!) {
         with empty responses with `colHeaders`, and `data` keys.
         """
 
+        if gen is None:
+            gen = self.gen
         design = self.get_generated_design(gen, timeout)
         self.export_csv(design['table'], fname)
         return design

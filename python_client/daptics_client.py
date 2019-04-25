@@ -432,7 +432,7 @@ query GetSession($sessionId:String!) {
 
         # Returns
         dict:
-            The JSON response from the gql request, a Python dict with `saveSession# Arguments` and/or
+            The JSON response from the gql request, a Python dict with `saveSessionParameters` and/or
             `errors` keys. If the task was successfully started, the task information is stored
             in the client's `current_task` attribute.
 
@@ -535,21 +535,21 @@ query GetSession($sessionId:String!) {
             'params': params
         }
 
-        # The 'saveSession# Arguments' mutation must be run to validate the
+        # The 'saveSessionParameters' mutation must be run to validate the
         # user's experimental design. The mutation will return errors if the
         # parameters or space are not valid (don't generate enough complexity, etc.).
         # If the parameters are valid, information about the long running 'space'
         # task is returned, and the user should poll until the task has completed.
         doc = gql.gql("""
-mutation CreateSpaceTask($sessionId:String!, $params:Session# ArgumentsInput!) {
-    saveSession# Arguments(sessionId:$sessionId, params:$params) {
+mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
+    saveSessionParameters(sessionId:$sessionId, params:$params) {
         sessionId taskId status type startedAt
     }
 }
         """)
         data = self.gql.execute(doc, variable_values=vars)
-        if 'saveSession# Arguments' in data and data['saveSession# Arguments'] is not None:
-            self.current_task = data['saveSession# Arguments']
+        if 'saveSessionParameters' in data and data['saveSessionParameters'] is not None:
+            self.current_task = data['saveSessionParameters']
             self.current_task['pollRetries'] = 0
         return data
 
@@ -569,7 +569,7 @@ mutation CreateSpaceTask($sessionId:String!, $params:Session# ArgumentsInput!) {
             below for an example.
 
         # Returns
-        dict: The JSON response from the gql request, a Python dict with `saveSession# Arguments` and/or
+        dict: The JSON response from the gql request, a Python dict with `saveSessionParameters` and/or
             `errors` keys. If the task was successfully started, the task information is stored
             in the client's `current_task` attribute.
 
@@ -1222,7 +1222,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         if gen == None:
             gen = self.gen
         if self.validated_params is None or gen < 0:
-            raise Session# ArgumentsNotValidatedError()
+            raise SessionParametersNotValidatedError()
 
         if gen is None:
             if self.design is not None:

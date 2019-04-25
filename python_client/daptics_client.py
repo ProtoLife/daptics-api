@@ -50,7 +50,8 @@ class TokenAuth(requests.auth.AuthBase):
     If acess token is set, add a "Bearer" authorization header to the HTTP request.
 
     # Attributes
-    token (str): An acess token obtained from the API for the authenticated user.
+    token (str):
+        An access token obtained from the API for the authenticated user.
     """
     def __init__(self):
         self.token = None
@@ -79,7 +80,7 @@ class TaskFailedError(Exception):
     def __init__(self, type_):
         self.message = 'The {} task failed to return a valid result.'.format(type_)
 
-class SessionArgumentsNotValidatedError(Exception):
+class SessionParametersNotValidatedError(Exception):
     def __init__(self):
         self.message = 'The session parameters have not been validated.'
 

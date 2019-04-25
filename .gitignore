@@ -11,3 +11,5 @@ initial*.csv
 simulated*.csv
 validated*.csv
 *.pdf
+
+site/

@@ -15,6 +15,7 @@ generate:
 # in the documentation. The path must be relative to current working directory.
 pages:
 - Home: index.md << ../README.md
+- GraphQL API: graphql_api.md << graphql_api.md
 - Python API Client: python_client.md
 
 # These options all show off their default values. You don't have to add

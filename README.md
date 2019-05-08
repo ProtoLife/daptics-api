@@ -19,3 +19,31 @@ server if you do not have access to a server that can open `.ipynb` files.
 
 
 [![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
+
+
+## GraphQL API Documentation
+
+Install this tool:
+
+* [graphql-markdown]()
+
+Then in `docs` folder, run:
+
+```
+graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
+```
+
+## Python Client Documentation and MkDocs Build
+
+Install these tools:
+
+* [MkDocs](https://www.mkdocs.org/)
+* [pydocmd](https://niklasrosenstein.github.io/pydoc-markdown)
+
+Then in `docs` folder, run:
+
+```
+pydocmd build
+```
+
+Html and Markdown files will be produced in the `docs/_build/site` folder.

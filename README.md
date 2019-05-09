@@ -47,3 +47,30 @@ pydocmd build
 ```
 
 Html and Markdown files will be produced in the `docs/_build/site` folder.
+
+
+## Using jupytext to extract and sync to Python source files
+
+1. Install jupytext:
+
+* [jupytext](https://github.com/mwouts/jupytext)
+
+2. Set up metadata in any ipynb file that has Python code:
+
+```
+jupytext --set-formats ipynb,py:light 03_SimpleTutorial.ipynb
+```
+
+3. Export Python code to `/python` subdirectory:
+
+```
+jupytext --from ipynb --to python//py:light 03_SimpleTutorial.ipynb
+```
+
+4. Edit Python code as needed
+
+5. Rebuild notebook from Python file without outputs:
+
+```
+jupytext --from python//py:light --to notebook python/03_SimpleTutorial.py
+```

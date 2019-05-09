@@ -58,7 +58,7 @@ Html and Markdown files will be produced in the `docs/_build/site` folder.
 2. Set up metadata in any ipynb file that has Python code:
 
 ```
-jupytext --set-formats ipynb,py:light 03_SimpleTutorial.ipynb
+jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb
 ```
 
 3. Export Python code to `/python` subdirectory:
@@ -67,9 +67,11 @@ jupytext --set-formats ipynb,py:light 03_SimpleTutorial.ipynb
 jupytext --from ipynb --to python//py:light 03_SimpleTutorial.ipynb
 ```
 
-4. Edit Python code as needed
+4. Edit Python code as needed. Or when you run in Jupyter notebook, and make changes, the
+corresponding Python file will be kept up to date!
 
-5. Rebuild notebook from Python file without outputs:
+5. Rebuild notebook from Python file without outputs (do this before checking into
+version control):
 
 ```
 jupytext --from python//py:light --to notebook python/03_SimpleTutorial.py

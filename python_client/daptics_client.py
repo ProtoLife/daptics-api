@@ -1379,7 +1379,6 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         if timeout is not None and timeout > 0:
             tmax += timeout
 
-        # FIXME
         while True:
             data, errors = self.poll_for_current_task('space')
             if 'currentTask' in data and data['currentTask'] is not None:

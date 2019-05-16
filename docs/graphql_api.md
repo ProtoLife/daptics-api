@@ -10,24 +10,24 @@
     * [AnalyticsFileInfo](#analyticsfileinfo)
     * [ApiParameters](#apiparameters)
     * [AuthenticationToken](#authenticationtoken)
-    * [BatchTransactionResult](#batchtransactionresult)
-    * [BraintreeToken](#braintreetoken)
     * [CampaignInfo](#campaigninfo)
     * [CategorizedError](#categorizederror)
     * [DataFrame](#dataframe)
     * [ExperimentalSpace](#experimentalspace)
     * [ExperimentalSpaceTemplate](#experimentalspacetemplate)
     * [Experiments](#experiments)
+    * [ExperimentsGen](#experimentsgen)
+    * [FinalizeTaskResult](#finalizetaskresult)
     * [GenerateTaskResult](#generatetaskresult)
-    * [InfoUpdated](#infoupdated)
+    * [HaltSessionResult](#haltsessionresult)
     * [Loadavg](#loadavg)
-    * [Notification](#notification)
     * [PasswordChanged](#passwordchanged)
     * [Server](#server)
     * [Session](#session)
     * [SessionAuth](#sessionauth)
     * [SessionParameters](#sessionparameters)
     * [SessionSummary](#sessionsummary)
+    * [SimulateTaskResult](#simulatetaskresult)
     * [SpaceTaskResult](#spacetaskresult)
     * [Task](#task)
     * [TaskProgress](#taskprogress)
@@ -42,14 +42,9 @@
     * [ChangePasswordInput](#changepasswordinput)
     * [DataFrameInput](#dataframeinput)
     * [ExperimentsInput](#experimentsinput)
-    * [GenInfoInput](#geninfoinput)
-    * [NewNotificationInput](#newnotificationinput)
     * [NewSessionInput](#newsessioninput)
-    * [NewTransactionInput](#newtransactioninput)
     * [NewUserInput](#newuserinput)
-    * [RuntimeInfoInput](#runtimeinfoinput)
     * [SessionParametersInput](#sessionparametersinput)
-    * [SpaceInfoInput](#spaceinfoinput)
     * [SpaceInput](#spaceinput)
     * [TaskInput](#taskinput)
     * [UserProfileInput](#userprofileinput)
@@ -105,7 +100,7 @@ If provided, only returns information if the task's id matches.
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-If provided, only returns information if the task's type ('space', 'generate', or 'finalize') matches.
+If provided, only returns information if the task's type ('space', 'generate', 'finalize', or 'simulate') matches.
 
 </td>
 </tr>
@@ -124,6 +119,24 @@ Get the experiments and any supplied responses for current or a previous generat
 <td>
 
 The generation number. Use zero to get any initial experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>experimentsHistory</strong></td>
+<td valign="top">[<a href="#experimentsgen">ExperimentsGen</a>]</td>
+<td>
+
+Get the experiments and responses for all generations. For non-admin users, returns information only if the session is owned by the user.
 
 </td>
 </tr>
@@ -272,6 +285,87 @@ The session's id.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>transaction</strong></td>
+<td valign="top"><a href="#transaction">Transaction</a></td>
+<td>
+
+Get the transaction by id. Admin-level users only.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">txnId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The transaction's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>transactions</strong></td>
+<td valign="top">[<a href="#transaction">Transaction</a>]</td>
+<td>
+
+Search transactions. For Admin-level users, returns search over all transactions.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">q</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+A string to filter search on. If provided, will limit the response to matches on the transaction's memo.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, list only the transactions for this session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">txnKind</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, list only the transactions matching this kind.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">txnStatus</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, list only the transactions matching this status.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">txnType</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, list only the transactions matching this type.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">userId</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, list only the transactions for this user.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>user</strong></td>
 <td valign="top"><a href="#user">User</a></td>
 <td>
@@ -353,16 +447,7 @@ The user's id, required if not authenticating via token.
 <td valign="top"><a href="#analytics">Analytics</a></td>
 <td>
 
-Generate a list of analytics files for the current or a previous generation.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">gen</td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The generation number.
+Generate a list of analytics files for all generations in the session.
 
 </td>
 </tr>
@@ -372,42 +457,6 @@ The generation number.
 <td>
 
 The session's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>createBraintreeToken</strong></td>
-<td valign="top"><a href="#braintreetoken">BraintreeToken</a></td>
-<td>
-
-Generate a Braintree client token for a user.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">email</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The user's email address.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>createNotification</strong></td>
-<td valign="top"><a href="#notification">Notification</a></td>
-<td>
-
-Create a new system notification.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">notification</td>
-<td valign="top"><a href="#newnotificationinput">NewNotificationInput</a>!</td>
-<td>
-
-Information about the requested notification.
 
 </td>
 </tr>
@@ -426,24 +475,6 @@ Create and start a new PDT session on a server, installing and initializing requ
 <td>
 
 The target server, the session's name and description, and whether this is a demo or regular session.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>createTransaction</strong></td>
-<td valign="top"><a href="#transaction">Transaction</a></td>
-<td>
-
-Create a new pending or posted financial transaction. Debit transactions will be checked against the user's current balance. System-level users only.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">transaction</td>
-<td valign="top"><a href="#newtransactioninput">NewTransactionInput</a>!</td>
-<td>
-
-Information about the requested transaction. The txn_status value must be 'authorized' or 'posted'.
 
 </td>
 </tr>
@@ -480,6 +511,51 @@ If present, the promotion code that will be applied to the new user.
 <td>
 
 The first name, last name, email address and password for the new user.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>finalizeCampaign</strong></td>
+<td valign="top"><a href="#task">Task</a></td>
+<td>
+
+Validate and start a 'finalize' task to save the final extra and/or generated experiment responses.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">experiments</td>
+<td valign="top"><a href="#experimentsinput">ExperimentsInput</a>!</td>
+<td>
+
+The experiments and responses to validate.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>haltSession</strong></td>
+<td valign="top"><a href="#haltsessionresult">HaltSessionResult</a></td>
+<td>
+
+Disconnect from a previously created PDT session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The sesssion's id as returned by the createSession mutation.
 
 </td>
 </tr>
@@ -543,6 +619,42 @@ Restart a previously created PDT session, re-initializing application and user d
 <td>
 
 The sesssion's id as returned by the createSession mutation.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>runSimulation</strong></td>
+<td valign="top"><a href="#task">Task</a></td>
+<td>
+
+Validate and start a 'simulate' task to process several design generations.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">ngens</td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The number of design generations to attempt.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">params</td>
+<td valign="top"><a href="#sessionparametersinput">SessionParametersInput</a>!</td>
+<td>
+
+The experimental space parameters to use for the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
 
 </td>
 </tr>
@@ -655,51 +767,6 @@ The session's id.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>updateSessionInfo</strong></td>
-<td valign="top"><a href="#infoupdated">InfoUpdated</a></td>
-<td>
-
-API callback to update session database with session information.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">genInfo</td>
-<td valign="top"><a href="#geninfoinput">GenInfoInput</a></td>
-<td>
-
-Information on the number of the current and remaining generations.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">runtimeInfo</td>
-<td valign="top"><a href="#runtimeinfoinput">RuntimeInfoInput</a></td>
-<td>
-
-Information on the session's runtime version.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">spaceInfo</td>
-<td valign="top"><a href="#spaceinfoinput">SpaceInfoInput</a></td>
-<td>
-
-Information about the validated experimental space parameters defined for the session.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">tag</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The session's unique tag.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>updateTask</strong></td>
 <td valign="top"><a href="#task">Task</a></td>
 <td>
@@ -723,78 +790,6 @@ The session's id.
 <td>
 
 The task id and disposition.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>updateTaskTransactionStatus</strong></td>
-<td valign="top"><a href="#batchtransactionresult">BatchTransactionResult</a></td>
-<td>
-
-Charge or cancel all pending transactions for a (design generation) task. System-level users only.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">taskId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The task's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">txnStatus</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The requested final status ('posted' or 'canceled').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">userId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The user's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>updateTransactionStatus</strong></td>
-<td valign="top"><a href="#batchtransactionresult">BatchTransactionResult</a></td>
-<td>
-
-Charge or cancel a pending transaction. If charging, debit transactions will be checked against the user's current balance. System-level users only.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">txnId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The transaction id returned by the createTransaction mutation.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">txnStatus</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The requested final status ('posted' or 'canceled').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">userId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The user's id.
 
 </td>
 </tr>
@@ -1048,85 +1043,6 @@ The token. Use this as the 'Bearer' value for the HTTP authorization header.
 <td>
 
 The type of token ('access').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>user</strong></td>
-<td valign="top"><a href="#userprofile">UserProfile</a></td>
-<td>
-
-The user account associated with this token.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### BatchTransactionResult
-
-Information about a batch of concurrently run transactions for a single user account.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>remainingBalanceInCents</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-The user account's remaining available balance, in cents, after these transactions.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>remainingBalanceInPdt</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-The user account's remaining available balance, in PDT credits, after these transactions.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>transactions</strong></td>
-<td valign="top">[<a href="#transaction">Transaction</a>]</td>
-<td>
-
-The individual transactions in this batch.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### BraintreeToken
-
-A Braintree client authorization token
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>token</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The client authoriztion token.
 
 </td>
 </tr>
@@ -1424,6 +1340,139 @@ True if the experiment data for this generation has been validated.
 </tbody>
 </table>
 
+### ExperimentsGen
+
+Information about initial or subsequent experiments in a session.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>designRows</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The number of experiments generated by the system.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>gen</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The generation number for the experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>hasResponses</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if the experiment data in the associated table contains responses.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>table</strong></td>
+<td valign="top"><a href="#dataframe">DataFrame</a>!</td>
+<td>
+
+The experiment inputs (and possible responses) for the experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>validated</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if the experiment data for this generation has been validated.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### FinalizeTaskResult
+
+Result of a finalize experiments task.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>campaign</strong></td>
+<td valign="top"><a href="#campaigninfo">CampaignInfo</a>!</td>
+<td>
+
+Generation information.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>errors</strong></td>
+<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
+<td>
+
+Errors encountered when validating the experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>params</strong></td>
+<td valign="top"><a href="#sessionparameters">SessionParameters</a>!</td>
+<td>
+
+Current validated experimental space parameters.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>taskId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's type ('finalize').
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### GenerateTaskResult
 
 Result of a validate experiments task.
@@ -1497,16 +1546,16 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', or 'finalize').
+The task's type ('generate').
 
 </td>
 </tr>
 </tbody>
 </table>
 
-### InfoUpdated
+### HaltSessionResult
 
-Session database updated status
+Information about a session that was disconnected.
 
 <table>
 <thead>
@@ -1519,29 +1568,29 @@ Session database updated status
 </thead>
 <tbody>
 <tr>
-<td colspan="2" valign="top"><strong>sessId</strong></td>
+<td colspan="2" valign="top"><strong>action</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The session's ID.
+The action taken to halt the session.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>updatedAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a>!</td>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-When update was committed.
+The session's id.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>updatedFields</strong></td>
-<td valign="top">[<a href="#string">String</a>!]</td>
+<td colspan="2" valign="top"><strong>status</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-List of fields that were updated.
+The current connection status of the session.
 
 </td>
 </tr>
@@ -1586,113 +1635,6 @@ Process loadavg statistics for a linux server.
 <td>
 
 5 minute loadavg.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### Notification
-
-A system notification, either from a user or automatically generated.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>category</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The notification category (`bug`, `sales`, etc.).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>createdAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a>!</td>
-<td>
-
-The date and time that the notification was created.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>details</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-Descriptive details about the notifcation.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>email</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The reply-to email address.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>refNumber</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-A generated unique reference number for the notification.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>sentAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a></td>
-<td>
-
-The date and time that the notification was sent to the target groups.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>sessTag</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The associated session's tag.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>source</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The notification's source (`system`, `session`, `inquiry`).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>targets</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The notification's target email groups, comma-delimited (`sales`, `support`, etc.).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>userId</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The associated user's account id.
 
 </td>
 </tr>
@@ -2305,6 +2247,86 @@ The build version for the session, if available.
 </tbody>
 </table>
 
+### SimulateTaskResult
+
+Result of a simulate experiments task.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>campaign</strong></td>
+<td valign="top"><a href="#campaigninfo">CampaignInfo</a>!</td>
+<td>
+
+Information on the last generation.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>errors</strong></td>
+<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
+<td>
+
+Errors encountered when validating the experimental space.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>experimentsHistory</strong></td>
+<td valign="top">[<a href="#experimentsgen">ExperimentsGen</a>]</td>
+<td>
+
+Experiments and responses for all generations.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>params</strong></td>
+<td valign="top"><a href="#sessionparameters">SessionParameters</a>!</td>
+<td>
+
+Current validated experimental space parameters.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>taskId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's type ('simulate').
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### SpaceTaskResult
 
 Result of a validate experimental space parameters task.
@@ -2369,7 +2391,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', or 'finalize').
+The task's type ('space').
 
 </td>
 </tr>
@@ -2449,7 +2471,7 @@ The date and time the task was started.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's status ('running', 'succeeded', 'failed', or 'canceled').
+The task's status ('new', 'running', 'success', 'error', or 'canceled').
 
 </td>
 </tr>
@@ -2467,7 +2489,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', or 'finalize').
+The task's type ('space', 'generate', 'finalize', or 'simulate').
 
 </td>
 </tr>
@@ -2546,7 +2568,7 @@ The session's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's status ('running', 'succeeded', 'failed', or 'canceled').
+The task's status ('new', 'running', 'success', 'error', or 'canceled').
 
 </td>
 </tr>
@@ -2564,7 +2586,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', or 'finalize').
+The task's type ('space', 'generate', 'finalize', or 'simulate').
 
 </td>
 </tr>
@@ -2675,6 +2697,24 @@ A description of the transacation.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>promotionCode</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The promotion code, if any.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>refTxnId</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The transaction id of the original transaction if this is transaction is a refund.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>remainingBalanceInCents</strong></td>
 <td valign="top"><a href="#int">Int</a></td>
 <td>
@@ -2693,11 +2733,29 @@ The user account's remaining available balance, in PDT credits, after this trans
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The id of the associated session, if any.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>taskId</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
 The id of the ('generate') task associated with the transaction, if any.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>txnAuthor</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The user id of the user who created the transaction.
 
 </td>
 </tr>
@@ -2715,7 +2773,7 @@ The transaction's id (a generated hash).
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The kind of transaction. (TBD)
+The kind of the transaction. (`pdt_charge`, `sale`, `refund`, `sign_up`, `coupon`, or `bonus`).
 
 </td>
 </tr>
@@ -2724,7 +2782,7 @@ The kind of transaction. (TBD)
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The disposition for the transaction ('authorized', 'posted', or 'canceled').
+The status of the transaction (`authorized`, `posted`, or `canceled`).
 
 </td>
 </tr>
@@ -2733,7 +2791,7 @@ The disposition for the transaction ('authorized', 'posted', or 'canceled').
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The type of transaction. (TBD)
+The type of the transaction. (`session`, `braintree`, `promotion` or `admin`).
 
 </td>
 </tr>
@@ -3551,128 +3609,6 @@ The experiments and their responses. Required if gen is greater than zero.
 </tbody>
 </table>
 
-### GenInfoInput
-
-Input fields for updating a session's summary generation information.
-
-<table>
-<thead>
-<tr>
-<th colspan="2" align="left">Field</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>completed</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
-<td>
-
-True if the campaign has completed (no additional experiments can be generated).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>gen</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The generation number for the last-designed generation. -1 means experimental space parameters have not been validated.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>remaining</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-The number of remaining generations in the session, if available.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### NewNotificationInput
-
-Input fields for a system notification.
-
-<table>
-<thead>
-<tr>
-<th colspan="2" align="left">Field</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>category</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The notification category (`bug`, `sales`, etc.).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>details</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-Descriptive details about the notifcation.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>email</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The reply-to email address.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>sessTag</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The associated session's tag.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>source</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The notification's source (`system`, `session`, `inquiry`).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>targets</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The notification's target email groups, comma-delimited (`sales`, `support`, etc.).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>userId</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The associated user's account id.
-
-</td>
-</tr>
-</tbody>
-</table>
-
 ### NewSessionInput
 
 Input fields for create a new PDT session.
@@ -3719,103 +3655,6 @@ If provided, the id of the server on which the session will be created.
 <td>
 
 The name of the session (unique for the user).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>userId</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The id for the associated user account.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### NewTransactionInput
-
-Input fields for creating a new financial transaction.
-
-<table>
-<thead>
-<tr>
-<th colspan="2" align="left">Field</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>amountInCents</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The amount of the transaction (debit as negative, credit as positive), in cents.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>amountInPdt</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The amount of the transaction (debit as negative, credit as positive), in PDT credits.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>memo</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-A description of the transaction.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>paymentMethodNonce</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-If this transaction is a Braintree purchase, the payment method nonce.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>taskId</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-If this transaction is a design charge, the id of the associated 'generate' task.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>txnKind</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The kind of the transaction. (TBD)
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>txnStatus</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The desired status of the transaction ('authorized', or 'charged').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>txnType</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The type of the transaction. (TBD)
 
 </td>
 </tr>
@@ -3892,40 +3731,6 @@ The cleartext password, again, for the user account.
 </tbody>
 </table>
 
-### RuntimeInfoInput
-
-Input fields for updating a session's runtime information.
-
-<table>
-<thead>
-<tr>
-<th colspan="2" align="left">Field</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>demo</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
-<td>
-
-True if this is a demo session.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>version</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-The build version for the session, if available.
-
-</td>
-</tr>
-</tbody>
-</table>
-
 ### SessionParametersInput
 
 Input fields for validating a session's experimental space parameters.
@@ -3972,76 +3777,6 @@ The space type and definition of experimental parameters.
 <td>
 
 True to discard all experiments and reset any existing validated experimental space parameters.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### SpaceInfoInput
-
-Input fields for updating a session's summary space definition information.
-
-<table>
-<thead>
-<tr>
-<th colspan="2" align="left">Field</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>designCost</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The cost in PDT credits for each design generation.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>gen</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The generation number (must be zero).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>populationSize</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The experimental space's population size.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>replicates</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The number of replicates for the experimental space.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>spaceType</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The space type, 'factorial' or 'mixture'.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>totalUnits</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-If a mixture space, the total number of volume units.
 
 </td>
 </tr>

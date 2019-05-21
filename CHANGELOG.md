@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.7.2 (22/05/2019)
+
+### Non-breaking change to daptics client
+
+API changes in `daptics_client.py`:
+
+* added `halt_session` method to fully disconnect from connected session.
+
+Notebook changes:
+
+None.
+
+
 ## v0.7.1 (15/05/2019)
 
 ### Minor but breaking changes to daptics client

@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.7.1
+Daptics API Version 0.7.2
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -515,6 +515,40 @@ query GetSession($sessionId:String!) {
             else:
                 self.validated_params = None
         return data
+
+    def halt_session(self, session_id):
+        """Close an connected session, to release all resources.
+
+        # Arguments
+        session_id (str):
+            The session id to close.
+
+        # Returns
+        dict:
+            The JSON response from the gql request, a Python dict with `haltSession` and/or
+            `errors` keys. If the call is successful, the 'haltSession' value contains
+            these keys:
+
+        action (str):
+            The action taken, either 'close' (if the session was connected) or 'none' if
+            had already been closed.
+
+        status (str):
+            The session status, which should always be 'closed',
+        """
+
+        vars = {
+            'sessionId': session_id
+        }
+
+        doc = gql.gql("""
+mutation HaltSession($sessionId:String!) {
+    haltSession(sessionId:$sessionId) {
+        action status
+    }
+}
+        """)
+        return self.gql.execute(doc, variable_values=vars)
 
     def save_experimental_and_space_parameters(self, params):
         """Start a "save experimental space" task in the session, specifying the

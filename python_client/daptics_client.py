@@ -159,9 +159,9 @@ class DapticsClient(object):
     design (dict):
         The current generated design, as updated by the result of a "generate design" task.
 
-    experiments_history (list of dicts):
+    experiments_history (list):
         All the experiments and responses that have been simulated, as updated by the result
-        of a "simulate" task.
+        of a "simulate" task, represented as a list of Python dicts.
     """
     def __init__(self, host):
         """Initialize a new DapticsClient object.
@@ -274,7 +274,7 @@ class DapticsClient(object):
             can optionally have `key`, `path` and `locations` values.
 
         # Returns
-        string or list of strings:
+        str or list:
             The message (or messages) extracted from the GraphQL response.
         """
         messages = []
@@ -1738,7 +1738,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         gen (int):
             The current generation number in the session, for which the files were created.
 
-        files (list of dicts):
+        files (list):
             A list of the availiable files. Each file is represented by a Python dict
             with the following keys:
 
@@ -1893,8 +1893,8 @@ mutation CreateAnalytics($sessionId:String!) {
             to retrieve the experimental space. The default is 300 (5 minutes).
 
         # Returns
-        A list of strings, representing the experiments table' header that was
-        written to disk.
+        list:
+            The experiments table header row that was written to disk, as a list of strings.
         """
 
         space = self.get_validated_experimental_space(timeout)
@@ -1945,7 +1945,7 @@ mutation CreateAnalytics($sessionId:String!) {
             to retrieve the generated design. The default is 1800 (30 minutes).
 
         # Returns
-        list of dicts:
+        list or None:
             The value of the client's `experiments_history` attribute, which may be
             None if no experiments have been submitted or designed, or is a list of dicts.
             Each item in the list is a Pythoon dict that represents a generation
@@ -1985,7 +1985,7 @@ mutation CreateAnalytics($sessionId:String!) {
             Index of the value column (starting at zero).
 
         # Returns
-        string:
+        str:
             "Min" or "Max" for a "mixture" space type, or "Value.1", "Value.2", etc.
             for a "factorial" space type.
         """
@@ -2006,8 +2006,9 @@ mutation CreateAnalytics($sessionId:String!) {
             A Python dict that defines the experimental space.
 
         # Returns
-        list of strings:
-            "Name", "Type", "Min" and "Max" for a "mixture" space.
+        list:
+            A list of strings to build the column header for an experimental space.
+            The list will contain "Name", "Type", "Min" and "Max" for a "mixture" space,
             or "Name", "Type", "Value.1", "Value.2", etc. for a "factorial" space.
         """
 
@@ -2029,7 +2030,9 @@ mutation CreateAnalytics($sessionId:String!) {
             A Python dict that defines the experimental space.
 
         # Returns
-        list of strings
+        list:
+            The list is made up from the names of all parameters, and the additional
+            string "Response".
         """
 
         params = space['table']['data']
@@ -2043,19 +2046,18 @@ mutation CreateAnalytics($sessionId:String!) {
         in the range [0, n] and then replaces any existing response value with
         the generated value.
 
-        Parameters
-        ----------
-        experiment : list
+        # Arguments
+        experiment (list):
             A list of values representing an experiment, including a (possibly
             empty) response value.
 
-        max_response_value: float
+        max_response_value (float):
             The maximum random response value to be generated for the experiment.
 
-        Returns
-        -------
-        The list of parameter values for the specified experiment, with a generated
-        response value, encoded as a string.
+        # Returns
+        list:
+            The list of parameter values for the specified experiment, with a generated
+            response value. Each value is encoded as a string.
         """
 
         response = '{:.3f}'.format(random.uniform(0.0, max_response_value))
@@ -2067,18 +2069,19 @@ mutation CreateAnalytics($sessionId:String!) {
         """Uses a random number generator to select a parameter value that is valid
         for the space type and specified parameter definition.
 
-        Parameters
-        ----------
-        space_type : str
+        # Arguments
+        space_type (str):
             The space type, either "mixture" or "factorial".
 
-        param : list
+        param (list):
             The row from the experimental space definition table that defines
-            a particular parameter in the space.
+            a particular parameter in the space (name, type, and min / max or
+            allowed values for the parameter). Each element in the list is
+            encoded as a string.
 
-        Returns
-        -------
-        A valid value for the parameter, encoded as a string.
+        # Returns
+        str:
+            A valid value for the parameter, encoded as a string.
         """
 
         if len(param) < 4:
@@ -2109,7 +2112,7 @@ mutation CreateAnalytics($sessionId:String!) {
             in the range [0.0, max_response_value].
 
         # Returns
-        string:
+        str:
             A valid value for the parameter, encoded as a string.
         """
 

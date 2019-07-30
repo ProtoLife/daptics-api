@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.7.2
+Daptics API Version 0.7.3
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -440,8 +440,18 @@ mutation CreateSession($session:NewSessionInput!) {
 
         data, errors = self.call_api(doc, vars)
         if data and 'createSession' in data and data['createSession'] is not None:
-            self.session_id = data['createSession']['sessionId']
-            self.initial_params = data['createSession']['params']
+            session = data['createSession']
+            self.session_id = session['sessionId']
+            self.gen = session['campaign']['gen']
+            self.remaining = session['campaign']['remaining']
+            self.completed = session['campaign']['completed']
+            self.initial_params = session['params']
+            if self.gen >= 0:
+                self.validated_params = session['params']
+            else:
+                self.validated_params = None
+            self.current_task = None
+            self.design = None
         else:
             print('Problem creating session!')
             print('Error: {}'.format(self.error_messages(errors)))
@@ -498,6 +508,19 @@ query GetSession($sessionId:String!) {
                     colHeaders data
                 }
             }
+        }
+        experiments {
+            gen validated hasResponses designRows table {
+                colHeaders data
+            }
+        }
+        latestCompletedExperiments {
+            gen validated hasResponses designRows table {
+                colHeaders data
+            }
+        }
+        tasks {
+            taskId type status
         }
     }
 }
@@ -987,6 +1010,9 @@ query GetExperimentsHistory($sessionId:String!){
 }
         """)
         data = self.gql.execute(doc, variable_values=vars)
+        # with open('experiments_history.json', 'w') as outfile:
+        #    json.dump(data, outfile, ensure_ascii=False, indent=4)
+
         if 'experimentsHistory' in data:
             self.experiments_history = data['experimentsHistory']
         return data
@@ -1823,7 +1849,11 @@ mutation CreateAnalytics($sessionId:String!) {
             The `requests` library's `response` object for the authenticated HTTP request.
         """
 
-        response = requests.get(url, auth=self.auth)
+        # Access token is added as query string
+        params = {}
+        if self.auth and self.auth.token:
+            params['token'] = self.auth.token
+        response = requests.get(url, params=params)
         if save_as is not None and response.status_code == requests.codes.ok and response.content is not None:
             with open(save_as, "wb") as pdf_file:
                 pdf_file.write(response.content)
@@ -1851,8 +1881,12 @@ mutation CreateAnalytics($sessionId:String!) {
         path = os.path.abspath(directory)
         data = self.get_analytics(timeout=timeout)
         if 'createAnalytics' in data:
+            # Access token is added as query string
+            params = {}
+            if self.auth and self.auth.token:
+                params['token'] = self.auth.token
             for file_info in data['createAnalytics']['files']:
-                response = requests.get(file_info['url'], auth=self.auth)
+                response = requests.get(file_info['url'], params=params)
                 if response.status_code == requests.codes.ok and response.content is not None:
                     if nfiles == 0:
                         os.makedirs(path, exist_ok=True)
@@ -1995,10 +2029,12 @@ mutation CreateAnalytics($sessionId:String!) {
             with open(fname, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
                 seq = 0
+                header_written = False
                 for gen, exp in enumerate(history):
-                    if exp is not None:
-                        if seq == 0:
+                    if exp is not None and 'table' in exp and exp['table'] is not None:
+                        if not header_written:
                             writer.writerow(['Seq_', 'Gen_', 'Designed_'] + exp['table']['colHeaders'])
+                            header_written = True
                         drows = exp['designRows']
                         for i, row in enumerate(exp['table']['data']):
                             seq += 1

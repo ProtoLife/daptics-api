@@ -1,6 +1,22 @@
 # Changelog
 
-## v0.7.2 (22/05/2019)
+## v0.7.3 (30/07/2019)
+
+### Non-breaking change to daptics client
+
+API changes in `daptics_client.py`:
+
+* `restore_session` method now correctly sets `design` attribute
+* `save_analytics_file` and `save_all_analytics_files` use required authorization token in
+get query string, per changes in server functionality
+* other minor bug fixes
+
+Notebook changes:
+
+None.
+
+
+## v0.7.3 (22/05/2019)
 
 ### Non-breaking change to daptics client
 

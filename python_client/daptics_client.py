@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.8.0
+Daptics API Version 0.8.1
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -63,6 +63,21 @@ class TokenAuth(requests.auth.AuthBase):
             r.headers['Authorization'] = 'Bearer ' + self.token
         return r
 
+class MissingConfigError(Exception):
+    def __init__(self, path):
+        self.message = 'The specified configuration file {} does not exist.'.format(path)
+
+class InvalidConfigError(Exception):
+    def __init__(self, path):
+        self.message = 'The configuration file {} is invalid.'.format(path)
+
+class NoHostError(Exception):
+    def __init__(self):
+        self.message = 'No host or configuration file specified.'
+
+class NoCredentialsError(Exception):
+    def __init__(self):
+        self.message = 'No credentials or configuration file specified.'
 
 class NoCurrentTaskError(Exception):
     def __init__(self):
@@ -112,7 +127,35 @@ class DapticsClient(object):
 
     # Attributes
     host (str):
-        The host part of the API endpoint.
+        The host part of the API endpoint, as read from configuration, or set manually
+        prior to calling `connect`.
+
+    config (str):
+        File path to a JSON configuration file, used to read the host, login credentials and
+        runtime options. Defaults to `daptics.conf`. The keys in the JSON file are:
+
+        `host` - host part of the API endpoint
+
+        `user` - email of the database user to login with
+
+        `password` - password for the database user to login with
+
+        `auto_export_path` - see `options` below
+
+        `auto_task_timeout` - see `options` below
+
+        If `config is set to None, configuration can be read from OS environment
+        variables, if they exist. The environment variable names are:
+
+        `DAPTICS_HOST` - host part of the API endpoint
+
+        `DAPTICS_USER` - email of the database user to login with
+
+        `DAPTICS_PASSWORD` - password for the database user to login with
+
+        `DAPTICS_AUTO_EXPORT_PATH` - see `options` below
+
+        `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
     options (dict):
         A Python dictionary containing runtime options. As of this version, there
@@ -122,12 +165,17 @@ class DapticsClient(object):
         where the validated experimental space and generated design files will be saved,
         so that the user will not have to explicitly call the `export` functions.
 
-        `auto_task_timeout` - If set to None or to a positive number indicating the
+        `auto_task_timeout` - If set to a positive number indicating the
         number of seconds to wait, this option will immediately start to wait on a
         just-created task, so that the user will not have to explicitly call
-        `poll_for_current_task` or `wait_for_current_task`. None means to wait
-        indefinitely. The default, zero, means that the user wants to explicitly
-        call `poll_for_current_task` or `wait_for_current_task`.
+        `poll_for_current_task` or `wait_for_current_task`. Setting this option to a negative
+        number, means to wait indefinitely. Setting the option to zero will poll the task
+        just once. The default, None, means that the user wants to explicitly call
+        `poll_for_current_task` or `wait_for_current_task`.
+
+    credentials:
+        A tuple of (`username`, `password`), as read from configuration, or set manually
+        prior to calling `login`.
 
     api_url (str):
         The full API endpoint URL.
@@ -179,20 +227,26 @@ class DapticsClient(object):
 
     """
     REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
+    DEFAULT_CONFIG = './daptics.conf'
 
-    def __init__(self, host):
+    def __init__(self, host=None, config=None):
         """Initialize a new DapticsClient object.
 
         # Arguments
         host (str):
             The host part of the API endpoint. Example: `http://localhost:4041`
+
+        config (str):
+            File path to a JSON configuration file.
         """
         self.host = host
+        self.config = config
         self.options = {
             'auto_export_path': None,
-            'auto_task_timeout': 0
+            'auto_task_timeout': None,
         }
-        self.api_url = '{0}/api'.format(host)
+        self.credentials = None
+        self.api_url = None
         self.pp = pprint.PrettyPrinter(indent=4)
         self.gql = None
         self.auth = TokenAuth()
@@ -207,10 +261,12 @@ class DapticsClient(object):
         self.design = None
         self.experiments_history = None
 
+
     def print(self):
         """Print out debugging information about the session.
         """
         print('host = ', self.host)
+        print('credentials = ', self.credentials)
         print('options = ', self.options)
         print('user_id = ', self.user_id)
         print('session_id = ', self.session_id)
@@ -359,24 +415,96 @@ class DapticsClient(object):
                 if 'session_id' in data and data['session_id'] is not None:
                     self.session_id = data['session_id']
 
-    def connect(self):
-        """Create an HTTP transport instance from the client's `api_url` attribute,
-        and attempt to connect to the introspection interface. The gql.Client
-        value is stored in the client's `gql` attribute.
+    def init_config(self):
+        """Read in the client configuration from possible sources.
 
         # Returns
         Nothing
 
         # Raises
+        MissingConfigError:
+            If the config file specified does not exist.
+
+        InvalidConfigError:
+            If the config file specified cannot be parsed, or does not have a 'host'
+            value.
+        """
+        config_path = os.path.abspath(self.DEFAULT_CONFIG)
+        config_must_exist = False
+        if self.config:
+            config_path = os.path.abspath(self.config)
+            config_must_exist = True
+            if not self.load_config_file(config_path, config_must_exist):
+                self.load_config_env()
+
+    def load_config_file(self, config_path, config_must_exit):
+        if os.path.exists(config_path):
+            try:
+                with open(config_path) as f:
+                    config = json.load(f)
+                    self.config = config_path
+                    if self.host is None:
+                        self.host = config.get('host')
+                    if self.credentials is None:
+                        username = config.get('user')
+                        password = config.get('password')
+                        if username and password:
+                            self.credentials = (username, password)
+                    self.options['auto_export_path'] = config.get('auto_export_path')
+                    self.options['auto_task_timeout'] = config.get('auto_task_timeout')
+                    return True
+            except:
+                raise InvalidConfigError(config_path)
+        elif config_must_exist:
+            raise MissingConfigError(config_path)
+        return False
+
+    def load_config_env(self):
+        if self.host is None:
+            self.host = os.getenv('DAPTICS_HOST')
+        if self.credentials is None:
+            username = os.getenv('DAPTICS_USER')
+            password = os.getenv('DAPTICS_PASSWORD')
+            if username and password:
+                self.credentials = (username, password)
+        self.options['auto_export_path'] = os.getenv('DAPTICS_AUTO_EXPORT_PATH')
+        timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
+        if timeout is not None:
+            self.options['auto_task_timeout'] = float(timeout)
+
+    def connect(self):
+        """Read in the configuration and instantiate the client if it has not
+        been done before. Creates an HTTP transport instance from the client's
+        `api_url` attribute, and attempts to connect to the introspection interface.
+        The gql.Client value is stored in the client's `gql` attribute.
+
+        # Returns
+        Nothing
+
+        # Raises
+        MissingConfigError:
+            If the config file specified does not exist.
+
+        InvalidConfigError:
+            If the config file specified cannot be parsed, or does not have a 'host'
+            value.
+
+        NoHostError:
+            If there is no config file specifed and no host has been set.
+
         requests.ConnectionError:
             If the connection cannot be made.
         """
         if self.gql is None:
+            self.init_config()
+            if self.host is None:
+                raise NoHostError()
+            self.api_url = '{0}/api'.format(self.host)
             http = gql.transport.requests.RequestsHTTPTransport(
                 self.api_url, auth=self.auth, use_json=True)
             self.gql = gql.Client(transport=http, fetch_schema_from_transport=True)
 
-    def login(self, email, password):
+    def login(self, email=None, password=None):
         """Authenticate to a user record in the database as identified in the client's
         `email` and `password` attributes, and create an access token.
 
@@ -386,16 +514,26 @@ class DapticsClient(object):
         password (str):
             The cleartext password of the database user that will be used for authentication.
 
+        If called with default (`None`) arguments, the email and password will
+        be retrieved from the `credentials` attribute.
+
         # Returns
         dict:
             The JSON response from the gql request, a Python dict with `login` and/or
             `errors` keys. On successful authentication, the user id and access token
             are stored in the client's `user_id` and `auth` attributes.
         """
+
+        if email is None or password is None:
+            try:
+                email, password = self.credentials
+            except:
+                raise NoCredentialsError()
         vars = {
             'email': email,
             'password': password
         }
+        # print('Login on {} for user {}'.format(self.host, email), file=sys.stderr)
 
         # The 'login' mutation authenticates a user's email and password and returns
         # an access token that self.auth will then use to add an Authorization
@@ -616,9 +754,9 @@ mutation HaltSession($sessionId:String!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Notes
         These are the required keys for the `params` dict:
@@ -771,9 +909,9 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Raises
         csv.Error:
@@ -871,9 +1009,9 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Examples
         Here's an example of an experiments table:
@@ -947,9 +1085,9 @@ mutation InitialExperiments($sessionId:String!, $experiments:ExperimentsInput!) 
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Raises
         csv.Error:
@@ -1221,9 +1359,9 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Examples
         Here's an expamle of an experiments table:
@@ -1292,9 +1430,9 @@ mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
 
         # Examples
@@ -1350,9 +1488,9 @@ mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Examples
         Here's an expamle of an experiments table:
@@ -1421,9 +1559,9 @@ mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Examples
         A header row must be provided, the columns in the header row
@@ -1476,9 +1614,9 @@ mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Notes
         For more examples of how to submit space parameters, please
@@ -1564,9 +1702,9 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+            positive or negative number,  the task will be retried until a result is obtained
+            or the task failed, or the timeout is exceeded.
 
         # Raises
         csv.Error:
@@ -1777,7 +1915,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Arguments
         timeout (float):
-            Maximum number of seconds to wait. If None, wait forever.
+            Maximum number of seconds to wait. If None or a negative number, wait forever.
 
         # Returns
         (dict, dict):
@@ -1797,7 +1935,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         is reset to None.
         """
         max_time = None
-        if timeout is not None:
+        if timeout is not None and timeout >= 0:
             if timeout == 0:
                 timeout = -1.0
             max_time = time.time() + timeout
@@ -1851,7 +1989,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Arguments
         timeout (float):
-            Maximum number of seconds to wait. If None, wait forever.
+            Maximum number of seconds to wait. If a negative number, wait forever.
 
         # Returns
         (dict, dict):
@@ -1860,8 +1998,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             `currentTask` (for example on timeout) or `errors` may be None.
         """
 
-        timeout_option = self.options.get('auto_task_timeout', 0)
-        if timeout_option is None or timeout_option > 0:
+        timeout_option = self.options.get('auto_task_timeout')
+        if timeout_option is not None:
             data, errors = self.wait_for_current_task(timeout_option)
             return (data['currentTask'], errors)
         else:

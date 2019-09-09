@@ -1,5 +1,58 @@
 # Changelog
 
+## v0.9.0 (10/09/2019)
+
+### Breaking changes to daptics client
+
+Changes in `daptics_client.py`:
+
+* New error classes added
+* New `DapticsTaskType` and `DapticsExperimentsType` enumerations added
+
+Changes to DapticsClient class attributes:
+
+* New `auto_export_path` option added that automatically saves generated CSV files
+* New `auto_generate_next_design` option added to allow manual control of
+when designs are generated
+* New `auto_task_timeout` option added to allow manual control of polling of
+active tasks
+* New `credentials` and `session_path` attributes added
+* New `task_info` attribute replaces removed `current_task` attribute
+
+Changes to DapticsClient methods:
+
+* Constructor - A new `config` argument was added to `DapticsClient` constructor,
+to allow for easier configuration from a JSON file. If `config` is not provided,
+configuration parameters may also be read from environment variables. See the
+documentation in `daptics_client.py` for more information.
+* `login` method - If no email or password arguments are supplied, use the values
+from the `credentials` attribute.
+* `get_experiments` method - a `design_only` argument was added, so that users
+can request just the designed experiments for a particular generation, without
+previously submitted responses or extra experiments
+* New `get_experimental_space` and `get_generated_design` convenience methods added
+* New `generate_design` method was added to give users manual control of the
+design generation process, either when the user has no initial experiments, or
+when the `auto_generate_next_design` option is disabled.
+* New `put_experimental_parameters` and `put_experimental_parameters_csv` methods replace
+the removed `save_experimental_and_space_parameters...` methods, and the key for the
+GraphQL data result was renamed to `putExperimentalParameters`. The new `auto_task_timeout`
+option can be used to block until a result has been received.
+* New `put_experiments` and `put_experiments_csv` methods replace
+the removed `save_initial_experiments...` and `save_experiment_responses...` methods,
+and the key for the GraphQL data result was renamed to `putExperiments`.
+The new `auto_generate_next_design` option can be used to start a "generate" task
+after the experiments have been saved, and the new `auto_task_timeout` option can then
+be used to wait until the next generation design result has been received.
+* New `get_analytics_file_list` method replaces removed `get_analytics` method
+* New `get_analytics_file` and `get_all_analytics_files` methods replace the removed
+`save_analytics_file` and `save_all_analytics_files` methods.
+
+Notebook changes:
+
+
+
+
 ## v0.7.3 (30/07/2019)
 
 ### Non-breaking change to daptics client
@@ -16,7 +69,7 @@ Notebook changes:
 None.
 
 
-## v0.7.3 (22/05/2019)
+## v0.7.2 (22/05/2019)
 
 ### Non-breaking change to daptics client
 

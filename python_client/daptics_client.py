@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.8.1
+Daptics API Version 0.9.0
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,6 +34,7 @@ IN THE SOFTWARE.
 
 
 import csv
+from enum import Enum, unique
 import gql
 import gql.transport.requests
 import os
@@ -44,6 +45,9 @@ import requests
 import requests.auth
 import time
 import sys
+
+
+# Authentication object used to authorize DapticsClient requests
 
 class TokenAuth(requests.auth.AuthBase):
     """A callable authentication object for the Python "requests" moudule.
@@ -62,6 +66,9 @@ class TokenAuth(requests.auth.AuthBase):
         if self.token is not None:
             r.headers['Authorization'] = 'Bearer ' + self.token
         return r
+
+
+# Errors raised by the DapticsClient class
 
 class MissingConfigError(Exception):
     def __init__(self, path):
@@ -83,9 +90,9 @@ class NoCurrentTaskError(Exception):
     def __init__(self):
         self.message = 'There is no current task active in the session.'
 
-class TaskTypeError(Exception):
-    def __init__(self, type_):
-        self.message = 'The current task is not of the the requested {} task type.'.format(type_)
+class InvalidTaskTypeError(Exception):
+    def __init__(self, task_type):
+        self.message = 'The task type {} is not valid.'.format(task_type)
 
 class TaskTimeoutError(Exception):
     def __init__(self):
@@ -99,9 +106,13 @@ class SessionParametersNotValidatedError(Exception):
     def __init__(self):
         self.message = 'The session parameters have not been validated.'
 
-class InvalidParameterError(Exception):
+class InvalidSpaceParameterError(Exception):
     def __init__(self, space_type, param):
         self.message = 'Invalid parameter for space type {}: {}.'.format(space_type, param)
+
+class InvalidExperimentsTypeError(Exception):
+    def __init__(self, experiments_type):
+        self.message = 'The experiments type {} is not valid.'.format(experiments_type)
 
 class NextGenerationError(Exception):
     def __init__(self, gen):
@@ -119,6 +130,29 @@ class SpaceOrDesignRequiredError(Exception):
     def __init__(self):
         self.message = 'To generate random experiments you must supply experimental space or design.'
 
+
+# Enums used by the DapticsClient class
+
+@unique
+class DapticsTaskType(Enum):
+    """Enumerates the different asynchronous tasks that the daptics system can create and
+    that can be searched for using the `poll_for_current_task` or `wait_for_current_task`
+    methods.
+    """
+    SPACE = 'space'
+    GENERATE = 'generate'
+
+@unique
+class DapticsExperimentsType(Enum):
+    """Enumerates the purpose for the experiments that are being uploaded to the
+    session via the `put_experiments` or `put_experiments_csv` method.
+    """
+    INITIAL_EXTRAS_ONLY = 'initial'
+    DESIGNED_WITH_OPTIONAL_EXTRAS = 'designed'
+    FINAL_EXTRAS_ONLY = 'final'
+
+
+# The main DapticsClient class
 
 class DapticsClient(object):
     """A Python gql client for maintaining the state of a Daptics optimization session.
@@ -142,6 +176,8 @@ class DapticsClient(object):
 
         `auto_export_path` - see `options` below
 
+        `auto_generate_next_design` - see `options` below
+
         `auto_task_timeout` - see `options` below
 
         If `config is set to None, configuration can be read from OS environment
@@ -155,15 +191,22 @@ class DapticsClient(object):
 
         `DAPTICS_AUTO_EXPORT_PATH` - see `options` below
 
+        `DAPTICS_AUTO_GENERATE_NEXT_DESIGN` - see `options` below
+
         `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
     options (dict):
         A Python dictionary containing runtime options. As of this version, there
-        are two available options:
+        are three available options:
 
-        'auto_export_path' - If not None, a string indicating the relative or absolute directory
+        'auto_export_path` - If not None, a string indicating the relative or absolute directory
         where the validated experimental space and generated design files will be saved,
         so that the user will not have to explicitly call the `export` functions.
+
+        `auto_generate_next_design` - If set (True), uploading (initial or later) experiment responses
+        will automatically start a `generate` task for the next design generation. If not set
+        (None or False), the uploading will only validate the responses, and the user
+        will have to call the `generate` task manually after a successful validation.
 
         `auto_task_timeout` - If set to a positive number indicating the
         number of seconds to wait, this option will immediately start to wait on a
@@ -195,6 +238,10 @@ class DapticsClient(object):
 
     session_id (str):
         The session id for a connected PDT session, as set by the `create_session` method.
+
+    session_path (str):
+        The path on the filesystem where the session is located, as set by the
+        `create_session` method.
 
     task_info (dict):
         Information about the polling status for running tasks in the session.
@@ -243,7 +290,8 @@ class DapticsClient(object):
         self.config = config
         self.options = {
             'auto_export_path': None,
-            'auto_task_timeout': None,
+            'auto_generate_next_design': False,
+            'auto_task_timeout': None
         }
         self.credentials = None
         self.api_url = None
@@ -270,6 +318,7 @@ class DapticsClient(object):
         print('options = ', self.options)
         print('user_id = ', self.user_id)
         print('session_id = ', self.session_id)
+        print('session_path = ', self.session_path)
         print('task_info = ', self.task_info)
         print('gen = ', self.gen)
         print('remaining = ', self.remaining)
@@ -399,6 +448,7 @@ class DapticsClient(object):
         self.auth = TokenAuth()
         self.user_id = None
         self.session_id = None
+        self.session_path = None
         self.task_info = {}
         self.gen = -1
         self.remaining = None
@@ -450,8 +500,9 @@ class DapticsClient(object):
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    self.options['auto_export_path'] = config.get('auto_export_path')
-                    self.options['auto_task_timeout'] = config.get('auto_task_timeout')
+                    self.options['auto_export_path'] = config.get('auto_export_path', self.options['auto_export_path'])
+                    self.options['auto_generate_next_design'] = config.get('auto_generate_next_design', self.options['auto_generate_next_design'])
+                    self.options['auto_task_timeout'] = config.get('auto_task_timeout', self.options['auto_task_timeout'])
                     return True
             except:
                 raise InvalidConfigError(config_path)
@@ -467,10 +518,13 @@ class DapticsClient(object):
             password = os.getenv('DAPTICS_PASSWORD')
             if username and password:
                 self.credentials = (username, password)
-        self.options['auto_export_path'] = os.getenv('DAPTICS_AUTO_EXPORT_PATH')
-        timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
-        if timeout is not None:
-            self.options['auto_task_timeout'] = float(timeout)
+        self.options['auto_export_path'] = os.getenv('DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
+        auto_generate_next_design = os.getenv('DAPTICS_AUTO_GENERATE_NEXT_DESIGN')
+        if auto_generate_next_design is not None:
+            self.options['auto_generate_next_design'] = auto_generate_next_design.lower() in ("true", "t", "yes", "y", "on", "enabled", "1")
+        auto_task_timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
+        if auto_task_timeout is not None:
+            self.options['auto_task_timeout'] = float(auto_task_timeout)
 
     def connect(self):
         """Read in the configuration and instantiate the client if it has not
@@ -565,8 +619,8 @@ mutation Login($email:String!, $password:String!) {
         # Returns
         dict:
             The JSON response from the gql request, a Python dict with `createSession` and/or
-            `errors` keys. On successful creation, the session id and initial parameters
-            are stored in the client's `session_id` and `initial_params` attributes.
+            `errors` keys. On successful creation, the session id, session_path and
+            initial parameters are stored in the client's attributes.
         """
         vars = {
             'session': {
@@ -601,6 +655,7 @@ mutation CreateSession($session:NewSessionInput!) {
         if data and 'createSession' in data and data['createSession'] is not None:
             session = data['createSession']
             self.session_id = session['sessionId']
+            self.session_path = session['path']
             self.gen = session['campaign']['gen']
             self.remaining = session['campaign']['remaining']
             self.completed = session['campaign']['completed']
@@ -693,6 +748,7 @@ query GetSession($sessionId:String!) {
         if 'session' in data and data['session'] is not None:
             session = data['session']
             self.session_id = session['sessionId']
+            self.session_path = session['path']
             self.gen = session['campaign']['gen']
             self.remaining = session['campaign']['remaining']
             self.completed = session['campaign']['completed']
@@ -738,19 +794,21 @@ mutation HaltSession($sessionId:String!) {
         """)
         return self.gql.execute(doc, variable_values=vars)
 
-    def put_experimental_space_parameters(self, params):
-        """Start a "save experimental space" task in the session, specifying the
-        desired experimental space parameters.
+    def put_experimental_parameters(self, params):
+        """Validate the experimental parameters at the beginning of a session,
+        and start a "space" task. The individual experimental parameter names,
+        types and permissible values in the space definition are specified at
+        the `['space']['table']` key of the `params` dict.
 
         # Arguments
         params (dict):
-            A dictionary containing the experimental space parameters to be
+            A dictionary containing the experimental parameters to be
             used for the session. See the Notes section that describes the
             required keys for the `params` dict.
 
         # Returns
         dict:
-            The JSON response from the gql request, a Python dict with `saveSessionParameters` and/or
+            The JSON response from the gql request, a Python dict with `putExperimentalParameters` and/or
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
@@ -867,31 +925,31 @@ mutation HaltSession($sessionId:String!) {
             'params': params_
         }
 
-        # The 'saveSessionParameters' mutation must be run to validate the
+        # The 'putExperimentalParameters' mutation must be run to validate the
         # user's experimental design. The mutation will return errors if the
         # parameters or space are not valid (don't generate enough complexity, etc.).
         # If the parameters are valid, information about the long running 'space'
         # task is returned, and the user should poll until the task has completed.
         doc = gql.gql("""
-mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
-    saveSessionParameters(sessionId:$sessionId, params:$params) {
+mutation PutExperimentalParameters($sessionId:String!, $params:SessionParametersInput!) {
+    putExperimentalParameters(sessionId:$sessionId, params:$params) {
         sessionId taskId type description status startedAt
     }
 }
         """)
         data = self.gql.execute(doc, variable_values=vars)
-        if 'saveSessionParameters' in data and data['saveSessionParameters'] is not None:
-            task_id = data['saveSessionParameters']['taskId']
-            self.task_info[task_id] = data['saveSessionParameters']
+        if 'putExperimentalParameters' in data and data['putExperimentalParameters'] is not None:
+            task_id = data['putExperimentalParameters']['taskId']
+            self.task_info[task_id] = data['putExperimentalParameters']
             auto_task, errors = self.do_auto_task()
             if auto_task is not None:
-                return {'saveSessionParameters': auto_task, 'errors': errors}
+                return {'putExperimentalParameters': auto_task, 'errors': errors}
         return data
 
-    def put_experimental_space_parameters_csv(self, fname, params):
-        """Start a "save experimental space" task in the session, specifying the
-        desired experimental space parameters. The experimental space is
-        read from a CSV file.
+    def put_experimental_parameters_csv(self, fname, params):
+        """Validate the experimental parameters at the beginning of a session,
+        and start a "space" task. The individual experimental parameter names,
+        types and permissible values in the space definition are read from a CSV file.
 
         # Arguments
         fname (str):
@@ -900,12 +958,12 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
             below for an example.
 
         params (dict):
-            A dictionary containing the experimental space parameters to be
+            A dictionary containing the experimental parameters to be
             used for the session. See the Notes section for more information.
 
         # Returns
         dict:
-            The JSON response from the gql request, a Python dict with `saveSessionParameters` and/or
+            The JSON response from the gql request, a Python dict with `putExperimentalParameters` and/or
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
@@ -985,142 +1043,7 @@ mutation CreateSpaceTask($sessionId:String!, $params:SessionParametersInput!) {
             reader = csv.reader(csvfile, delimiter=',')
             param_rows = [r for r in reader]
         params['space']['table'] = { 'data': param_rows }
-        return self.put_experimental_space_parameters(params)
-
-    def put_initial_experiments(self, experiments=None):
-        """Save any initial experiments in the session and generate the first design.
-        This method must be called to generate the first design, whether or not any
-        experiments are submitted. If the experments are successfully validated against the
-        experimental space parameters, a "generate design" task is started.
-
-        # Arguments
-        experiments (dict): or None (default)
-            If provided, a "table" of initial experiments that includes columns,
-            defined in the `colHeaders` value of the table, for each of the defined
-            space parameters, and a column named 'Response' to record the result of
-            experiments.
-
-            Each row in the `data` value for the table represents
-            an individual experiment.
-
-        # Returns
-        dict:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
-            `errors` keys.
-
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
-
-        # Examples
-        Here's an example of an experiments table:
-
-        ```python
-        >>> experiments = {
-            'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
-            'data': [
-                ['0', '4', '1', '1', '3.25'],
-                ['1', '4', '1', '1', '4.5']
-            ]
-        }
-        ```
-        """
-
-        space = self.get_experimental_space()
-        if space is None:
-            raise SessionParametersNotValidatedError()
-
-        if experiments is None:
-            experiments = self.experiments_table_template(space)
-        vars = {
-            'sessionId': self.session_id,
-            'experiments': {
-                'gen': 0,
-                'table': experiments
-            }
-        }
-
-        # The 'saveExperiments' mutation sends any initial or designed experiment
-        # responses. For this demo we don't send any initial experiments.
-        # If the generation number and saved responses are valid, information
-        # about the long running 'generate' task is returned, and the user should
-        # poll until the task has completed.
-        doc = gql.gql("""
-mutation InitialExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
-    saveExperiments(sessionId:$sessionId, experiments:$experiments) {
-        sessionId taskId type description status startedAt
-    }
-}
-        """)
-        data = self.gql.execute(doc, variable_values=vars)
-        if 'saveExperiments' in data and data['saveExperiments'] is not None:
-            auto_export_path = self.options.get('auto_export_path')
-            if auto_export_path is not None:
-                fname = os.path.join(auto_export_path, 'auto_initial_experiments.csv')
-                self.export_csv(fname, experiments, False)
-
-            task_id = data['saveExperiments']['taskId']
-            self.task_info[task_id] = data['saveExperiments']
-            auto_task, errors = self.do_auto_task()
-            if auto_task is not None:
-                return {'saveExperiments': auto_task, 'errors': errors}
-        return data
-
-    def put_initial_experiments_csv(self, fname):
-        """Save any initial experiments in the session and generate the first design.
-        This method must be called to generate the first design, whether or not any
-        experiments are submitted. If the experments are successfully validated against the
-        experimental space parameters, a "generate design" task is started.
-
-        # Arguments
-        fname (str):
-            The location on the filesystem for a CSV file that will define
-            the intial experiments. See the Examples section
-            below for an example.
-
-        # Returns
-        dict:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
-            `errors` keys.
-
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
-
-        # Raises
-        csv.Error:
-            If the specified CSV file is incorrectly formatted.
-
-        # Examples
-        Here are the contents for an initial experiments file, defining two initial
-        experiments. A header row must be provided, the columns in the header row
-        must match the names of the parameters defined by the experimental space definition
-        exactly, and a final column named `Response` must be filled with the results
-        of each experiment row.
-
-        ```
-        param1,param2,param3,param4,Response
-        0,4,1,1,3.25
-        1,4,1,1,4.5
-        ```
-        """
-
-        experiments = None
-        if fname is not None:
-            header_and_experiments = []
-            with open(fname, newline='') as csvfile:
-                reader = csv.reader(csvfile, delimiter=',')
-                header_and_experiments = [r for r in reader]
-            if len(header_and_experiments) > 0:
-                experiments = {
-                    'colHeaders': header_and_experiments[0],
-                    'data': header_and_experiments[1:]
-                }
-            else:
-                raise CsvFileEmptyError(fname)
-        return self.put_initial_experiments(experiments)
+        return self.put_experimental_parameters(params)
 
     def get_experiments(self, design_only=False, gen=None):
         """Get the designed or completed experiments for the current or any
@@ -1158,10 +1081,12 @@ mutation InitialExperiments($sessionId:String!, $experiments:ExperimentsInput!) 
 
         vars = {
             'sessionId': self.session_id,
-            'designOnly': design_only
+            'designOnly': False
         }
         if gen is not None:
             vars['gen'] = gen
+            if design_only:
+                vars['designOnly'] = True
 
         doc = gql.gql("""
 query GetExperiments($sessionId:String!, $designOnly:Boolean!, $gen:Int){
@@ -1335,12 +1260,28 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
             raise CsvNoDataRowsError(fname)
         return self.simulate_experiment_responses(experiments)
 
-    def put_experiment_responses(self, experiments):
-        """Save designed or extra experiments for the last designed generation in the session,
-        and generate the next design. If the experments are successfully validated against the
-        experimental space parameters, a "generate design" task is started.
+    def put_experiments(self, experiments_type, experiments):
+        """Validate the responses for designed experiments, and any extra experiments
+        for the current generation in the session. This method, or the
+        `put_experiments_responses_csv` method, must be called before generating the
+        next design, or finalizing the campaign.
 
         # Arguments
+        experiments_type (DapticsExperimentsType):
+            Describes the types of experiments that are being added to the session.
+
+            If you wish to submit calibrating or existing experimental responses prior
+            to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+
+            If you are submitting the responses for a daptics-generated design, along
+            with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+
+            If you wish to submit any final extra experiments when you are satisified
+            with the session's optimization but do not want to include the last
+            generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
+            will end the session's optimization and that no more designs will be
+            generated.
+
         experiments (dict):
             A "table" of experiments that includes columns,
             defined in the `colHeaders` value of the table, for each of the defined
@@ -1348,20 +1289,36 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
             experiments.
 
             Each row in the `data` value for the table represents
-            an individual experiment. There must be at least as many rows as
-            the current design has, and the parameter values for these rows
+            an individual experiment.
+
+            If the `experiments type` is `DESIGNED_WITH_OPTIONAL_EXTRAS`,
+            you must sumbit at least as many rows as exist in the currently
+            generated design, and the parameter values for these rows
             must match the design exactly. Additional "extra" experiment
-            rows can also be provided.
+            rows, that use any valid experimental parameter values, can also
+            be provided.
+
+            For the `INITIAL_EXTRAS_ONLY` and `FINAL_EXTRAS_ONLY` experiments types,
+            rows that use any valid experimental parameter values can be provided.
 
         # Returns
-        dkct:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
+        dict:
+            The JSON response from the gql request, a Python dict with `putExperiments` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+            If the experiments were successfully validated, the following actions may be
+            automatically performed:
+
+            If the `auto_export_path` option is set, a CSV file of the validated experiments
+            is saved at `auto_genN_experiments.csv`.
+
+            If the `auto_generate_next_design` option is set, a `generate`
+            task is started, and the `task` key of the `putExperiments` key will contain
+            information on the task.
+
+            If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
+            this method will block as the task is polled until it succeeds, fails, or
+            the timeout value is exceeded.
 
         # Examples
         Here's an expamle of an experiments table:
@@ -1378,47 +1335,68 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
         ```
         """
 
+        if type(experiments_type) != DapticsExperimentsType:
+            raise InvalidExperimentsTypeError(experiments_type)
+
         vars = {
             'sessionId': self.session_id,
             'experiments': {
+                'type': experiments_type.value,
                 'gen': self.gen,
                 'table': experiments
             }
         }
 
-        # A 'saveExperiments' mutation for a designed generation ('gen' > 0) requires
+        # A 'putExperiments' mutation for a designed generation ('gen' > 0) requires
         # responses for the designed generation (and any optional additional non-designed
         # experiments and their responses), sent in the 'table' variable.
         # If the generation number and saved responses are valid, information
         # about the long running 'generate' task is returned, and the user should
         # poll until the task has completed.
         doc = gql.gql("""
-mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
-    saveExperiments(sessionId:$sessionId, experiments:$experiments) {
-        sessionId taskId type description status startedAt
+mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
+    putExperiments(sessionId:$sessionId, experiments:$experiments) {
+        gen validated hasResponses designRows table {
+            colHeaders data
+        }
     }
 }
         """)
         data = self.gql.execute(doc, variable_values=vars)
-        if 'saveExperiments' in data and data['saveExperiments'] is not None:
+        if 'putExperiments' in data and data['putExperiments'] is not None:
             auto_export_path = self.options.get('auto_export_path')
             if auto_export_path is not None:
                 fname = os.path.join(auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
-                self.export_csv(fname, experiments, False)
+                self.export_csv(fname, data['putExperiments']['table'], False)
 
-            task_id = data['saveExperiments']['taskId']
-            self.task_info[task_id] = data['saveExperiments']
-            auto_task, errors = self.do_auto_task()
-            if auto_task is not None:
-                return {'saveExperiments': auto_task, 'errors': errors}
+            if self.options.get('auto_generate_next_design'):
+                if self.remaining is None or self.remaining > 0:
+                    task_data = self.generate_design()
+                    data['putExperiments']['task'] = task_data['generateDesign']
         return data
 
-    def put_experiment_responses_csv(self, fname):
-        """Save designed or extra experiments for the last designed generation in the session,
-        and generate the next design. If the experments are successfully validated against the
-        experimental space parameters, a "generate design" task is started.
+    def put_experiments_csv(self, experiments_type, fname):
+        """Validate the responses for designed experiments, and any extra experiments
+        for the current generation in the session. This method, or the
+        `put_experiments_responses` method, must be called before generating the
+        next design, or finalizing the campaign.
 
         # Arguments
+        experiments_type (DapticsExperimentsType):
+            Describes the types of experiments that are being added to the session.
+
+            If you wish to submit calibrating or existing experimental responses prior
+            to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+
+            If you are submitting the responses for a daptics-generated design, along
+            with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+
+            If you wish to submit any final extra experiments when you are satisified
+            with the session's optimization but do not want to include the last
+            generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
+            will end the session's optimization and that no more designs will be
+            generated.
+
         fname (str):
             The location on the filesystem for a CSV file that will define
             the results of the designed and any extra experiments. See the Examples section
@@ -1426,14 +1404,22 @@ mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
 
         # Returns
         dict:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
+            The JSON response from the gql request, a Python dict with `putExperiments` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+            If the experiments were successfully validated, the following actions may be
+            automatically performed:
 
+            If the `auto_export_path` option is set, a CSV file of the validated experiments
+            is saved at `auto_genN_experiments.csv`.
+
+            If the `auto_generate_next_design` option is set, a `generate`
+            task is started, and the `task` key of the `putExperiments` key will contain
+            information on the task.
+
+            If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
+            this method will block as the task is polled until it succeeds, fails, or
+            the timeout value is exceeded.
 
         # Examples
         A header row must be provided, the columns in the header row
@@ -1462,139 +1448,64 @@ mutation SaveExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             experiments['data'] = header_and_experiments[1:]
         else:
             raise CsvNoDataRowsError(fname)
-        return self.put_experiment_responses(experiments)
+        return self.put_experiments(experiments_type, experiments)
 
-    def finalize_campaign(self, experiments):
-        """Save designed and extra experiments for the final generation in the session.
-        If the experments are successfully validated against the
-        experimental space parameters, a "finalize campaign" task is started.
+    def generate_design(self, gen = None):
+        """If (initial or subsequent) experiments have been successfully validated against the
+        experimental parameters, a "generate design" task is started.
 
         # Arguments
-        experiments (dict):
-            A "table" of experiments that includes columns,
-            defined in the `colHeaders` value of the table, for each of the defined
-            space parameters, and a column named 'Response' to record the result of
-            experiments.
-
-            Each row in the `data` value for the table represents
-            an individual experiment. There must be at least as many rows as
-            the current design has, and the parameter values for these rows
-            must match the design exactly. Additional "extra" experiment
-            rows can also be provided.
+        gen:
+            The current generation number for the experiments that have successfully validated.
+            Use zero for initial experiments. Use `None` to use the `gen` attribute stored
+            in the client.
 
         # Returns
-        dkct:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
+        dict:
+            The JSON response from the gql request, a Python dict with `generateDesign` and/or
             `errors` keys.
 
             If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
-
-        # Examples
-        Here's an expamle of an experiments table:
-
-        ```python
-        >>> experiments = {
-            'colHeaders': ['param1', 'param2', 'param3', 'param4', 'Response'],
-            'data': [
-                ['0', '4', '1', '1', '3.25'],
-                ['1', '4', '1', '1', '4.5'],
-                ... etc, matching generated design rows
-            ]
-        }
-        ```
+            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
+            or a positive number,  the task will be retried until a result is obtained
+            or the task failed.
         """
 
+        current_gen = self.gen if gen is None else gen
         vars = {
             'sessionId': self.session_id,
-            'experiments': {
-                'gen': self.gen,
-                'table': experiments
-            }
+            'gen': current_gen
         }
 
-        # A 'finalizeCampaign' mutation for a designed generation ('gen' > 0) requires
-        # responses for the designed generation (and any optional additional non-designed
-        # experiments and their responses), sent in the 'table' variable.
+        # The 'generateDesign' mutation sends any initial or designed experiment
+        # responses. For this demo we don't send any initial experiments.
         # If the generation number and saved responses are valid, information
         # about the long running 'generate' task is returned, and the user should
         # poll until the task has completed.
         doc = gql.gql("""
-mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
-    finalizeCampaign(sessionId:$sessionId, experiments:$experiments) {
+mutation GenerateDesign($sessionId:String!, $gen:Int!) {
+    generateDesign(sessionId:$sessionId, gen:$gen) {
         sessionId taskId type description status startedAt
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
-        if 'finalizeCampaign' in data and data['finalizeCampaign'] is not None:
-            auto_export_path = self.options.get('auto_export_path')
-            if auto_export_path is not None:
-                fname = os.path.join(auto_export_path, 'auto_gen{0}_final_experiments.csv'.format(self.gen))
-                self.export_csv(fname, experiments, False)
 
-            task_id = data['finalizeCampaign']['taskId']
-            self.task_info[task_id] = data['finalizeCampaign']
+        data, errors = self.call_api(doc, vars)
+        if errors:
+            # This is what gql does with errors
+            raise Exception(str(errors[0]))
+
+        if 'generateDesign' in data and data['generateDesign'] is not None:
+            task_id = data['generateDesign']['taskId']
+            self.task_info[task_id] = data['generateDesign']
             auto_task, errors = self.do_auto_task()
             if auto_task is not None:
-                return {'finalizeCampaign': auto_task, 'errors': errors}
+                return {'generateDesign': auto_task, 'errors': errors}
         return data
-
-    def finalize_campaign_csv(self, fname):
-        """Save designed and extra experiments for the final generation in the session.
-        If the experments are successfully validated against the
-        experimental space parameters, a "finalize campaign" task is started.
-
-        # Arguments
-        fname (str):
-            The location on the filesystem for a CSV file that will define
-            the results of the designed and any extra experiments. See the Examples section
-            below for an example.
-
-        # Returns
-        dict:
-            The JSON response from the gql request, a Python dict with `saveExperiments` and/or
-            `errors` keys.
-
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
-
-        # Examples
-        A header row must be provided, the columns in the header row
-        must match the names of the parameters defined by the experimental space definition
-        exactly, and a final column named `Response` must be filled with the results
-        of each experiment row.
-
-        ```
-        param1,param2,param3,param4,Response
-        0,4,1,1,3.25
-        1,4,1,1,4.5
-        ```
-
-        Each non-header row in the file represents an individual experiment. There must be at
-        least as many experiment rows as the current design has, and the parameter values
-        for these rows must match the design exactly. Additional "extra" experiment
-        rows can also be provided.
-        """
-        experiments = { 'colHeaders': '', 'data': [] }
-        header_and_experiments = []
-        with open(fname, newline='') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            header_and_experiments = [r for r in reader]
-        if len(header_and_experiments) > 1:
-            experiments['colHeaders'] = header_and_experiments[0]
-            experiments['data'] = header_and_experiments[1:]
-        else:
-            raise CsvNoDataRowsError(fname)
-        return self.finalize_campaign(experiments)
 
     def start_simulation(self, ngens, params):
         """Start a simulation task for several design generations, specifying the
-        desired experimental space parameters and the number of generations
+        desired experimental parameters and the number of generations
         to run.
 
         # Arguments
@@ -1604,7 +1515,7 @@ mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
             designed may be less than this number.
 
         params (dict):
-            A dictionary containing the experimental space parameters to be
+            A dictionary containing the experimental parameters to be
             used for the session. See the Notes section that describes the
             required keys for the `params` dict.
 
@@ -1620,7 +1531,7 @@ mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
 
         # Notes
         For more examples of how to submit space parameters, please
-        see the documentation for the `put_experimental_space_parameters` method.
+        see the documentation for the `put_experimental_parameters` method.
         Keys for the `params` dict are:
 
         populationSize (int):
@@ -1652,12 +1563,6 @@ mutation FinalizeCampaign($sessionId:String!, $experiments:ExperimentsInput!) {
             'params': params
         }
 
-        # A 'finalizeCampaign' mutation for a designed generation ('gen' > 0) requires
-        # responses for the designed generation (and any optional additional non-designed
-        # experiments and their responses), sent in the 'table' variable.
-        # If the generation number and saved responses are valid, information
-        # about the long running 'generate' task is returned, and the user should
-        # poll until the task has completed.
         doc = gql.gql("""
 mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParametersInput!) {
     runSimulation(sessionId:$sessionId, ngens:$ngens, params:$params) {
@@ -1676,7 +1581,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
 
     def start_simulation_csv(self, ngens, fname, params):
         """Run a simulation for several design generations, specifying the
-        desired experimental space parameters and the number of generations to run.
+        desired experimental parameters and the number of generations to run.
         The experimental space is read from a CSV file. If the space parameters
         are successfully validated a "simulate" task is started.
 
@@ -1692,7 +1597,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             below for an example.
 
         params (dict):
-            A dictionary containing the experimental space parameters to be
+            A dictionary containing the experimental parameters to be
             used for the session.  See the Notes section that describes the
             required keys for the `params` dict.
 
@@ -1712,7 +1617,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
 
         # Notes
         For more examples of how to submit space parameters, please
-        see the documentation for the `put_experimental_space_parameters` method.
+        see the documentation for the `put_experimental_parameters` method.
         Keys for the `params` dict are:
 
         populationSize (int):
@@ -1745,9 +1650,9 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         session to see if a result is ready.
 
         # Arguments
-        task_type (str):
-            `space`, `generate`, or None. If None is supplied (the default), use the
-            task id stored in the client.
+        task_type (DapticsTaskType):
+            `SPACE`, `GENERATE`, or None. If None is supplied (the default), find
+            the most recently started task of any type.
 
         # Returns
         (dict, dict):
@@ -1770,7 +1675,11 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             'type': None
         }
         if task_type is not None:
-            vars['type'] = task_type
+            if type(task_type) == DapticsTaskType:
+                vars['type'] = task_type.value
+            else:
+                raise InvalidTaskTypeError(task_type)
+
 
         # Saving the experimental and space parameters will start a long running
         # 'space' task. Saving experimental responses will start a long running
@@ -1819,7 +1728,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                     }
                 }
             }
-            ... on FinalizeTaskResult {
+            ... on UpdateTaskResult {
                 type campaign {
                     gen remaining completed
                 }
@@ -1828,6 +1737,11 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                         type totalUnits table {
                             colHeaders data
                         }
+                    }
+                }
+                experiments {
+                    gen validated hasResponses designRows table {
+                        colHeaders data
                     }
                 }
             }
@@ -1892,10 +1806,6 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             if auto_export_path is not None:
                                 fname = os.path.join(auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
                                 self.export_csv(fname, self.design['table'], False)
-                        elif type_ == 'finalize':
-                            self.gen = result['campaign']['gen']
-                            self.remaining = result['campaign']['remaining']
-                            self.completed = result['campaign']['completed']
                         elif type_ == 'simulate':
                             self.gen = result['campaign']['gen']
                             self.remaining = result['campaign']['remaining']
@@ -1909,11 +1819,15 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             data = {'currentTask': None}
         return (data, errors)
 
-    def wait_for_current_task(self, timeout=None):
+    def wait_for_current_task(self, task_type=None, timeout=None):
         """Wraps poll_for_current_task in a loop. Repeat until task disappears,
         when `status` is `success` or `failure`.
 
         # Arguments
+        task_type (DapticsTaskType):
+            `SPACE`, `GENERATE`, or None. If None is supplied (the default), find
+            the most recently started task of any type.
+
         timeout (float):
             Maximum number of seconds to wait. If None or a negative number, wait forever.
 
@@ -1942,7 +1856,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         retry = 0
         while True:
-            data, errors = self.poll_for_current_task()
+            data, errors = self.poll_for_current_task(task_type)
             if data and 'currentTask' in data and data['currentTask'] is not None:
                 status = data['currentTask']['status']
                 if status == 'canceled':
@@ -2000,7 +1914,10 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         timeout_option = self.options.get('auto_task_timeout')
         if timeout_option is not None:
-            data, errors = self.wait_for_current_task(timeout_option)
+            data, errors = self.wait_for_current_task(task_type=None, timeout=timeout_option)
+            if errors:
+                # This is what gql does with errors
+                raise Exception(str(errors[0]))
             return (data['currentTask'], errors)
         else:
             return (None, None)
@@ -2402,16 +2319,16 @@ mutation CreateAnalytics($sessionId:String!) {
         """
 
         if len(param) < 4:
-            raise InvalidParameterError(space_type, param)
+            raise InvalidSpaceParameterError(space_type, param)
         if space_type == 'mixture':
             if param[1] != 'unit':
-                raise InvalidParameterError(space_type, param)
+                raise InvalidSpaceParameterError(space_type, param)
             min_value = int(param[2])
             max_value = int(param[3])
             return str(random.randint(min_value, max_value))
         else:
             if param[1] not in ['factorial', 'numerical']:
-                raise InvalidParameterError(space_type, param)
+                raise InvalidSpaceParameterError(space_type, param)
             values = [s for s in param[2:] if s != '']
             return random.choice(values)
 

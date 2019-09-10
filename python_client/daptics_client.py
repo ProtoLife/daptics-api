@@ -1158,9 +1158,8 @@ query GetExperimentsHistory($sessionId:String!){
 
         # Returns
         dict:
-            The JSON response from the gql request, a Python dict with `experiments` and/or
-            `errors` keys. The value at the `experiments` key is a Python
-            dict with these keys:
+            The value of the `experiments` key from the GraphQL response,
+            a Python dict with these keys:
 
         validated (bool):
             True if these experiments have been validated.
@@ -1177,7 +1176,8 @@ query GetExperimentsHistory($sessionId:String!){
             experiments submitted or designed for the generation.
         """
 
-        return self.get_experiments(design_only=True, gen=gen)
+        data = self.get_experiments(design_only=True, gen=gen)
+        return data['experiments']
 
     def simulate_experiment_responses(self, experiments = None):
         """Generate values for the "Response" column.  The values are a
@@ -2157,8 +2157,7 @@ mutation CreateAnalytics($sessionId:String!) {
             with empty responses with `colHeaders`, and `data` keys.
         """
 
-        data = self.get_generated_design(gen=gen)
-        design = data['experiments']
+        design = self.get_generated_design(gen=gen)
         self.export_csv(fname, design['table'])
         return design
 

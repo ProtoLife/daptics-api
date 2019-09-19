@@ -276,6 +276,9 @@ class DapticsClient(object):
     REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
     DEFAULT_CONFIG = './daptics.conf'
 
+    GET_ANALYTICS_TIMEOUT = 90
+    EXPORT_SPACE_TIMEOUT = 300
+
     def __init__(self, host=None, config=None):
         """Initialize a new DapticsClient object.
 
@@ -1943,13 +1946,13 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         return None
 
-    def get_analytics_file_list(self, timeout=30):
+    def get_analytics_file_list(self, timeout=GET_ANALYTICS_TIMEOUT):
         """Get a list of the available analytics files for the session.
 
         # Arguments
         timeout (int):
             The maximum number of seconds that the client will wait for a
-            response from the session. The default is 30 seconds.
+            response from the session. The default is 90 seconds.
 
         # Returns
         dict:
@@ -2022,7 +2025,7 @@ mutation CreateAnalytics($sessionId:String!) {
                 pdf_file.write(response.content)
         return response
 
-    def get_all_analytics_files(self, directory=".", timeout=30):
+    def get_all_analytics_files(self, directory=".", timeout=GET_ANALYTICS_TIMEOUT):
         """For each available analytics file, fetch its contents and save it as a file in the
         specified directory.
 
@@ -2033,7 +2036,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
         timeout (int):
             The maximum number of seconds that the client will wait for a
-            response from the session. The default is 30 seconds.
+            response from the session. The default is 90 seconds.
 
         # Returns
         int:
@@ -2090,7 +2093,7 @@ mutation CreateAnalytics($sessionId:String!) {
                     for row in table['data']:
                         writer.writerow(row)
 
-    def export_experimental_space_csv(self, fname, timeout=5*60):
+    def export_experimental_space_csv(self, fname, timeout=EXPORT_SPACE_TIMEOUT):
         """Retrieves the validated experimental space table and writes the table to
         a CSV file on disk.
 

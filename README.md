@@ -27,7 +27,7 @@ Install this tool:
 
 * [graphql-markdown]()
 
-Then in `docs` folder, run:
+Then in `pydocmd` folder, run:
 
 ```
 graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
@@ -40,13 +40,13 @@ Install these tools:
 * [MkDocs](https://www.mkdocs.org/)
 * [pydocmd](https://niklasrosenstein.github.io/pydoc-markdown)
 
-Then in `docs` folder, run:
+Then in `pydocmd` folder, run:
 
 ```
 pydocmd build
 ```
 
-Html and Markdown files will be produced in the `docs/_build/site` folder.
+Html and Markdown files will be produced in the `docs` folder.
 
 
 ## Using jupytext to extract and sync to Python source files <a class="tocSkip">

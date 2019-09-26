@@ -1,4 +1,4 @@
-# daptics-api
+# daptics-api  <a class="tocSkip">
 
 Documentation and clients for the Daptics design of experiments GraphQL API.
 
@@ -9,7 +9,7 @@ To use the Daptics API, you must first register at the [Daptics website](https:/
 to establish your login and password for API authentication.
 
 
-## Python Client
+## Python Client <a class="tocSkip">
 
 The `python_client` folder contains the Python GraphQL client, daptics_client.py,
 and several interactive Python notebooks for experimenting with the API.
@@ -21,7 +21,7 @@ server if you do not have access to a server that can open `.ipynb` files.
 [![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)
 
 
-## GraphQL API Documentation
+## GraphQL API Documentation <a class="tocSkip">
 
 Install this tool:
 
@@ -33,7 +33,7 @@ Then in `docs` folder, run:
 graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
 ```
 
-## Python Client Documentation and MkDocs Build
+## Python Client Documentation and MkDocs Build <a class="tocSkip">
 
 Install these tools:
 
@@ -49,7 +49,7 @@ pydocmd build
 Html and Markdown files will be produced in the `docs/_build/site` folder.
 
 
-## Using jupytext to extract and sync to Python source files
+## Using jupytext to extract and sync to Python source files <a class="tocSkip">
 
 1. Install jupytext:
 

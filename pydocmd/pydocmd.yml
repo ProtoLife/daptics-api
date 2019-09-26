@@ -24,7 +24,7 @@ pages:
 # them to your configuration if you're fine with the default.
 docs_dir: sources
 gens_dir: _build/pydocmd     # This will end up as the MkDocs 'docs_dir'
-site_dir: _build/site
+site_dir: ../docs            # Required for GitHub Pages
 theme: readthedocs
 loader: pydocmd.loader.PythonLoader
 preprocessor: pydocmd.preprocessor.Preprocessor

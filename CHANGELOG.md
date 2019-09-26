@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.1 (25/09/2019)
+
+### Non-breaking changes
+
+Changes in `daptics_client.py`:
+
+* Fixed pydocmd-markdown errors
+* No code changes
+
+
 ## v0.9.0 (10/09/2019)
 
 ### Breaking changes to daptics client

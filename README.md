@@ -2,6 +2,9 @@
 
 Documentation and clients for the Daptics design of experiments GraphQL API.
 
+Auto-generated documentation for the API and the client can now be found on the
+GitHub Pages for this project at https://ProtoLife.github.io/daptics-api
+
 For more information on Daptics technology, please see the Documentation section
 of the [Daptics website](https://daptics.ai).
 

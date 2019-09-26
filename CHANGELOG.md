@@ -9,6 +9,10 @@ Changes in `daptics_client.py`:
 * Fixed pydocmd-markdown errors
 * No code changes
 
+Changes in notebooks:
+
+* Fixed incorrect localhost URL in 03_SimpleTutorial.ipynb
+
 
 ## v0.9.0 (10/09/2019)
 

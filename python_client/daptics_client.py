@@ -9,7 +9,7 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.9.0
+Daptics API Version 0.9.1
 Copyright (c) 2019 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

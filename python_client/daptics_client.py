@@ -34,7 +34,7 @@ IN THE SOFTWARE.
 
 
 import csv
-from enum import Enum, unique
+import enum
 import gql
 import gql.transport.requests
 import os
@@ -133,27 +133,52 @@ class SpaceOrDesignRequiredError(Exception):
 
 # Enums used by the DapticsClient class
 
-@unique
-class DapticsTaskType(Enum):
+@enum.unique
+class DapticsTaskType(enum.Enum):
     """Enumerates the different asynchronous tasks that the daptics system can create and
     that can be searched for using the `poll_for_current_task` or `wait_for_current_task`
     methods.
+
+    # Attributes
+    SPACE:
+        The task type to be searched was created by the `put_experimental_parameters`
+        or `put_experimental_parameters_csv` methods.
+
+    GENERATE:
+        The task type to be searched was created by the `generate_design` method.
     """
     SPACE = 'space'
     GENERATE = 'generate'
 
-@unique
-class DapticsExperimentsType(Enum):
+@enum.unique
+class DapticsExperimentsType(enum.Enum):
     """Enumerates the purpose for the experiments that are being uploaded to the
-    session via the `put_experiments` or `put_experiments_csv` method.
+    session via the `put_experiments` or `put_experiments_csv` methods.
+
+    # Attributes
+    INITIAL_EXTRAS_ONLY:
+        The experiments submitted are initial experiments. No designed experiments are included.
+
+    DESIGNED_WITH_OPTIONAL_EXTRAS:
+        The experiments submitted are designed experiments, and may also include optional
+        extra experiments.
+
+    FINAL_EXTRAS_ONLY:
+        Not used in current API.
     """
     INITIAL_EXTRAS_ONLY = 'initial'
     DESIGNED_WITH_OPTIONAL_EXTRAS = 'designed'
     FINAL_EXTRAS_ONLY = 'final'
 
 
-# The main DapticsClient class
+class DapticsConstants(object):
+    REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
+    DEFAULT_CONFIG = './daptics.conf'
+    GET_ANALYTICS_TIMEOUT = 90
+    EXPORT_SPACE_TIMEOUT = 300
 
+
+# The main DapticsClient class
 class DapticsClient(object):
     """A Python gql client for maintaining the state of a Daptics optimization session.
     Between API invocations, data such as the user id, access token, session id,
@@ -271,13 +296,7 @@ class DapticsClient(object):
     experiments_history (list):
         All the experiments and responses that have been simulated, as updated by the result
         of a "simulate" task, represented as a list of Python dicts.
-
     """
-    REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
-    DEFAULT_CONFIG = './daptics.conf'
-
-    GET_ANALYTICS_TIMEOUT = 90
-    EXPORT_SPACE_TIMEOUT = 300
 
     def __init__(self, host=None, config=None):
         """Initialize a new DapticsClient object.
@@ -289,6 +308,7 @@ class DapticsClient(object):
         config (str):
             File path to a JSON configuration file.
         """
+
         self.host = host
         self.config = config
         self.options = {
@@ -482,7 +502,7 @@ class DapticsClient(object):
             If the config file specified cannot be parsed, or does not have a 'host'
             value.
         """
-        config_path = os.path.abspath(self.DEFAULT_CONFIG)
+        config_path = os.path.abspath(DapticsConstants.DEFAULT_CONFIG)
         config_must_exist = False
         if self.config:
             config_path = os.path.abspath(self.config)
@@ -814,10 +834,10 @@ mutation HaltSession($sessionId:String!) {
             The JSON response from the gql request, a Python dict with `putExperimentalParameters` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+        positive or negative number,  the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded.
 
         # Notes
         These are the required keys for the `params` dict:
@@ -919,8 +939,8 @@ mutation HaltSession($sessionId:String!) {
         params['space']['table']['colHeaders'] = col_headers
 
         # Split off additional params, format them and add them to the required params.
-        params_ = {key: params[key] for key in (params.keys() & self.REQUIRED_SPACE_PARAMS)}
-        additional_params = [{'name': key, 'jsonValue': json.dumps(params[key])} for key in (params.keys() - self.REQUIRED_SPACE_PARAMS)]
+        params_ = {key: params[key] for key in (params.keys() & DapticsConstants.REQUIRED_SPACE_PARAMS)}
+        additional_params = [{'name': key, 'jsonValue': json.dumps(params[key])} for key in (params.keys() - DapticsConstants.REQUIRED_SPACE_PARAMS)]
         params_['additionalParams'] = additional_params
 
         vars = {
@@ -969,10 +989,10 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             The JSON response from the gql request, a Python dict with `putExperimentalParameters` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+        positive or negative number,  the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded.
 
         # Raises
         csv.Error:
@@ -1309,19 +1329,19 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
             The JSON response from the gql request, a Python dict with `putExperiments` and/or
             `errors` keys.
 
-            If the experiments were successfully validated, the following actions may be
-            automatically performed:
+        If the experiments were successfully validated, the following actions may be
+        automatically performed:
 
-            If the `auto_export_path` option is set, a CSV file of the validated experiments
-            is saved at `auto_genN_experiments.csv`.
+        If the `auto_export_path` option is set, a CSV file of the validated experiments
+        is saved at `auto_genN_experiments.csv`.
 
-            If the `auto_generate_next_design` option is set, a `generate`
-            task is started, and the `task` key of the `putExperiments` key will contain
-            information on the task.
+        If the `auto_generate_next_design` option is set, a `generate`
+        task is started, and the `task` key of the `putExperiments` key will contain
+        information on the task.
 
-            If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
-            this method will block as the task is polled until it succeeds, fails, or
-            the timeout value is exceeded.
+        If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
+        this method will block as the task is polled until it succeeds, fails, or
+        the timeout value is exceeded.
 
         # Examples
         Here's an expamle of an experiments table:
@@ -1410,19 +1430,19 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             The JSON response from the gql request, a Python dict with `putExperiments` and/or
             `errors` keys.
 
-            If the experiments were successfully validated, the following actions may be
-            automatically performed:
+        If the experiments were successfully validated, the following actions may be
+        automatically performed:
 
-            If the `auto_export_path` option is set, a CSV file of the validated experiments
-            is saved at `auto_genN_experiments.csv`.
+        If the `auto_export_path` option is set, a CSV file of the validated experiments
+        is saved at `auto_genN_experiments.csv`.
 
-            If the `auto_generate_next_design` option is set, a `generate`
-            task is started, and the `task` key of the `putExperiments` key will contain
-            information on the task.
+        If the `auto_generate_next_design` option is set, a `generate`
+        task is started, and the `task` key of the `putExperiments` key will contain
+        information on the task.
 
-            If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
-            this method will block as the task is polled until it succeeds, fails, or
-            the timeout value is exceeded.
+        If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
+        this method will block as the task is polled until it succeeds, fails, or
+        the timeout value is exceeded.
 
         # Examples
         A header row must be provided, the columns in the header row
@@ -1468,10 +1488,10 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             The JSON response from the gql request, a Python dict with `generateDesign` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
-            or a positive number,  the task will be retried until a result is obtained
-            or the task failed.
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute. Also, if the `auto_task_timeout` option was set to None
+        or a positive number,  the task will be retried until a result is obtained
+        or the task failed.
         """
 
         current_gen = self.gen if gen is None else gen
@@ -1527,10 +1547,10 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             The JSON response from the gql request, a Python dict with `runSimulation` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+        positive or negative number,  the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded.
 
         # Notes
         For more examples of how to submit space parameters, please
@@ -1609,10 +1629,10 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             The JSON response from the gql request, a Python dict with `runSimulation` and/or
             `errors` keys.
 
-            If the task was successfully started, the task information is stored in the client's
-            `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
-            positive or negative number,  the task will be retried until a result is obtained
-            or the task failed, or the timeout is exceeded.
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute. Also, if the `auto_task_timeout` option was set to a
+        positive or negative number,  the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded.
 
         # Raises
         csv.Error:
@@ -1946,7 +1966,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         return None
 
-    def get_analytics_file_list(self, timeout=GET_ANALYTICS_TIMEOUT):
+    def get_analytics_file_list(self, timeout=DapticsConstants.GET_ANALYTICS_TIMEOUT):
         """Get a list of the available analytics files for the session.
 
         # Arguments
@@ -2025,7 +2045,7 @@ mutation CreateAnalytics($sessionId:String!) {
                 pdf_file.write(response.content)
         return response
 
-    def get_all_analytics_files(self, directory=".", timeout=GET_ANALYTICS_TIMEOUT):
+    def get_all_analytics_files(self, directory=".", timeout=DapticsConstants.GET_ANALYTICS_TIMEOUT):
         """For each available analytics file, fetch its contents and save it as a file in the
         specified directory.
 
@@ -2093,7 +2113,7 @@ mutation CreateAnalytics($sessionId:String!) {
                     for row in table['data']:
                         writer.writerow(row)
 
-    def export_experimental_space_csv(self, fname, timeout=EXPORT_SPACE_TIMEOUT):
+    def export_experimental_space_csv(self, fname, timeout=DapticsConstants.EXPORT_SPACE_TIMEOUT):
         """Retrieves the validated experimental space table and writes the table to
         a CSV file on disk.
 

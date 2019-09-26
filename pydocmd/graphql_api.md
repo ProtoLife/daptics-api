@@ -16,8 +16,6 @@
     * [ExperimentalSpace](#experimentalspace)
     * [ExperimentalSpaceTemplate](#experimentalspacetemplate)
     * [Experiments](#experiments)
-    * [ExperimentsGen](#experimentsgen)
-    * [FinalizeTaskResult](#finalizetaskresult)
     * [GenerateTaskResult](#generatetaskresult)
     * [HaltSessionResult](#haltsessionresult)
     * [Loadavg](#loadavg)
@@ -34,11 +32,13 @@
     * [TaskSummary](#tasksummary)
     * [TokenSent](#tokensent)
     * [Transaction](#transaction)
+    * [UpdateTaskResult](#updatetaskresult)
     * [User](#user)
     * [UserCreated](#usercreated)
     * [UserProfile](#userprofile)
     * [UserSummary](#usersummary)
   * [Inputs](#inputs)
+    * [AdditionalParameterInput](#additionalparameterinput)
     * [ChangePasswordInput](#changepasswordinput)
     * [DataFrameInput](#dataframeinput)
     * [ExperimentsInput](#experimentsinput)
@@ -100,7 +100,7 @@ If provided, only returns information if the task's id matches.
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-If provided, only returns information if the task's type ('space', 'generate', 'finalize', or 'simulate') matches.
+If provided, only returns information if the task's type ('space', 'generate', 'update', or 'simulate') matches.
 
 </td>
 </tr>
@@ -109,16 +109,25 @@ If provided, only returns information if the task's type ('space', 'generate', '
 <td valign="top"><a href="#experiments">Experiments</a></td>
 <td>
 
-Get the experiments and any supplied responses for current or a previous generation. For non-admin users, returns information only if the session is owned by the user.
+Get the designed or completed experiments for the current or a previous generation. For non-admin users, returns information only if the session is owned by the user.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">designOnly</td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+If this argument is `true`, return only the designed experiments, not any extra experiments, and without responses.
 
 </td>
 </tr>
 <tr>
 <td colspan="2" align="right" valign="top">gen</td>
-<td valign="top"><a href="#int">Int</a>!</td>
+<td valign="top"><a href="#int">Int</a></td>
 <td>
 
-The generation number. Use zero to get any initial experiments.
+(optional) The generation number to fetch. Use zero to get any initial experiments. Return the latest designed generation (without responses) if omitted.
 
 </td>
 </tr>
@@ -133,7 +142,7 @@ The session's id.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>experimentsHistory</strong></td>
-<td valign="top">[<a href="#experimentsgen">ExperimentsGen</a>]</td>
+<td valign="top">[<a href="#experiments">Experiments</a>]</td>
 <td>
 
 Get the experiments and responses for all generations. For non-admin users, returns information only if the session is owned by the user.
@@ -515,20 +524,20 @@ The first name, last name, email address and password for the new user.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>finalizeCampaign</strong></td>
+<td colspan="2" valign="top"><strong>generateDesign</strong></td>
 <td valign="top"><a href="#task">Task</a></td>
 <td>
 
-Validate and start a 'finalize' task to save the final extra and/or generated experiment responses.
+Start a 'generate' task using initial, extra and/or generated experiment responses.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" align="right" valign="top">experiments</td>
-<td valign="top"><a href="#experimentsinput">ExperimentsInput</a>!</td>
+<td colspan="2" align="right" valign="top">gen</td>
+<td valign="top"><a href="#int">Int</a>!</td>
 <td>
 
-The experiments and responses to validate.
+The generation number of the previously validated experiments and responses.
 
 </td>
 </tr>
@@ -605,6 +614,60 @@ The access token to revoke.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>putExperimentalParameters</strong></td>
+<td valign="top"><a href="#task">Task</a></td>
+<td>
+
+Validate and start a 'space' task to save a session's experimental space parameters (space type, population size, replicates, total volume and experimental parameter definitions).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">params</td>
+<td valign="top"><a href="#sessionparametersinput">SessionParametersInput</a>!</td>
+<td>
+
+The experimental space parameters to use for the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>putExperiments</strong></td>
+<td valign="top"><a href="#experiments">Experiments</a></td>
+<td>
+
+Validate initial, extra and/or generated experiment responses.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">experiments</td>
+<td valign="top"><a href="#experimentsinput">ExperimentsInput</a>!</td>
+<td>
+
+The experiments and responses to validate and save.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>restartSession</strong></td>
 <td valign="top"><a href="#session">Session</a></td>
 <td>
@@ -637,60 +700,6 @@ Validate and start a 'simulate' task to process several design generations.
 <td>
 
 The number of design generations to attempt.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">params</td>
-<td valign="top"><a href="#sessionparametersinput">SessionParametersInput</a>!</td>
-<td>
-
-The experimental space parameters to use for the session.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">sessionId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The session's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>saveExperiments</strong></td>
-<td valign="top"><a href="#task">Task</a></td>
-<td>
-
-Validate and start a 'generate' task to save initial, extra and/or generated experiment responses.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">experiments</td>
-<td valign="top"><a href="#experimentsinput">ExperimentsInput</a>!</td>
-<td>
-
-The experiments and responses to validate.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">sessionId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The session's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>saveSessionParameters</strong></td>
-<td valign="top"><a href="#task">Task</a></td>
-<td>
-
-Validate and start a 'space' task to save a session's experimental space parameters (space type, population size, replicates, total volume and experimental parameter definitions).
 
 </td>
 </tr>
@@ -1303,60 +1312,7 @@ Information about initial or subsequent experiments in a session.
 <tbody>
 <tr>
 <td colspan="2" valign="top"><strong>designRows</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
-<td>
-
-The number of experiments generated by the system.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>hasResponses</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
-<td>
-
-True if the experiment data in the associated table contains responses.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>table</strong></td>
-<td valign="top"><a href="#dataframe">DataFrame</a>!</td>
-<td>
-
-The experiment inputs (and possible responses) for the experiments.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>validated</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
-<td>
-
-True if the experiment data for this generation has been validated.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### ExperimentsGen
-
-Information about initial or subsequent experiments in a session.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>designRows</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
+<td valign="top"><a href="#int">Int</a></td>
 <td>
 
 The number of experiments generated by the system.
@@ -1374,7 +1330,7 @@ The generation number for the experiments.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>hasResponses</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
 True if the experiment data in the associated table contains responses.
@@ -1383,7 +1339,7 @@ True if the experiment data in the associated table contains responses.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>table</strong></td>
-<td valign="top"><a href="#dataframe">DataFrame</a>!</td>
+<td valign="top"><a href="#dataframe">DataFrame</a></td>
 <td>
 
 The experiment inputs (and possible responses) for the experiments.
@@ -1392,81 +1348,10 @@ The experiment inputs (and possible responses) for the experiments.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>validated</strong></td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
 True if the experiment data for this generation has been validated.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### FinalizeTaskResult
-
-Result of a finalize experiments task.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>campaign</strong></td>
-<td valign="top"><a href="#campaigninfo">CampaignInfo</a>!</td>
-<td>
-
-Generation information.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>errors</strong></td>
-<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
-<td>
-
-Errors encountered when validating the experiments.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>params</strong></td>
-<td valign="top"><a href="#sessionparameters">SessionParameters</a>!</td>
-<td>
-
-Current validated experimental space parameters.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>sessionId</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The session's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>taskId</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The task's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>type</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The task's type ('finalize').
 
 </td>
 </tr>
@@ -2281,7 +2166,7 @@ Errors encountered when validating the experimental space.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>experimentsHistory</strong></td>
-<td valign="top">[<a href="#experimentsgen">ExperimentsGen</a>]</td>
+<td valign="top">[<a href="#experiments">Experiments</a>]</td>
 <td>
 
 Experiments and responses for all generations.
@@ -2422,6 +2307,15 @@ True if the task is no longer active and has been flagged as archived.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>description</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The task's description.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>errors</strong></td>
 <td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
 <td>
@@ -2489,7 +2383,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', 'finalize', or 'simulate').
+The task's type ('space', 'generate', 'update', or 'simulate').
 
 </td>
 </tr>
@@ -2555,11 +2449,29 @@ Summary information on a long-running task in a daptics session.
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>description</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The task's description.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>sessionId</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
 The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>startedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a></td>
+<td>
+
+The date and time the task was started.
 
 </td>
 </tr>
@@ -2586,7 +2498,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', 'finalize', or 'simulate').
+The task's type ('space', 'generate', 'update', or 'simulate').
 
 </td>
 </tr>
@@ -2810,6 +2722,86 @@ The date and time that the transaction was last updated.
 <td>
 
 Profile and activity information for the associated user's account.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### UpdateTaskResult
+
+Result of a save experiments task.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>campaign</strong></td>
+<td valign="top"><a href="#campaigninfo">CampaignInfo</a>!</td>
+<td>
+
+Generation information.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>errors</strong></td>
+<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
+<td>
+
+Errors encountered when validating the experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>experiments</strong></td>
+<td valign="top"><a href="#experiments">Experiments</a></td>
+<td>
+
+Validated experiments saved in current generation.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>params</strong></td>
+<td valign="top"><a href="#sessionparameters">SessionParameters</a>!</td>
+<td>
+
+Current validated experimental space parameters.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>taskId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's type ('update').
 
 </td>
 </tr>
@@ -3480,6 +3472,40 @@ The user's postal code.
 
 ## Inputs
 
+### AdditionalParameterInput
+
+An advanced experimental space parameter.
+
+<table>
+<thead>
+<tr>
+<th colspan="2" align="left">Field</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>jsonValue</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The parameter's value, encoded as a JSON string.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>name</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The parameter name.
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### ChangePasswordInput
 
 Input fields for changing the password on a user account.
@@ -3603,6 +3629,15 @@ The current generation number. Use zero to submit initial experiments or just to
 <td>
 
 The experiments and their responses. Required if gen is greater than zero.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The type of experiments being submitted, 'initial', 'designed', or 'final'.
 
 </td>
 </tr>
@@ -3744,6 +3779,15 @@ Input fields for validating a session's experimental space parameters.
 </tr>
 </thead>
 <tbody>
+<tr>
+<td colspan="2" valign="top"><strong>additionalParams</strong></td>
+<td valign="top">[<a href="#additionalparameterinput">AdditionalParameterInput</a>]</td>
+<td>
+
+Additional advanced parameters for modeling and sampling.
+
+</td>
+</tr>
 <tr>
 <td colspan="2" valign="top"><strong>populationSize</strong></td>
 <td valign="top"><a href="#int">Int</a>!</td>

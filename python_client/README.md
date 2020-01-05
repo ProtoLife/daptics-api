@@ -5,7 +5,7 @@ to using the daptics API with a freely distributed Python GraphQL client.
 
 See the documentation at https://jupyter.org if you have never used Jupyter notebooks before.
 
-For additional help or information, please visit or contact Daptics.
+Please note that to use the Daptics API, you must first have a daptics account, available at [the Daptics website](https://daptics.ai). For additional help or information, please visit or contact Daptics:
 
 On the web at https://daptics.ai  
 By email at support@daptics.ai
@@ -30,7 +30,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-### Installation
+## Installation
 
 Before opening the Introduction notebook, install IPython, Jupyter and required packages.
 
@@ -62,11 +62,30 @@ correct versions of the required `requests` and `gql` libraries:
 https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter
 
 
-### Tutorial Contents
+## Tutorial Files
 
-The tutorials folder contains an introductory Jupyter notebook, Introduction.ipynb,
-and supporting files.  Make sure to import all the files in this folder into your
-Jupyter server, especially the daptics_client.py file that the notebook will import.
+The tutorials folder contains a series of jupyter notebooks to explain operation of the daptics API, with explicit examples:
 
-There are also several example experimental space definition CSV files in the
+* 01_README.ipynb
+* 02_Terminology.ipynb
+* 03_SimpleTutorial.ipynb
+* 03_SimpleTutorial_.ipynb
+* 04_GetAnalytics.ipynb
+* 05_RestartSession.ipynb
+
+If you are familiar with Daptics from the web interface, you could jump directly to `03_SimpleTutorial.ipynb` to get started.
+
+Make sure to copy all the files in this folder into your
+Jupyter server directory (the directory from which you start `jupyter notebook`), especially the daptics_client.py file that the all notebooks using the daptics API  will import.
+
+There are also several example experimental space definition CSV files in this
 folder that you can use to try out different parameters.
+
+```python
+# Here's an example of using conda to update the required libraries in Jupyter-land.
+
+import sys
+print(sys.path)
+print('Using {} to run pip'.format(sys.executable))
+!{sys.executable} -m pip install requests gql
+```

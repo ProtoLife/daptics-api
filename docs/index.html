@@ -53,17 +53,19 @@
     <a class="current" href=".">Home</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#daptics-api">daptics-api</a></li>
+    <li class="toctree-l2"><a href="#daptics-api">daptics API </a></li>
     
         <ul>
         
-            <li><a class="toctree-l3" href="#python-client">Python Client</a></li>
+            <li><a class="toctree-l3" href="#links">Links</a></li>
         
-            <li><a class="toctree-l3" href="#graphql-api-documentation">GraphQL API Documentation</a></li>
+            <li><a class="toctree-l3" href="#python-client">Python Client </a></li>
         
-            <li><a class="toctree-l3" href="#python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build</a></li>
+            <li><a class="toctree-l3" href="#graphql-api-documentation">GraphQL API Documentation </a></li>
         
-            <li><a class="toctree-l3" href="#using-jupytext-to-extract-and-sync-to-python-source-files">Using jupytext to extract and sync to Python source files</a></li>
+            <li><a class="toctree-l3" href="#python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build </a></li>
+        
+            <li><a class="toctree-l3" href="#using-jupytext-to-extract-and-sync-to-python-source-files">Using Jupytext to Extract and Sync to Python Source Files </a></li>
         
         </ul>
     
@@ -113,71 +115,77 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="daptics-api">daptics-api</h1>
-<p>Documentation and clients for the Daptics design of experiments GraphQL API.</p>
-<p>For more information on Daptics technology, please see the Documentation section
-of the <a href="https://daptics.ai">Daptics website</a>.</p>
-<p>To use the Daptics API, you must first register at the <a href="https://daptics.ai">Daptics website</a>
+                <h1 id="daptics-api">daptics API <a class="tocSkip"></a></h1>
+<p>This is the README documentation for the daptics design of experiments GraphQL API
+and the Python API client.</p>
+<h2 id="links">Links</h2>
+<ul>
+<li>The Python API client module and several tutorial Jupyter notebooks are available
+from the daptics-api GitHub repository at
+<a href="https://github.com/ProtoLife/daptics-api">https://github.com/ProtoLife/daptics-api</a></li>
+<li>Auto-generated documentation for the API and the client is available from the
+GitHub Pages for this project at
+<a href="https://ProtoLife.github.io/daptics-api">https://ProtoLife.github.io/daptics-api</a></li>
+<li>For more information on Daptics technology, please see the Documentation section
+of the daptics website at <a href="https://daptics.ai">https://daptics.ai</a></li>
+</ul>
+<p>To use the daptics API, you must first register at the <a href="https://daptics.ai">https://daptics.ai</a>
 to establish your login and password for API authentication.</p>
-<h2 id="python-client">Python Client</h2>
+<h2 id="python-client">Python Client <a class="tocSkip"></a></h2>
 <p>The <code>python_client</code> folder contains the Python GraphQL client, daptics_client.py,
 and several interactive Python notebooks for experimenting with the API.</p>
-<p>Follow the instructions in the README.md file to set up a local Jupyter Notebook
+<p>Follow the instructions in the README.md file in that folder to set up a local Jupyter Notebook
 server if you do not have access to a server that can open <code>.ipynb</code> files.</p>
-<p><a href="https://github-tools.github.io/github-release-notes/"><img alt="Automated Release Notes by gren" src="https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg" /></a></p>
-<h2 id="graphql-api-documentation">GraphQL API Documentation</h2>
-<p>Install this tool:</p>
-<ul>
-<li><a href="">graphql-markdown</a></li>
-</ul>
+<h2 id="graphql-api-documentation">GraphQL API Documentation <a class="tocSkip"></a></h2>
+<ol>
+<li>
+<p>Install <a href="https://www.npmjs.com/package/graphql-markdown">graphql-markdown</a></p>
+</li>
+<li>
 <p>Then in <code>pydocmd</code> folder, run:</p>
+</li>
+</ol>
 <pre><code>graphql-markdown http://inertia.protolife.com:8080/api &gt;graphql_api.md
 </code></pre>
 
-<h2 id="python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build</h2>
-<p>Install these tools:</p>
-<ul>
-<li><a href="https://www.mkdocs.org/">MkDocs</a></li>
-<li><a href="https://niklasrosenstein.github.io/pydoc-markdown">pydocmd</a></li>
-</ul>
+<h2 id="python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build <a class="tocSkip"></a></h2>
+<ol>
+<li>
+<p>Install these tools: <a href="https://www.mkdocs.org/">MkDocs</a> and
+<a href="https://niklasrosenstein.github.io/pydoc-markdown">pydocmd</a></p>
+</li>
+<li>
 <p>Then in <code>pydocmd</code> folder, run:</p>
+</li>
+</ol>
 <pre><code>pydocmd build
 </code></pre>
 
 <p>Html and Markdown files will be produced in the <code>docs</code> folder.</p>
-<h2 id="using-jupytext-to-extract-and-sync-to-python-source-files">Using jupytext to extract and sync to Python source files</h2>
+<h2 id="using-jupytext-to-extract-and-sync-to-python-source-files">Using Jupytext to Extract and Sync to Python Source Files <a class="tocSkip"></a></h2>
 <ol>
 <li>
-<p>Install jupytext:</p>
+<p>Install <a href="https://github.com/mwouts/jupytext">jupytext</a></p>
 </li>
 <li>
-<p><a href="https://github.com/mwouts/jupytext">jupytext</a></p>
+<p>Set up metadata in any ipynb file that has Python code: 
+<code>jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb</code></p>
 </li>
 <li>
-<p>Set up metadata in any ipynb file that has Python code:</p>
+<p>Export Python code to <code>/python</code> subdirectory:
+<code>jupytext --from ipynb --to python//py:light 03_SimpleTutorial.ipynb</code></p>
 </li>
-</ol>
-<pre><code>jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb
-</code></pre>
-
-<ol>
-<li>Export Python code to <code>/python</code> subdirectory:</li>
-</ol>
-<pre><code>jupytext --from ipynb --to python//py:light 03_SimpleTutorial.ipynb
-</code></pre>
-
-<ol>
 <li>
 <p>Edit Python code as needed. Or when you run in Jupyter notebook, and make changes, the
 corresponding Python file will be kept up to date!</p>
 </li>
 <li>
 <p>Rebuild notebook from Python file without outputs (do this before checking into
-version control):</p>
+version control):
+<code>jupytext --from python//py:light --to notebook python/03_SimpleTutorial.py</code></p>
 </li>
 </ol>
-<pre><code>jupytext --from python//py:light --to notebook python/03_SimpleTutorial.py
-</code></pre>
+<p><a href="https://github-tools.github.io/github-release-notes/"><img alt="Automated Release Notes by gren" src="https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg" /></a></p>
               
             </div>
           </div>
@@ -226,5 +234,5 @@ version control):</p>
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2019-09-26 00:10:54
+Build Date UTC : 2020-01-05 20:54:56
 -->

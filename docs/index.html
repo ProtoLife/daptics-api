@@ -8,8 +8,9 @@
   <meta name="description" content="None">
   
   <link rel="shortcut icon" href="img/favicon.ico">
-  <title>Home - Daptics Python Client</title>
+  <title>Project README - Daptics Python Client</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="css/theme.css" type="text/css" />
   <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
@@ -17,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Home";
+    var mkdocs_page_name = "Project README";
     var mkdocs_page_input_path = "index.md";
     var mkdocs_page_url = null;
   </script>
@@ -45,45 +46,80 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href=".">Home</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#daptics-api">daptics API </a></li>
+	<ul class="tocbase current">
     
-        <ul>
-        
-            <li><a class="toctree-l3" href="#links">Links</a></li>
-        
-            <li><a class="toctree-l3" href="#python-client">Python Client </a></li>
-        
-            <li><a class="toctree-l3" href="#graphql-api-documentation">GraphQL API Documentation </a></li>
-        
-            <li><a class="toctree-l3" href="#python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build </a></li>
-        
-            <li><a class="toctree-l3" href="#using-jupytext-to-extract-and-sync-to-python-source-files">Using Jupytext to Extract and Sync to Python Source Files </a></li>
-        
-        </ul>
     
+      
 
+
+  
+    
+    <li class="navtree toctree-l1 page current">
+      <a class="current" href=".">
+        Project README
+      </a>
+    </li>
+    
+      
+
+  <li class="toctree-l1 current with-children">
+    <a href="#daptics-api">
+      daptics API 
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l1 current">
+    <ul class="subnav-l1 current">
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#links">Links</a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#python-client">Python Client </a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#graphql-api-documentation">GraphQL API Documentation </a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build </a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#using-jupytext-to-extract-and-sync-to-python-source-files">Using Jupytext to Extract and Sync to Python Source Files </a>
+        </li>
+    
     </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
+  </li>
+
+
+  
+    
+      
+
+
+  <li class="navtree toctree-l1 inactive">
     <a class="" href="graphql_api/">GraphQL API</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="python_client/">Python API Client</a>
-	    </li>
-          
-        </ul>
+  </li>
+    
+      
+
+
+  <li class="navtree toctree-l1 inactive">
+    <a class="" href="daptics_client/">Python API Client</a>
+  </li>
+    
+  </ul>
       </div>
       &nbsp;
     </nav>
@@ -105,7 +141,7 @@
     
       
     
-    <li>Home</li>
+    <li>Project README</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -142,7 +178,7 @@ server if you do not have access to a server that can open <code>.ipynb</code> f
 <p>Install <a href="https://www.npmjs.com/package/graphql-markdown">graphql-markdown</a></p>
 </li>
 <li>
-<p>Then in <code>pydocmd</code> folder, run:</p>
+<p>Then in the <code>pydocmd</code> folder, run:</p>
 </li>
 </ol>
 <pre><code>graphql-markdown http://inertia.protolife.com:8080/api &gt;graphql_api.md
@@ -151,16 +187,17 @@ server if you do not have access to a server that can open <code>.ipynb</code> f
 <h2 id="python-client-documentation-and-mkdocs-build">Python Client Documentation and MkDocs Build <a class="tocSkip"></a></h2>
 <ol>
 <li>
-<p>Install these tools: <a href="https://www.mkdocs.org/">MkDocs</a> and
-<a href="https://niklasrosenstein.github.io/pydoc-markdown">pydocmd</a></p>
+<p>Install these tools: <a href="https://www.mkdocs.org/">MkDocs</a>,
+  the <a href="https://github.com/cjsheets/mkdocs-rtd-dropdown">ReadTheDocs-Dropdown theme for MkDocs</a>,
+  and <a href="https://pdoc3.github.io/pdoc/">pdoc3</a></p>
 </li>
 <li>
-<p>Then in <code>pydocmd</code> folder, run:</p>
+<p>In the <code>python_client</code> folder, run: <code>pdoc --pdf --force --template-dir ../pdoc/templates daptics_client &gt;../pydocmd/daptics_client.md</code></p>
+</li>
+<li>
+<p>Finally in the main project folder, run: <code>mkdocs build</code></p>
 </li>
 </ol>
-<pre><code>pydocmd build
-</code></pre>
-
 <p>Html and Markdown files will be produced in the <code>docs</code> folder.</p>
 <h2 id="using-jupytext-to-extract-and-sync-to-python-source-files">Using Jupytext to Extract and Sync to Python Source Files <a class="tocSkip"></a></h2>
 <ol>
@@ -168,7 +205,7 @@ server if you do not have access to a server that can open <code>.ipynb</code> f
 <p>Install <a href="https://github.com/mwouts/jupytext">jupytext</a></p>
 </li>
 <li>
-<p>Set up metadata in any ipynb file that has Python code: 
+<p>Set up metadata in any ipynb file that has Python code:
 <code>jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb</code></p>
 </li>
 <li>
@@ -234,5 +271,5 @@ version control):
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2020-01-06 16:20:27
+Build Date UTC : 2020-01-13 06:24:38
 -->

@@ -26,7 +26,7 @@
 %>
 
 <%def name="title(level, string, id=None)">
-    <% id = ' {#%s}' % id if id is not None else '' %>
+    <% id = '' %>
 ${('#' * level) + ' ' + string + id}
 </%def>
 

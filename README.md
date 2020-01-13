@@ -32,7 +32,7 @@ server if you do not have access to a server that can open `.ipynb` files.
 
 1. Install [graphql-markdown](https://www.npmjs.com/package/graphql-markdown)
 
-2. Then in `pydocmd` folder, run:
+2. Then in the `pydocmd` folder, run:
 
 ```
 graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
@@ -40,14 +40,14 @@ graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>
 
-1. Install these tools: [MkDocs](https://www.mkdocs.org/) and
-[pydocmd](https://niklasrosenstein.github.io/pydoc-markdown)
+1. Install these tools: [MkDocs](https://www.mkdocs.org/),
+  the [ReadTheDocs-Dropdown theme for MkDocs](https://github.com/cjsheets/mkdocs-rtd-dropdown),
+  and [pdoc3](https://pdoc3.github.io/pdoc/)
 
-2. Then in `pydocmd` folder, run:
+2. In the `python_client` folder, run: `pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md`
 
-```
-pydocmd build
-```
+3. Finally in the main project folder, run: `mkdocs build`
+
 
 Html and Markdown files will be produced in the `docs` folder.
 
@@ -56,7 +56,7 @@ Html and Markdown files will be produced in the `docs` folder.
 
 1. Install [jupytext](https://github.com/mwouts/jupytext)
 
-2. Set up metadata in any ipynb file that has Python code: 
+2. Set up metadata in any ipynb file that has Python code:
 `jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb`
 
 3. Export Python code to `/python` subdirectory:

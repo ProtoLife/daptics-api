@@ -4,21 +4,28 @@ site_name: Daptics Python Client
 # functions and classes. At the first level is the page name, below that
 # is a tree of Python member names (modules, classes, etc.) that should be
 # documented. Higher indentation leads to smaller header size.
-generate:
-- python_client.md:
-  - daptics_client:
-    - daptics_client.DapticsClient+     # (+ to include members)
-    - daptics_client.TokenAuth+
-    - daptics_client.DapticsTaskType
-    - daptics_client.DapticsExperimentsType
+
+# generate:
+# - python_client.md:
+#  - daptics_client:
+#    - daptics_client.DapticsClient+     # (+ to include members)
+#    - daptics_client.TokenAuth+
+#    - daptics_client.DapticsTaskType
+#    - daptics_client.DapticsExperimentsType
 
 # MkDocs nav configuration. The `<<` operator is sugar added by pydocmd
 # that allows you to use an external Markdown file (eg. your project's README)
 # in the documentation. The path must be relative to current working directory.
+#
+# To generate graphql_api.md, go to the pydocmd folder and run:
+# graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
+#
+# To generate python_client.md, go to the python_client folder and run:
+# pdoc --pdf --force daptics_client >../pydocmd/daptics_client.md
 pages:
 - Home: index.md << ../README.md
 - GraphQL API: graphql_api.md << graphql_api.md
-- Python API Client: python_client.md
+- Python API Client: daptics_client.md << daptics_client.md
 
 # These options all show off their default values. You don't have to add
 # them to your configuration if you're fine with the default.
@@ -32,5 +39,5 @@ preprocessor: pydocmd.preprocessor.Preprocessor
 # Additional search path for your Python module. If you use Pydocmd from a
 # subdirectory of your project (eg. docs/), you may want to add the parent
 # directory here.
-additional_search_paths:
-- ../python_client
+# additional_search_paths:
+# - ../python_client

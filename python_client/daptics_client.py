@@ -1390,7 +1390,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             auto_export_path = self.options.get('auto_export_path')
             if auto_export_path is not None:
                 fname = os.path.join(auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
-                self.export_csv(fname, data['putExperiments']['table'], False)
+                self.export_csv(fname, data['putExperiments']['table'], True)
 
             if self.options.get('auto_generate_next_design'):
                 if self.remaining is None or self.remaining > 0:
@@ -1828,7 +1828,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             self.design = result['experiments']
                             if auto_export_path is not None:
                                 fname = os.path.join(auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
-                                self.export_csv(fname, self.design['table'], False)
+                                self.export_csv(fname, self.design['table'], True)
                         elif type_ == 'simulate':
                             self.gen = result['campaign']['gen']
                             self.remaining = result['campaign']['remaining']
@@ -2159,7 +2159,7 @@ mutation CreateAnalytics($sessionId:String!) {
             raise SessionParametersNotValidatedError()
 
         col_headers = self.experiments_table_column_names(space)
-        self.export_csv(fname, {'colHeaders': col_headers, 'data':[]})
+        self.export_csv(fname, {'colHeaders': col_headers, 'data':[]}, True)
         return col_headers
 
     def export_generated_design_csv(self, fname, gen=None):
@@ -2181,7 +2181,7 @@ mutation CreateAnalytics($sessionId:String!) {
         """
 
         design = self.get_generated_design(gen=gen)
-        self.export_csv(fname, design['table'])
+        self.export_csv(fname, design['table'], True)
         return design
 
     def export_experiments_history_csv(self, fname):

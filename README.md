@@ -35,7 +35,7 @@ server if you do not have access to a server that can open `.ipynb` files.
 2. Then in `pydocmd` folder, run:
 
 ```
-graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
+graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife.com:8080/api >graphql_api.md
 ```
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>

@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-"""DapticsClient - A Python client for the Daptics GraphQL API.
+"""# Python API Client
 
 See comments and docstrings for the DapticsClient class in the code below
 for suggestions for using this class. For additional help or information,
@@ -9,8 +7,8 @@ please visit or contact Daptics.
 On the web at https://daptics.ai
 By email at support@daptics.ai
 
-Daptics API Version 0.9.1
-Copyright (c) 2019 Daptics Inc.
+Daptics API Version 0.9.2
+Copyright (c) 2020 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -31,7 +29,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 """
-
 
 import csv
 import enum

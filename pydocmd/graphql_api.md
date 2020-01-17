@@ -1,4 +1,4 @@
-# Schema Types
+# Daptics GraphQL API
 
 <details>
   <summary><strong>Table of Contents</strong></summary>

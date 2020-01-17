@@ -1,5 +1,22 @@
 # Changelog
 
+
+## v0.9.2 (17/01/2020)
+
+### Non-breaking changes
+
+Better documentation using mkdocs and pdoc3.
+
+Changes in `daptics_client.py`:
+
+* Fixed export_csv bugs for auto exports.
+* No other code changes
+
+Changes in notebooks:
+
+* Added 06_AutomationWorkflow.ipynb
+
+
 ## v0.9.1 (25/09/2019)
 
 ### Non-breaking changes

@@ -8,8 +8,9 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>GraphQL API - Daptics Python Client</title>
+  <title>Daptics GraphQL API - Daptics Python Client</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
@@ -17,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "GraphQL API";
+    var mkdocs_page_name = "Daptics GraphQL API";
     var mkdocs_page_input_path = "graphql_api.md";
     var mkdocs_page_url = null;
   </script>
@@ -45,45 +46,355 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="..">Home</a>
-	    </li>
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">GraphQL API</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#schema-types">Schema Types</a></li>
+	<ul class="tocbase current">
     
-        <ul>
-        
-            <li><a class="toctree-l3" href="#query-rootquerytype">Query (RootQueryType)</a></li>
-        
-            <li><a class="toctree-l3" href="#mutation-rootmutationtype">Mutation (RootMutationType)</a></li>
-        
-            <li><a class="toctree-l3" href="#objects">Objects</a></li>
-        
-            <li><a class="toctree-l3" href="#inputs">Inputs</a></li>
-        
-            <li><a class="toctree-l3" href="#scalars">Scalars</a></li>
-        
-        </ul>
     
+      
 
+
+  <li class="navtree toctree-l1 inactive">
+    <a class="" href="..">Daptics API Index</a>
+  </li>
+    
+      
+
+
+  <li class="navtree toctree-l1 inactive">
+    <a class="" href="../daptics_client/">Python API Client</a>
+  </li>
+    
+      
+
+
+  
+    
+    <li class="navtree toctree-l1 page current">
+      <a class="current" href="./">
+        Daptics GraphQL API
+      </a>
+    </li>
+    
+      
+
+
+
+  <li class="toctree-l1 current">
+    <ul class="subnav-l1 current">
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#query-rootquerytype">Query (RootQueryType)</a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#mutation-rootmutationtype">Mutation (RootMutationType)</a>
+        </li>
+    
+      
+          
+
+  <li class="toctree-l2">
+    <a href="#objects">
+      Objects
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l2">
+    <ul class="subnav-l2 toc-hidden">
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#analytics">Analytics</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#analyticsfileinfo">AnalyticsFileInfo</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#apiparameters">ApiParameters</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#authenticationtoken">AuthenticationToken</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#campaigninfo">CampaignInfo</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#categorizederror">CategorizedError</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#dataframe">DataFrame</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#experimentalspace">ExperimentalSpace</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#experimentalspacetemplate">ExperimentalSpaceTemplate</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#experiments">Experiments</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#generatetaskresult">GenerateTaskResult</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#haltsessionresult">HaltSessionResult</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#loadavg">Loadavg</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#passwordchanged">PasswordChanged</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#server">Server</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#session">Session</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#sessionauth">SessionAuth</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#sessionparameters">SessionParameters</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#sessionsummary">SessionSummary</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#simulatetaskresult">SimulateTaskResult</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#spacetaskresult">SpaceTaskResult</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#task">Task</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#taskprogress">TaskProgress</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#tasksummary">TaskSummary</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#tokensent">TokenSent</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#transaction">Transaction</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#updatetaskresult">UpdateTaskResult</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#user">User</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#usercreated">UserCreated</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#userprofile">UserProfile</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#usersummary">UserSummary</a>
+        </li>
+    
     </ul>
-	    </li>
+  </li>
+
+      
+    
+      
           
-            <li class="toctree-l1">
-		
-    <a class="" href="../python_client/">Python API Client</a>
-	    </li>
+
+  <li class="toctree-l2">
+    <a href="#inputs">
+      Inputs
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l2">
+    <ul class="subnav-l2 toc-hidden">
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#additionalparameterinput">AdditionalParameterInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#changepasswordinput">ChangePasswordInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#dataframeinput">DataFrameInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#experimentsinput">ExperimentsInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#newsessioninput">NewSessionInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#newuserinput">NewUserInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#sessionparametersinput">SessionParametersInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#spaceinput">SpaceInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#taskinput">TaskInput</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#userprofileinput">UserProfileInput</a>
+        </li>
+    
+    </ul>
+  </li>
+
+      
+    
+      
           
-        </ul>
+
+  <li class="toctree-l2">
+    <a href="#scalars">
+      Scalars
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l2">
+    <ul class="subnav-l2 toc-hidden">
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#boolean">Boolean</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#datetime">DateTime</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#float">Float</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#int">Int</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#string">String</a>
+        </li>
+    
+    </ul>
+  </li>
+
+      
+    
+    </ul>
+  </li>
+
+
+  
+    
+      
+
+
+  <li class="navtree toctree-l1 inactive">
+    <a class="" href="../jupyter_notebooks/">Jupyter Notebooks</a>
+  </li>
+    
+  </ul>
       </div>
       &nbsp;
     </nav>
@@ -105,7 +416,7 @@
     
       
     
-    <li>GraphQL API</li>
+    <li>Daptics GraphQL API</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -115,7 +426,7 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="schema-types">Schema Types</h1>
+                <h1 id="daptics-graphql-api">Daptics GraphQL API</h1>
 <details>
   <summary><strong>Table of Contents</strong></summary>
 
@@ -3943,10 +4254,10 @@ represent free-form human-readable text.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../python_client/" class="btn btn-neutral float-right" title="Python API Client">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../jupyter_notebooks/" class="btn btn-neutral float-right" title="Jupyter Notebooks">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../daptics_client/" class="btn btn-neutral" title="Python API Client"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -3972,10 +4283,10 @@ represent free-form human-readable text.</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../daptics_client/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../python_client/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../jupyter_notebooks/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

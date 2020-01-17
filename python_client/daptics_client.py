@@ -135,44 +135,35 @@ class DapticsTaskType(enum.Enum):
     """Enumerates the different asynchronous tasks that the daptics system can create and
     that can be searched for using the `poll_for_current_task` or `wait_for_current_task`
     methods.
-
-    # Attributes
-    SPACE:
-        The task type to be searched was created by the `put_experimental_parameters`
-        or `put_experimental_parameters_csv` methods.
-
-    GENERATE:
-        The task type to be searched was created by the `generate_design` method.
     """
+
     SPACE = 'space'
+    """The task type to be searched was created by the `put_experimental_parameters`
+    or `put_experimental_parameters_csv` methods.
+    """
+
     GENERATE = 'generate'
+    """The task type to be searched was created by the `generate_design` method."""
+
+    SIMULATE = 'simulate'
+    """A task that simulates a given number of experimental generations."""
 
 @enum.unique
 class DapticsExperimentsType(enum.Enum):
     """Enumerates the purpose for the experiments that are being uploaded to the
     session via the `put_experiments` or `put_experiments_csv` methods.
-
-    # Attributes
-    INITIAL_EXTRAS_ONLY:
-        The experiments submitted are initial experiments. No designed experiments are included.
-
-    DESIGNED_WITH_OPTIONAL_EXTRAS:
-        The experiments submitted are designed experiments, and may also include optional
-        extra experiments.
-
-    FINAL_EXTRAS_ONLY:
-        Not used in current API.
     """
+
     INITIAL_EXTRAS_ONLY = 'initial'
+    """The experiments submitted are initial experiments. No designed experiments are included."""
+
     DESIGNED_WITH_OPTIONAL_EXTRAS = 'designed'
+    """The experiments submitted are designed experiments, and may also include optional
+    extra experiments.
+    """
+
     FINAL_EXTRAS_ONLY = 'final'
-
-
-class DapticsConstants(object):
-    REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
-    DEFAULT_CONFIG = './daptics.conf'
-    GET_ANALYTICS_TIMEOUT = 90
-    EXPORT_SPACE_TIMEOUT = 300
+    """Not used in current API."""
 
 
 # The main DapticsClient class
@@ -181,7 +172,6 @@ class DapticsClient(object):
     Between API invocations, data such as the user id, access token, session id,
     last generated design, etc. are retained in the object's attributes.
 
-    # Attributes
     host (str):
         The host part of the API endpoint, as read from configuration, or set manually
         prior to calling `connect`.
@@ -190,149 +180,148 @@ class DapticsClient(object):
         File path to a JSON configuration file, used to read the host, login credentials and
         runtime options. Defaults to `daptics.conf`. The keys in the JSON file are:
 
-        `host` - host part of the API endpoint
+    `host` - host part of the API endpoint
 
-        `user` - email of the database user to login with
+    `user` - email of the database user to login with
 
-        `password` - password for the database user to login with
+    `password` - password for the database user to login with
 
-        `auto_export_path` - see `options` below
+    `auto_export_path` - see `options` below
 
-        `auto_generate_next_design` - see `options` below
+    `auto_generate_next_design` - see `options` below
 
-        `auto_task_timeout` - see `options` below
+    `auto_task_timeout` - see `options` below
 
-        If `config is set to None, configuration can be read from OS environment
-        variables, if they exist. The environment variable names are:
+    If `config is set to None, configuration can be read from OS environment
+    variables, if they exist. The environment variable names are:
 
-        `DAPTICS_HOST` - host part of the API endpoint
+    `DAPTICS_HOST` - host part of the API endpoint
 
-        `DAPTICS_USER` - email of the database user to login with
+    `DAPTICS_USER` - email of the database user to login with
 
-        `DAPTICS_PASSWORD` - password for the database user to login with
+    `DAPTICS_PASSWORD` - password for the database user to login with
 
-        `DAPTICS_AUTO_EXPORT_PATH` - see `options` below
+    `DAPTICS_AUTO_EXPORT_PATH` - see `options` below
 
-        `DAPTICS_AUTO_GENERATE_NEXT_DESIGN` - see `options` below
+    `DAPTICS_AUTO_GENERATE_NEXT_DESIGN` - see `options` below
 
-        `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
+    `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
     options (dict):
-        A Python dictionary containing runtime options. As of this version, there
+        A Python `dict` containing runtime options. As of this version, there
         are three available options:
 
-        'auto_export_path` - If not None, a string indicating the relative or absolute directory
-        where the validated experimental space and generated design files will be saved,
-        so that the user will not have to explicitly call the `export` functions.
+    'auto_export_path` - If not None, a string indicating the relative or absolute directory
+    where the validated experimental space and generated design files will be saved,
+    so that the user will not have to explicitly call the `export` functions.
 
-        `auto_generate_next_design` - If set (True), uploading (initial or later) experiment responses
-        will automatically start a `generate` task for the next design generation. If not set
-        (None or False), the uploading will only validate the responses, and the user
-        will have to call the `generate` task manually after a successful validation.
+    `auto_generate_next_design` - If set (True), uploading (initial or later) experiment responses
+    will automatically start a `generate` task for the next design generation. If not set
+    (None or False), the uploading will only validate the responses, and the user
+    will have to call the `generate` task manually after a successful validation.
 
-        `auto_task_timeout` - If set to a positive number indicating the
-        number of seconds to wait, this option will immediately start to wait on a
-        just-created task, so that the user will not have to explicitly call
-        `poll_for_current_task` or `wait_for_current_task`. Setting this option to a negative
-        number, means to wait indefinitely. Setting the option to zero will poll the task
-        just once. The default, None, means that the user wants to explicitly call
-        `poll_for_current_task` or `wait_for_current_task`.
-
-    credentials:
-        A tuple of (`username`, `password`), as read from configuration, or set manually
-        prior to calling `login`.
-
-    api_url (str):
-        The full API endpoint URL.
-
-    pp (pprint.PrettyPrinter):
-        Used for printing dict output.
-
-    gql (gql.Client):
-        The gql.Client object used to make GraphQL requests to the API.
-
-    auth (TokenAuth):
-        Used to insert the required authorization header in API requests. The
-        auth object's `token` attribute is set by the `login` method.
-
-    user_id (str):
-        The user id for the authenticated user, set by the `login` method.
-
-    session_id (str):
-        The session id for a connected PDT session, as set by the `create_session` method.
-
-    session_path (str):
-        The path on the filesystem where the session is located, as set by the
-        `create_session` method.
-
-    task_info (dict):
-        Information about the polling status for running tasks in the session.
-
-    gen (int):
-        The design "generation number" for the session. This is -1 for a new session,
-        0 when the session's experimental space has been validated, and greater than
-        zero when a design has been generated by the system.
-
-    remaining (int):
-        If not None, the number of possible generations that can be generated until
-        the entire design space has been explored.
-
-    completed (boolean):
-        A flag indicating whether the design space has been completely explored.
-
-    initial_params (dict):
-        The experimental space and other information as initially returned by the
-        `create_session` method.
-
-    space (dict):
-        The experimental space as updated by the result of the "save experimental space" task.
-
-    design (dict):
-        The current generated design, as updated by the result of a "generate design" task.
-
-    experiments_history (list):
-        All the experiments and responses that have been simulated, as updated by the result
-        of a "simulate" task, represented as a list of Python dicts.
+    `auto_task_timeout` - If set to a positive number indicating the
+    number of seconds to wait, this option will immediately start to wait on a
+    just-created task, so that the user will not have to explicitly call
+    `poll_for_current_task` or `wait_for_current_task`. Setting this option to a negative
+    number, means to wait indefinitely. Setting the option to zero will poll the task
+    just once. The default, None, means that the user wants to explicitly call
+    `poll_for_current_task` or `wait_for_current_task`.
     """
 
+    REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
+    """The names of required experimental space parameters."""
+
+    DEFAULT_CONFIG = './daptics.conf'
+    """The default location for the option configuration file."""
+
+    GET_ANALYTICS_TIMEOUT = 90
+    """The default timeout for generating analytics files, in seconds."""
+
     def __init__(self, host=None, config=None):
-        """Initialize a new DapticsClient object.
-
-        # Arguments
-        host (str):
-            The host part of the API endpoint. Example: `http://localhost:4041`
-
-        config (str):
-            File path to a JSON configuration file.
+        self.host = host
+        """The host part of the API endpoint, as read from configuration, or set manually
+        prior to calling `connect`.
         """
 
-        self.host = host
         self.config = config
+        """The file path to the JSON configuration file used to read the host, login credentials and
+        runtime options.
+        """
+
         self.options = {
             'auto_export_path': None,
             'auto_generate_next_design': False,
             'auto_task_timeout': None
         }
-        self.credentials = None
-        self.api_url = None
-        self.pp = pprint.PrettyPrinter(indent=4)
-        self.gql = None
-        self.auth = TokenAuth()
-        self.user_id = None
-        self.session_id = None
-        self.task_info = {}
-        self.gen = -1
-        self.remaining = None
-        self.completed = False
-        self.initial_params = None
-        self.validated_params = None
-        self.design = None
-        self.experiments_history = None
+        """A Python `dict` containing the runtime options."""
 
+        self.credentials = None
+        """A tuple of (`username`, `password`), as read from configuration, or set manually
+        prior to calling `login`.
+        """
+
+        self.api_url = None
+        """The full API endpoint URL."""
+
+        self.pp = pprint.PrettyPrinter(indent=4)
+        """A `pprint.PrettyPrinter` object used for printing Python `dict`s."""
+
+        self.gql = None
+        """The `gql.Client` object used to make GraphQL requests to the API."""
+
+        self.auth = TokenAuth()
+        """A `requests.auth` object used to insert the required authorization
+        header in API requests. The auth object's `token` attribute is set by the `login` method.
+        """
+
+        self.user_id = None
+        """The user id for the authenticated user, set by the `login` method."""
+
+        self.session_id = None
+        """The session id for a connected PDT session, as set by the `create_session` method."""
+
+        self.task_info = {}
+        """A Python `dict` that holds information about the polling status for
+        running tasks in the session.
+        """
+
+        self.gen = -1
+        """An integer storing the current design "generation number" for the session.
+        This is -1 for a new session, 0 when the session's experimental space has been
+        validated, and greater than zero when a design has been generated by the system.
+        """
+
+        self.remaining = None
+        """If not None, an integer representing the number of possible generations that
+        can be generated until the entire design space has been explored.
+        """
+
+        self.completed = False
+        """A boolean indicating whether the design space has been completely explored."""
+
+        self.initial_params = None
+        """A Python `dict` containing the experimental space parameters defaults as
+        initially returned by the `create_session` method.
+        """
+
+        self.validated_params = None
+        """A Python `dict` containing the experimental space parameters as updated
+        from the result of a "space" task.
+        """
+
+        self.design = None
+        """A Python `dict` contining the current generated design, as updated by the
+        result of a "generate" task.
+        """
+
+        self.experiments_history = None
+        """A list of Python `dict`s containing all the experiments and responses that
+        have been simulated, as updated by the result of a "simulate" task.
+        """
 
     def print(self):
-        """Print out debugging information about the session.
-        """
+        """Print out debugging information about the session."""
         print('host = ', self.host)
         print('credentials = ', self.credentials)
         print('options = ', self.options)
@@ -499,7 +488,7 @@ class DapticsClient(object):
             If the config file specified cannot be parsed, or does not have a 'host'
             value.
         """
-        config_path = os.path.abspath(DapticsConstants.DEFAULT_CONFIG)
+        config_path = os.path.abspath(DapticsClient.DEFAULT_CONFIG)
         config_must_exist = False
         if self.config:
             config_path = os.path.abspath(self.config)
@@ -822,7 +811,7 @@ mutation HaltSession($sessionId:String!) {
 
         # Arguments
         params (dict):
-            A dictionary containing the experimental parameters to be
+            A Python `dict` containing the experimental parameters to be
             used for the session. See the Notes section that describes the
             required keys for the `params` dict.
 
@@ -936,8 +925,8 @@ mutation HaltSession($sessionId:String!) {
         params['space']['table']['colHeaders'] = col_headers
 
         # Split off additional params, format them and add them to the required params.
-        params_ = {key: params[key] for key in (params.keys() & DapticsConstants.REQUIRED_SPACE_PARAMS)}
-        additional_params = [{'name': key, 'jsonValue': json.dumps(params[key])} for key in (params.keys() - DapticsConstants.REQUIRED_SPACE_PARAMS)]
+        params_ = {key: params[key] for key in (params.keys() & DapticsClient.REQUIRED_SPACE_PARAMS)}
+        additional_params = [{'name': key, 'jsonValue': json.dumps(params[key])} for key in (params.keys() - DapticsClient.REQUIRED_SPACE_PARAMS)]
         params_['additionalParams'] = additional_params
 
         vars = {
@@ -978,7 +967,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             below for an example.
 
         params (dict):
-            A dictionary containing the experimental parameters to be
+            A Python `dict` containing the experimental parameters to be
             used for the session. See the Notes section for more information.
 
         # Returns
@@ -1290,17 +1279,17 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
         experiments_type (DapticsExperimentsType):
             Describes the types of experiments that are being added to the session.
 
-            If you wish to submit calibrating or existing experimental responses prior
-            to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+        If you wish to submit calibrating or existing experimental responses prior
+        to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
 
-            If you are submitting the responses for a daptics-generated design, along
-            with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+        If you are submitting the responses for a daptics-generated design, along
+        with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
 
-            If you wish to submit any final extra experiments when you are satisified
-            with the session's optimization but do not want to include the last
-            generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
-            will end the session's optimization and that no more designs will be
-            generated.
+        If you wish to submit any final extra experiments when you are satisified
+        with the session's optimization but do not want to include the last
+        generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
+        will end the session's optimization and that no more designs will be
+        generated.
 
         experiments (dict):
             A "table" of experiments that includes columns,
@@ -1308,18 +1297,18 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
             space parameters, and a column named 'Response' to record the result of
             experiments.
 
-            Each row in the `data` value for the table represents
-            an individual experiment.
+        Each row in the `data` value for the table represents
+        an individual experiment.
 
-            If the `experiments type` is `DESIGNED_WITH_OPTIONAL_EXTRAS`,
-            you must sumbit at least as many rows as exist in the currently
-            generated design, and the parameter values for these rows
-            must match the design exactly. Additional "extra" experiment
-            rows, that use any valid experimental parameter values, can also
-            be provided.
+        If the `experiments type` is `DESIGNED_WITH_OPTIONAL_EXTRAS`,
+        you must sumbit at least as many rows as exist in the currently
+        generated design, and the parameter values for these rows
+        must match the design exactly. Additional "extra" experiment
+        rows, that use any valid experimental parameter values, can also
+        be provided.
 
-            For the `INITIAL_EXTRAS_ONLY` and `FINAL_EXTRAS_ONLY` experiments types,
-            rows that use any valid experimental parameter values can be provided.
+        For the `INITIAL_EXTRAS_ONLY` and `FINAL_EXTRAS_ONLY` experiments types,
+        rows that use any valid experimental parameter values can be provided.
 
         # Returns
         dict:
@@ -1405,17 +1394,17 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
         experiments_type (DapticsExperimentsType):
             Describes the types of experiments that are being added to the session.
 
-            If you wish to submit calibrating or existing experimental responses prior
-            to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+        If you wish to submit calibrating or existing experimental responses prior
+        to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
 
-            If you are submitting the responses for a daptics-generated design, along
-            with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+        If you are submitting the responses for a daptics-generated design, along
+        with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
 
-            If you wish to submit any final extra experiments when you are satisified
-            with the session's optimization but do not want to include the last
-            generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
-            will end the session's optimization and that no more designs will be
-            generated.
+        If you wish to submit any final extra experiments when you are satisified
+        with the session's optimization but do not want to include the last
+        generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
+        will end the session's optimization and that no more designs will be
+        generated.
 
         fname (str):
             The location on the filesystem for a CSV file that will define
@@ -1535,7 +1524,7 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             designed may be less than this number.
 
         params (dict):
-            A dictionary containing the experimental parameters to be
+            A Python `dict` containing the experimental parameters to be
             used for the session. See the Notes section that describes the
             required keys for the `params` dict.
 
@@ -1617,7 +1606,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             below for an example.
 
         params (dict):
-            A dictionary containing the experimental parameters to be
+            A Python `dict` containing the experimental parameters to be
             used for the session.  See the Notes section that describes the
             required keys for the `params` dict.
 
@@ -1963,7 +1952,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         return None
 
-    def get_analytics_file_list(self, timeout=DapticsConstants.GET_ANALYTICS_TIMEOUT):
+    def get_analytics_file_list(self, timeout=None):
         """Get a list of the available analytics files for the session.
 
         # Arguments
@@ -2012,6 +2001,8 @@ mutation CreateAnalytics($sessionId:String!) {
     }
 }
         """)
+        if timeout is None:
+            timeout = DapticsClient.GET_ANALYTICS_TIMEOUT
         return self.gql.execute(doc, variable_values=vars, timeout=timeout)
 
     def get_analytics_file(self, url, save_as=None):
@@ -2042,7 +2033,7 @@ mutation CreateAnalytics($sessionId:String!) {
                 pdf_file.write(response.content)
         return response
 
-    def get_all_analytics_files(self, directory=".", timeout=DapticsConstants.GET_ANALYTICS_TIMEOUT):
+    def get_all_analytics_files(self, directory=".", timeout=None):
         """For each available analytics file, fetch its contents and save it as a file in the
         specified directory.
 
@@ -2062,6 +2053,8 @@ mutation CreateAnalytics($sessionId:String!) {
 
         nfiles = 0
         path = os.path.abspath(directory)
+        if timeout is None:
+            timeout = DapticsClient.GET_ANALYTICS_TIMEOUT
         data = self.get_analytics_file_list(timeout=timeout)
         if 'createAnalytics' in data:
             # Access token is added as query string
@@ -2110,17 +2103,13 @@ mutation CreateAnalytics($sessionId:String!) {
                     for row in table['data']:
                         writer.writerow(row)
 
-    def export_experimental_space_csv(self, fname, timeout=DapticsConstants.EXPORT_SPACE_TIMEOUT):
+    def export_experimental_space_csv(self, fname):
         """Retrieves the validated experimental space table and writes the table to
         a CSV file on disk.
 
         # Arguments
         fname (str):
             The filesystem path where the file will be written.
-
-        timeout (int):
-            The maximum number of seconds that the client will poll the session
-            to retrieve the experimental space. The default is 300 (5 minutes).
 
         # Returns
         dict:

@@ -3,13 +3,19 @@
 
 ## v0.9.2 (17/01/2020)
 
-### Non-breaking changes
-
 Better documentation using mkdocs and pdoc3.
+
+### Breaking changes to daptics client
 
 Changes in `daptics_client.py`:
 
-* Fixed export_csv bugs for auto exports.
+* export_experimental_space_csv no longer has a timeout argument
+
+### Non-breaking changes
+
+Changes in `daptics_client.py`:
+
+* Fixed export_csv bugs for auto exports
 * No other code changes
 
 Changes in notebooks:

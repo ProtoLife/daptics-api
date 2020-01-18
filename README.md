@@ -40,14 +40,13 @@ graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>
 
-1. Install these tools: [MkDocs](https://www.mkdocs.org/) and
-[pydocmd](https://niklasrosenstein.github.io/pydoc-markdown)
+1. Install these tools: [pdoc3](https://pdoc3.github.io/pdoc/) and [MkDocs](https://www.mkdocs.org/).
 
-2. Then in `pydocmd` folder, run:
+2. Create Markdown documentation for the `daptics_client.py` file using `pdoc3`. In the
+`python_client` folder, run:
+`pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md`
 
-```
-pydocmd build
-```
+3. Then build the entire "Read the Docs" site, using `mkdocs`. In the `pydocmd` folder, run: `mkdocs build`
 
 Html and Markdown files will be produced in the `docs` folder.
 
@@ -56,7 +55,7 @@ Html and Markdown files will be produced in the `docs` folder.
 
 1. Install [jupytext](https://github.com/mwouts/jupytext)
 
-2. Set up metadata in any ipynb file that has Python code: 
+2. Set up metadata in any ipynb file that has Python code:
 `jupytext --set-formats ipynb,python//py:light 03_SimpleTutorial.ipynb`
 
 3. Export Python code to `/python` subdirectory:

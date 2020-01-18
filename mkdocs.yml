@@ -19,4 +19,3 @@ theme:
   name: 'rtd-dropdown'
   navigation_depth: 3
   collapse_navigation: false
-markdown_extensions:

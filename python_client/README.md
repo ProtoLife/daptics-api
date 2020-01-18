@@ -3,12 +3,14 @@
 This folder of Python Jupyter notebooks gives a brief interactive introduction
 to using the daptics API with a freely distributed Python API client.
 
-See the documentation at https://jupyter.org if you have never used Jupyter notebooks before.
+See the documentation at [https://jupyter.org](https://jupyter.org) if you have never used
+Jupyter notebooks before.
 
-Please note that to use the daptics API, you must first have a daptics account, available at [the daptics website](https://daptics.ai). For additional help or information, please visit or contact daptics:
+Please note that to use the daptics API, you must first have a daptics account.
+To create an account, or to get help or information on daptics, please visit or contact us:
 
-On the web at https://daptics.ai  
-By email at support@daptics.ai
+* On the web at <a href="https://daptics.ai">https://daptics.ai    
+* By email at [support@daptics.ai](mailto:support@daptics.ai)
 
 
 ## Installation
@@ -40,7 +42,7 @@ Then open the Introduction.ipynb notebook. If running the cells in the notebook 
 problems with library imports, see this article for how you might have to import the
 correct versions of the required `requests` and `gql` libraries:
 
-https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter
+[https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter](https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter)
 
 
 ## Tutorial Notebooks
@@ -73,7 +75,7 @@ print('Using {} to run pip'.format(sys.executable))
 
 ## Copyright Notice
 
-Daptics API Version 0.9.2 
+Daptics API Version 0.9.2  
 Copyright (c) 2020 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software

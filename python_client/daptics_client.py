@@ -2,10 +2,10 @@
 
 See comments and docstrings for the DapticsClient class in the code below
 for suggestions for using this class. For additional help or information,
-please visit or contact Daptics.
+please visit or contact daptics:
 
-On the web at https://daptics.ai
-By email at support@daptics.ai
+* On the web at <a href="https://daptics.ai">https://daptics.ai
+* By email at [support@daptics.ai](mailto:support@daptics.ai)
 
 Daptics API Version 0.9.2
 Copyright (c) 2020 Daptics Inc.

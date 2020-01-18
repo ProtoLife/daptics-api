@@ -47,8 +47,8 @@ To use the daptics API, you must first sign up by clicking on the
 **Get Started For Free** button on the daptics home page at
 [https://daptics.ai](https://daptics.ai)
 
-Please contact support@daptics.ai if you need assistance setting up
-your daptics account.
+Please contact [support@daptics.ai](mailto:support@daptics.ai)
+if you need assistance setting up a daptics account.
 
 Visit the
 [Jupyter Notebooks](./jupyter_notebooks/)

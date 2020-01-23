@@ -46,7 +46,8 @@ graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife
 `python_client` folder, run:
 `pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md`
 
-3. Then build the entire "Read the Docs" site, using `mkdocs`. In the `pydocmd` folder, run: `mkdocs build`
+3. Then build the entire "Read the Docs" site, using `mkdocs`. In the root project folder,
+where the `mkdocs.yml` configuration file is located, run: `mkdocs build`
 
 Html and Markdown files will be produced in the `docs` folder.
 
@@ -67,5 +68,11 @@ corresponding Python file will be kept up to date!
 5. Rebuild notebook from Python file without outputs (do this before checking into
 version control):
 `jupytext --from python//py:light --to notebook python/03_SimpleTutorial.py`
+
+You can also use `jupyter nbconvert` to remove all output from .ipynb files:
+
+```
+jupyter nbconvert 03_SimpleTutorial.ipynb --to notebook --ClearOutputPreprocessor.enabled=True --inplace
+```
 
 [![Automated Release Notes by gren](https://img.shields.io/badge/%F0%9F%A4%96-release%20notes-00B2EE.svg)](https://github-tools.github.io/github-release-notes/)

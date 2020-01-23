@@ -75,7 +75,7 @@ print('Using {} to run pip'.format(sys.executable))
 
 ## Copyright Notice
 
-Daptics API Version 0.9.2  
+Daptics API Version 0.9.3  
 Copyright (c) 2020 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software

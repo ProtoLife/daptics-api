@@ -7,7 +7,7 @@ please visit or contact daptics:
 * On the web at <a href="https://daptics.ai">https://daptics.ai
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
-Daptics API Version 0.9.2
+Daptics API Version 0.9.3
 Copyright (c) 2020 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -45,10 +45,10 @@ import sys
 
 
 # Authentication object used to authorize DapticsClient requests
-
 class TokenAuth(requests.auth.AuthBase):
-    """A callable authentication object for the Python "requests" moudule.
-    If acess token is set, add a "Bearer" authorization header to the HTTP request.
+    """A callable authentication object for the Python `requests` moudule.
+    If the `token` attribute is set, the `__call__` method will insert an
+    "Authorization" header with a "Bearer" token into the HTTP request.
 
     # Attributes
     token (str):
@@ -58,15 +58,13 @@ class TokenAuth(requests.auth.AuthBase):
         self.token = None
 
     def __call__(self, r):
-        """Insert the authorization header as a bearer token.
-        """
+        """Inserts an "Authorization" header with a "Bearer" token."""
         if self.token is not None:
             r.headers['Authorization'] = 'Bearer ' + self.token
         return r
 
 
 # Errors raised by the DapticsClient class
-
 class MissingConfigError(Exception):
     """An error raised if the option configuration file cannot be found."""
     def __init__(self, path):
@@ -148,7 +146,6 @@ class SpaceOrDesignRequiredError(Exception):
 
 
 # Enums used by the DapticsClient class
-
 @enum.unique
 class DapticsTaskType(enum.Enum):
     """Enumerates the different asynchronous tasks that the daptics system can create and
@@ -197,7 +194,7 @@ class DapticsClient(object):
 
     config (str):
         File path to a JSON configuration file, used to read the host, login credentials and
-        runtime options. Defaults to `daptics.conf`. The keys in the JSON file are:
+        runtime options. Defaults to `daptics.conf`. The items in the JSON file are:
 
     `host` - host part of the API endpoint
 
@@ -333,7 +330,7 @@ class DapticsClient(object):
         """
 
         self.design = None
-        """A Python `dict` contining the current generated design, as updated by the
+        """A Python `dict` containing the current generated design, as updated by the
         result of a "generate" task.
         """
 
@@ -412,12 +409,11 @@ class DapticsClient(object):
 
         # Returns
         data (dict):
-            The `data` component
-            of the GraphQL response, a Python `dict` with an item whose key is the query name
-            for the request.
+            The `data` item of the GraphQL response, a Python `dict` with an
+            item whose key is the GraphQL query name for the request.
 
         errors (list):
-            The `errors` component of the GraphQL response. Each item in the list
+            The `errors` item of the GraphQL response. Each item in the list
             is guaranteed to have a `message` item.
 
         # Notes
@@ -621,7 +617,15 @@ class DapticsClient(object):
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with a `login` key.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `login` item. The `login` item is a `dict` with these items:
+
+        token (str):
+            The access token to be used for user access to the API.
+
+        user (dict):
+            A Python `dict` with one string item, `userId`, that can be used
+            to create sessions.
 
         # Raises
         Exception
@@ -645,7 +649,7 @@ class DapticsClient(object):
         # print('Login on {} for user {}'.format(self.host, email), file=sys.stderr)
 
         # The 'login' mutation authenticates a user's email and password and returns
-        # an access token that self.auth will then use to add an Authorization
+        # an access token that self.auth will then use to add an "Authorization"
         # header, required for session queries and mutations.
         doc = gql.gql("""
 mutation Login($email:String!, $password:String!) {
@@ -674,7 +678,8 @@ mutation Login($email:String!, $password:String!) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with a `createSession` key.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `createSession` item.
 
         # Notes
         On successful creation, the session id, session name and
@@ -746,8 +751,8 @@ mutation CreateSession($session:NewSessionInput!) {
 
         # Returns
         data (list):
-            The JSON response from the GraphQL request, a Python `dict` with a `sessions` key.
-            The `sessions` value is a list, where each item in the list
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `sessions` item. The `sessions` value is a list, where each item in the list
             is a Python `dict` containing summary information about the session`s
             identifier, name, and description.
 
@@ -778,10 +783,10 @@ query GetSessions($userId:String, $q:String) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with a `session` key.
-            The `session` value is a Python `dict` containing information about the session`s
-            name, description, experimental space parameters, experiments history, and
-            any active tasks.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `session` item. The `session` value is a Python `dict` containing
+            information about the session's name, description, experimental
+            space parameters, experiments history, and any active tasks.
 
         # Raises
         Exception
@@ -845,8 +850,9 @@ query GetSession($sessionId:String!) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with a `haltSession` key.
-            The 'haltSession' value will contain these keys:
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `haltSession` item. The 'haltSession' value is a `dict` containing
+            these items:
 
         action (str):
             The action taken, either 'close' (if the session was connected) or 'none' if
@@ -879,18 +885,18 @@ mutation HaltSession($sessionId:String!) {
         """Validates the experimental parameters at the beginning of a session,
         and starts a "space" task. The individual experimental parameter names,
         types and permissible values in the space definition are specified at
-        the `['space']['table']` key of the `params` dict.
+        the `['space']['table']` key of the `params` `dict`.
 
         # Arguments
         params (dict):
-            A dictionary containing the experimental parameters to be
+            A Python `dict` containing the experimental parameters to be
             used for the session. See the Notes section that describes the
-            required keys for the `params` dict.
+            required items for the `params` `dict`.
 
         # Returns
         data (dict):
             The JSON response from the GraphQL request, a Python `dict` with a
-            `putExperimentalParameters` key. The `putExperimentalParameters` value
+            `putExperimentalParameters` item. The `putExperimentalParameters` value
             is a Python `dict` with information about the "space" task.
 
         # Raises
@@ -911,7 +917,7 @@ mutation HaltSession($sessionId:String!) {
         See the documentation on the "space" task result in the `poll_for_current_task` method
         for information on the CSV file generated if the `auto_export_path` option is set.
 
-        These are the required keys for the `params` dict:
+        These are the required items for the `params` `dict`:
 
         populationSize (int):
             The number of experiments per replicate. A positive integer.
@@ -921,7 +927,7 @@ mutation HaltSession($sessionId:String!) {
             experiments per design generation is `populationSize * (replicates + 1)`.
 
         space (dict):
-            The experimental space definition. Required keys for the `space` dict are:
+            The experimental space definition. The required items for the `space` `dict` are:
 
         type (str):
             The type of the space, a string, either "factorial" or "mixture".
@@ -1058,7 +1064,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
         # Returns
         data (dict):
             The JSON response from the GraphQL request, a Python `dict` with a
-            `putExperimentalParameters` key. The `putExperimentalParameters` value
+            `putExperimentalParameters` item. The `putExperimentalParameters` value
             is a Python `dict` with information about the "space" task.
 
         # Raises
@@ -1078,7 +1084,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
         See the documentation on the "space" task result in the `poll_for_current_task` method
         for information on the CSV file generated if the `auto_export_path` option is set.
 
-        Keys for the `params` dict are:
+        Items for the `params` `dict` are:
 
         populationSize (int):
             The number of experiments per replicate. A positive integer.
@@ -1088,7 +1094,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             experiments per design generation is `populationSize * (replicates + 1)`.
 
         space (dict):
-            The experimental space definition. The single required key for the `space` dict is:
+            The experimental space definition. The single required item for the `space` `dict` is:
 
         type (str):
             "factorial" or "mixture"
@@ -1162,8 +1168,9 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with an `experiments` key.
-            The `experiments` value is a Python `dict` with these keys:
+            The JSON response from the GraphQL request, a Python `dict` with an
+            `experiments` item. The `experiments` value is a `dict` containing
+            these items:
 
         validated (bool):
             `True` if these experiments have been validated.
@@ -1176,7 +1183,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             are "extra" experiments.
 
         table (dict):
-            A Python `dict` with `colHeaders` and `data` values, representing the
+            A Python `dict` with `colHeaders` and `data` items, representing the
             experiments submitted or designed for the generation.
 
         # Raises
@@ -1210,11 +1217,12 @@ query GetExperiments($sessionId:String!, $designOnly:Boolean!, $gen:Int){
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with an `experimentsHistory`
-            key. The `experimentsHistory` value is either `None` if no experiments have been
-            submitted or designed, or a list. Each item in the list is either `None`,
-            or a Python `dict` that represents a generation. The first item in the list
-            is generation "zero", the initial experiments.
+            The JSON response from the GraphQL request, a Python `dict` with an
+            `experimentsHistory` item. The `experimentsHistory` value is either `None`
+            if no experiments have been submitted or designed, or a list.
+            Each item in the list is either `None`, or a `dict` with information
+            about a generation. The first item in the list is for generation "zero",
+            the initial experiments.
 
         # Raises
         Exception
@@ -1273,8 +1281,8 @@ query GetExperimentsHistory($sessionId:String!){
 
         # Returns
         experiments (dict):
-            The value of the `experiments` key from the GraphQL response,
-            a Python `dict` with these keys:
+            The value of the `experiments` item from the GraphQL response,
+            a Python `dict` with these items:
 
         validated (bool):
             `True` if these experiments have been validated.
@@ -1318,7 +1326,7 @@ query GetExperimentsHistory($sessionId:String!){
         # Returns
         data (dict):
             The JSON response from the GraphQL request, a Python `dict` with a
-            `simulateExperiments` key. See the documentation for the `get_experiments`
+            `simulateExperiments` item. See the documentation for the `get_experiments`
             method for a description of the values returned.
 
         # Raises
@@ -1363,8 +1371,8 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with
-            `simulateExperiments` key.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `simulateExperiments` item.
         """
 
         experiments = None
@@ -1424,7 +1432,13 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with `putExperiments` item.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `putExperiments` item.
+
+        # Raises
+        Exception
+            If no data was returned by the query request, an exception is raised,
+            containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
         If the experiments were successfully validated, the following actions may be
@@ -1525,7 +1539,14 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with `putExperiments` item.
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `putExperiments` item.
+
+        # Raises
+        Exception
+            If no data was returned by the query request, an exception is raised,
+            containing the message for the first item in the GraphQL response's `errors` list.
+
 
         # Notes
         If the experiments were successfully validated, the following actions may be
@@ -1583,8 +1604,8 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with a `generateDesign` item.
-            The `generateDesign` value will contain information on the
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `generateDesign` item. The `generateDesign` contains information on the
             "generate" task that was started, as described in the return value for the
             `poll_for_current_task` method.
 
@@ -1653,12 +1674,12 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
         params (dict):
             A Python `dict` containing the experimental parameters to be
             used for the session. See the Notes section that describes the
-            required keys for the `params` dict.
+            required items for the `params` `dict`.
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with `runSimulation` key.
-            The `runSimulation` value will contain information on the
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `runSimulation` item. The `runSimulation` value contains information on the
             "simulate" task that was started, as described in the return value for the
             `poll_for_current_task` method.
 
@@ -1668,7 +1689,7 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
-        Keys for the `params` dict are:
+        Items to be specified in the `params` `dict` are:
 
         populationSize (int):
             The number of experiments per replicate. A positive integer.
@@ -1678,7 +1699,7 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             experiments per design generation is `populationSize * (replicates + 1)`.
 
         space (dict):
-            The experimental space definition. Keys for the `space` dict are:
+            The experimental space definition. Items in the `space` `dict` are:
 
         type (str):
             The type of the space, a string, either "factorial" or "mixture".
@@ -1748,12 +1769,12 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         params (dict):
             A Python `dict` containing the experimental parameters to be
             used for the session.  See the Notes section that describes the
-            required keys for the `params` dict.
+            required items for the `params` `dict`.
 
         # Returns
         data (dict):
-            The JSON response from the GraphQL request, a Python `dict` with `runSimulation` key.
-            The `runSimulation` value will contain information on the
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `runSimulation` item. The `runSimulation` value will contain information on the
             "simulate" task that was started, as described in the return value for the
             `poll_for_current_task` method.
 
@@ -1762,7 +1783,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             If the specified CSV file is incorrectly formatted.
 
         # Notes
-        Keys for the `params` dict are:
+        Items to be specified in the `params` `dict` are:
 
         populationSize (int):
             The number of experiments per replicate. A positive integer.
@@ -1772,7 +1793,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             experiments per design generation is `populationSize * (replicates + 1)`.
 
         space (dict):
-            The experimental space definition. Keys for the `space` dict are:
+            The experimental space definition. Items in the `space` `dict` are:
 
         type (str):
             The type of the space, a string, either "factorial" or "mixture".
@@ -1816,18 +1837,18 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
 
         # Returns
         data (dict):
-            The `data` component of the GraphQL response, a Python `dict` with a `currentTask`
-            item, described below.
+            The `data` item of the GraphQL response, a Python `dict` with a
+            `currentTask` item, described below.
 
         errors (list):
-            The `errors` component of the GraphQL response. Each item in the list
+            The `errors` item of the GraphQL response. Each item in the list
             is guaranteed to have a `message` item.
 
         # Notes
         Either `data` or `errors` may be None.
 
-        The `currentTask` value returned is a Python `dict` with information on the task
-        (if found). The values in the dict are as follows:
+        The `currentTask` value returned is a Python `dict` containing information
+        on the task (if found). The items in the `dict` are as follows:
 
         taskId (str):
             The unique identifier for the task.
@@ -1846,14 +1867,14 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
 
         result (dict):
             If the status of the task is `success`, the value of the `result` is another
-            Python `dict`. The result dicts for each type of task are as follows:
+            Python `dict`. The results for each type of task are as follows:
 
         ## Result for "space" Tasks
         The result for all tasks is a Python `dict`. For the "space" task,
         the `dict` has two items, `campaign` and `params`:
 
         campaign (dict):
-            A Python `dict` with these components:
+            A Python `dict` with these items:
 
         gen (int):
             The generation number for the session (0).
@@ -1865,7 +1886,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             If available, whether the campaign has been completed.
 
         params (dict):
-            A Python `dict` with these components:
+            A Python `dict` with these items:
 
         validated (bool):
             `True` if the space was validated.
@@ -1890,7 +1911,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         task, described above, with an additional `experiments` item:
 
         experiments (dict):
-            A Python `dict` with these components:
+            A Python `dict` with these items:
 
         gen (int):
             The generation number for this set of experiments.
@@ -1906,7 +1927,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             `designRows` will be zero if these are initial experiments.
 
         table (dict):
-            A Python `dict` with `colHeaders` and `data` components, as described in
+            A Python `dict` with `colHeaders` and `data` items, as described in
             the arguments for the `put_experiments` method.
 
         The `experiments` value will contain the generated design,
@@ -1928,7 +1949,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         experimentsHistory (list):
             A list of all the experiments in generations 1 through N, that were simulated.
             Each element of the list will be a Python `dict` with `gen`, `validated`,
-            `hasResponses`, `designRows` and `table` values as described above in the
+            `hasResponses`, `designRows` and `table` items as described above in the
             documentation for the result of an "update" task.
 
         If the `auto_export_path` option is set, a CSV file named
@@ -2102,18 +2123,18 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Returns
         data (dict):
-            The `data` component of the GraphQL response, a Python `dict` with a `currentTask`
-            item, described below.
+            The `data` item of the GraphQL response, a Python `dict` with a
+            `currentTask` item, described below.
 
         errors (list):
-            The `errors` component of the GraphQL response. Each item in the list
+            The `errors` item of the GraphQL response. Each item in the list
             is guaranteed to have a `message` item.
 
         # Notes
         Either `data` or `errors` may be None.
 
         See the documentation on the `poll_for_current_task` method for more information
-        about the `data` component returned for different types of tasks,
+        about the `data` item returned for different types of tasks,
         and for how task completion affects attributes of the client instance.
         """
         max_time = None
@@ -2173,9 +2194,9 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             if errors:
                 # This is what gql does with errors
                 raise Exception(str(errors[0]))
-            return (data['currentTask'], errors)
+            return data['currentTask']
         else:
-            return (None, None)
+            return None
 
     def get_experimental_space(self):
         """Utility method to retrieve the validated experimental space from
@@ -2185,8 +2206,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Returns
         space (dict):
-            The validated space, a Python `dict` with `type`, and `table` keys, and
-            a `totalUnits` key if the space type is "mixture", or None if
+            The validated space, a Python `dict` with `type`, and `table` items, and
+            a `totalUnits` item if the space type is "mixture", or None if
             the space has not been validated.
         """
 
@@ -2205,16 +2226,16 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Returns
         data (dict):
-            The JSON response from the gql request, a Python dict with `createAnalytics` item.
-            If there are any files available, they will be returned in the
-            `createAnalytics` value as a Python dict. The `createAnalytics` dict will have
-            two keys:
+            The JSON response from the gql request, a Python `dict` with a
+            `createAnalytics` item. If there are any files available, they will be
+            returned in the `createAnalytics` value as a list.
+            Each item in the list will be a Python `dict` with two items:
 
         gen (int):
             The current generation number in the session, for which the files were created.
 
         files (list):
-            A list of the availiable files. Each file is represented by a Python dict
+            A list of the availiable files. Each file is represented by a Python `dict`
             with the following keys:
 
         title (str):
@@ -2224,14 +2245,16 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             The default file name that can be passed to the `get_analytics_file` method.
 
         url (str):
-            The public URL from which to fetch the file.
+            The HTTP URL where the file can be downloaded. A valid authentication token for the
+            user must be included as the value of a `token` query string parameter
+            added to the URL for the download request.
         """
 
         vars = {
             'sessionId': self.session_id,
         }
 
-        # The 'createAnalytics' mutation generates PDF files on the Rserve
+        # The 'createAnalytics' mutation generates PDF files on the
         # server, and returns the titles and file names for these PDF files.
         # To download one or more of these files, another query (not tested here)
         # will be used.
@@ -2291,8 +2314,11 @@ mutation CreateAnalytics($sessionId:String!) {
             response from the session. The default is 90 seconds.
 
         # Returns
-        file_count (int):
-            The number of files created.
+        data (dict):
+            The JSON response from the gql request, a Python `dict` with a
+            `createAnalytics` item. See the documentation for the
+            `get_analytics_file_list` method for a description of the
+            data returned.
         """
 
         file_count = 0
@@ -2313,14 +2339,15 @@ mutation CreateAnalytics($sessionId:String!) {
                         pdf_file.write(response.content)
                         file_count += 1
 
-        return file_count
+        return data
 
     def get_analytics_file(self, url, save_as=None):
         """Gets the contents of an analytics file. Once a URL to a particular analytics file
         has been obtained using the `generate_analytics` method, and the result of the
         "analytics" task has been returned, use the `url` and `filename` values from
         the result as the arguments to this convenience method to request the file's
-        contents over HTTP, submitting a request with an Authorization header.
+        contents over HTTP, submitting a request with the authentication token that
+        was stored in the client.
 
         # Arguments
         url (str):
@@ -2353,7 +2380,7 @@ mutation CreateAnalytics($sessionId:String!) {
             The filesystem path where the file will be written.
 
         table (dict):
-            A Python `dict` with `colHeaders` and `data` values, representing an
+            A Python `dict` with `colHeaders` and `data` items, representing an
             experimental space or experiments table.
 
         headers (bool, optional):
@@ -2449,7 +2476,7 @@ mutation CreateAnalytics($sessionId:String!) {
         # Returns
         experiments_history (list): or None
             The value of the client's `experiments_history` attribute, which may be
-            None if no experiments have been submitted or designed, or is a list of dicts.
+            None if no experiments have been submitted or designed, or is a list of `dict`s.
             See the documentation for the `get_experiments_history` method for a description
             of this value.
 
@@ -2670,7 +2697,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
         design (dict, optional):
             If supplied, a Python `dict` that defines the currently generated
-            design as a table. The dict has `colHeaders` and `data` keys.
+            design as a table. The `dict` has `colHeaders` and `data` items.
 
         num_extras: int, optional
             If non-zero, generate this number of extra rows. The extra rows

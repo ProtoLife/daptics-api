@@ -837,6 +837,11 @@
     
       
         <li class="toctree-l5">
+          <a class="toctree-l6" href="#raises_10">Raises</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
           <a class="toctree-l6" href="#notes_13">Notes</a>
         </li>
     
@@ -858,6 +863,11 @@
       
         <li class="toctree-l5">
           <a class="toctree-l6" href="#returns_25">Returns</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#raises_11">Raises</a>
         </li>
     
       
@@ -932,7 +942,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_10">Raises</a>
+          <a class="toctree-l6" href="#raises_12">Raises</a>
         </li>
     
       
@@ -972,7 +982,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_11">Raises</a>
+          <a class="toctree-l6" href="#raises_13">Raises</a>
         </li>
     
       
@@ -1037,7 +1047,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_12">Raises</a>
+          <a class="toctree-l6" href="#raises_14">Raises</a>
         </li>
     
       
@@ -1062,7 +1072,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_13">Raises</a>
+          <a class="toctree-l6" href="#raises_15">Raises</a>
         </li>
     
       
@@ -1350,7 +1360,7 @@ please visit or contact daptics:</p>
 <li>On the web at <a href="https://daptics.ai"><a href="https://daptics.ai">https://daptics.ai</a></li>
 <li>By email at <a href="mailto:support@daptics.ai">support@daptics.ai</a></li>
 </ul>
-<p>Daptics API Version 0.9.2
+<p>Daptics API Version 0.9.3
 Copyright (c) 2020 Daptics Inc.</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -1391,7 +1401,7 @@ last generated design, etc. are retained in the object's attributes.</p>
     prior to calling <code>connect</code>.</p>
 <p>config (str):
     File path to a JSON configuration file, used to read the host, login credentials and
-    runtime options. Defaults to <code>daptics.conf</code>. The keys in the JSON file are:</p>
+    runtime options. Defaults to <code>daptics.conf</code>. The items in the JSON file are:</p>
 <p><code>host</code> - host part of the API endpoint</p>
 <p><code>user</code> - email of the database user to login with</p>
 <p><code>password</code> - password for the database user to login with</p>
@@ -1445,7 +1455,7 @@ runtime options.</p>
 <p>A tuple of (<code>username</code>, <code>password</code>), as read from configuration, or set manually
 prior to calling <code>login</code>.</p>
 <h5 id="variable-design">Variable <code>design</code></h5>
-<p>A Python <code>dict</code> contining the current generated design, as updated by the
+<p>A Python <code>dict</code> containing the current generated design, as updated by the
 result of a "generate" task.</p>
 <h5 id="variable-experiments_history">Variable <code>experiments_history</code></h5>
 <p>A list of Python <code>dict</code>s containing all the experiments and responses that
@@ -1498,11 +1508,10 @@ response.</p>
     The maximum number of seconds to wait before a response is returned.</p>
 <h5 id="returns">Returns</h5>
 <p>data (dict):
-    The <code>data</code> component
-    of the GraphQL response, a Python <code>dict</code> with an item whose key is the query name
-    for the request.</p>
+    The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with an
+    item whose key is the GraphQL query name for the request.</p>
 <p>errors (list):
-    The <code>errors</code> component of the GraphQL response. Each item in the list
+    The <code>errors</code> item of the GraphQL response. Each item in the list
     is guaranteed to have a <code>message</code> item.</p>
 <h5 id="notes">Notes</h5>
 <p>Either <code>data</code> or <code>errors</code> may be <code>None</code>. Exceptions encountered during the
@@ -1539,7 +1548,8 @@ The <code>gql.Client</code> value is stored in the client's <code>gql</code> att
     A description for the session.</p>
 <h5 id="returns_1">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>createSession</code> key.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>createSession</code> item.</p>
 <h5 id="notes_2">Notes</h5>
 <p>On successful creation, the session id, session name and
     initial parameters are stored in the client's attributes.</p>
@@ -1609,7 +1619,7 @@ or to submit "empty" initial experiments.</p>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
 <p>table (dict):
-    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> values, representing an
+    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> items, representing an
     experimental space or experiments table.</p>
 <p>headers (bool, optional):
     If <code>False</code>, no header row will be written (this is the standard for
@@ -1642,7 +1652,7 @@ attribute in the client.</p>
 <h5 id="returns_7">Returns</h5>
 <p>experiments_history (list): or None
     The value of the client's <code>experiments_history</code> attribute, which may be
-    None if no experiments have been submitted or designed, or is a list of dicts.
+    None if no experiments have been submitted or designed, or is a list of <code>dict</code>s.
     See the documentation for the <code>get_experiments_history</code> method for a description
     of this value.</p>
 <h5 id="notes_4">Notes</h5>
@@ -1694,8 +1704,8 @@ experimental parameters, a "generate" task is started.</p>
     in the client.</p>
 <h5 id="returns_10">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>generateDesign</code> item.
-    The <code>generateDesign</code> value will contain information on the
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>generateDesign</code> item. The <code>generateDesign</code> contains information on the
     "generate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
 <h5 id="raises_1">Raises</h5>
@@ -1728,8 +1738,11 @@ files.</p>
     The maximum number of seconds that the client will wait for a
     response from the session. The default is 90 seconds.</p>
 <h5 id="returns_11">Returns</h5>
-<p>file_count (int):
-    The number of files created.</p>
+<p>data (dict):
+    The JSON response from the gql request, a Python <code>dict</code> with a
+    <code>createAnalytics</code> item. See the documentation for the
+    <code>get_analytics_file_list</code> method for a description of the
+    data returned.</p>
 <h5 id="method-get_analytics_file">Method <code>get_analytics_file</code></h5>
 <blockquote>
 <p><code>def get_analytics_file(self, url, save_as=None)</code></p>
@@ -1738,7 +1751,8 @@ files.</p>
 has been obtained using the <code>generate_analytics</code> method, and the result of the
 "analytics" task has been returned, use the <code>url</code> and <code>filename</code> values from
 the result as the arguments to this convenience method to request the file's
-contents over HTTP, submitting a request with an Authorization header.</p>
+contents over HTTP, submitting a request with the authentication token that
+was stored in the client.</p>
 <h5 id="arguments_13">Arguments</h5>
 <p>url (str):
     The URL for the file, as returned from <code>get_analytics</code> method.</p>
@@ -1759,21 +1773,23 @@ contents over HTTP, submitting a request with an Authorization header.</p>
     response from the session. The default is 90 seconds.</p>
 <h5 id="returns_13">Returns</h5>
 <p>data (dict):
-    The JSON response from the gql request, a Python dict with <code>createAnalytics</code> item.
-    If there are any files available, they will be returned in the
-    <code>createAnalytics</code> value as a Python dict. The <code>createAnalytics</code> dict will have
-    two keys:</p>
+    The JSON response from the gql request, a Python <code>dict</code> with a
+    <code>createAnalytics</code> item. If there are any files available, they will be
+    returned in the <code>createAnalytics</code> value as a list.
+    Each item in the list will be a Python <code>dict</code> with two items:</p>
 <p>gen (int):
     The current generation number in the session, for which the files were created.</p>
 <p>files (list):
-    A list of the availiable files. Each file is represented by a Python dict
+    A list of the availiable files. Each file is represented by a Python <code>dict</code>
     with the following keys:</p>
 <p>title (str):
     The title (description) for the file.</p>
 <p>filename (str):
     The default file name that can be passed to the <code>get_analytics_file</code> method.</p>
 <p>url (str):
-    The public URL from which to fetch the file.</p>
+    The HTTP URL where the file can be downloaded. A valid authentication token for the
+    user must be included as the value of a <code>token</code> query string parameter
+    added to the URL for the download request.</p>
 <h5 id="method-get_experimental_space">Method <code>get_experimental_space</code></h5>
 <blockquote>
 <p><code>def get_experimental_space(self)</code></p>
@@ -1784,8 +1800,8 @@ had been previously validated, it will be in the <code>validated_params</code>
 attribute of the client, and this method will return it.</p>
 <h5 id="returns_14">Returns</h5>
 <p>space (dict):
-    The validated space, a Python <code>dict</code> with <code>type</code>, and <code>table</code> keys, and
-    a <code>totalUnits</code> key if the space type is "mixture", or None if
+    The validated space, a Python <code>dict</code> with <code>type</code>, and <code>table</code> items, and
+    a <code>totalUnits</code> item if the space type is "mixture", or None if
     the space has not been validated.</p>
 <h5 id="method-get_experiments">Method <code>get_experiments</code></h5>
 <blockquote>
@@ -1802,8 +1818,9 @@ previous generation.</p>
     experiments. Use <code>None</code> to search for the last designed generation.</p>
 <h5 id="returns_15">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with an <code>experiments</code> key.
-    The <code>experiments</code> value is a Python <code>dict</code> with these keys:</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with an
+    <code>experiments</code> item. The <code>experiments</code> value is a <code>dict</code> containing
+    these items:</p>
 <p>validated (bool):
     <code>True</code> if these experiments have been validated.</p>
 <p>hasResponses (bool):
@@ -1812,7 +1829,7 @@ previous generation.</p>
     The number of rows of experiments that were designed. Rows after the <code>designRows</code>
     are "extra" experiments.</p>
 <p>table (dict):
-    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> values, representing the
+    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> items, representing the
     experiments submitted or designed for the generation.</p>
 <h5 id="raises_2">Raises</h5>
 <p>Exception
@@ -1825,11 +1842,12 @@ previous generation.</p>
 <p>Gets all of the experiments and any responses for all the generations in the session.</p>
 <h5 id="returns_16">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with an <code>experimentsHistory</code>
-    key. The <code>experimentsHistory</code> value is either <code>None</code> if no experiments have been
-    submitted or designed, or a list. Each item in the list is either <code>None</code>,
-    or a Python <code>dict</code> that represents a generation. The first item in the list
-    is generation "zero", the initial experiments.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with an
+    <code>experimentsHistory</code> item. The <code>experimentsHistory</code> value is either <code>None</code>
+    if no experiments have been submitted or designed, or a list.
+    Each item in the list is either <code>None</code>, or a <code>dict</code> with information
+    about a generation. The first item in the list is for generation "zero",
+    the initial experiments.</p>
 <h5 id="raises_3">Raises</h5>
 <p>Exception
     If no data was returned by the query request, an exception is raised,
@@ -1861,8 +1879,8 @@ with the following items:</p>
     If <code>None</code>, retreive the design for the current generation.</p>
 <h5 id="returns_17">Returns</h5>
 <p>experiments (dict):
-    The value of the <code>experiments</code> key from the GraphQL response,
-    a Python <code>dict</code> with these keys:</p>
+    The value of the <code>experiments</code> item from the GraphQL response,
+    a Python <code>dict</code> with these items:</p>
 <p>validated (bool):
     <code>True</code> if these experiments have been validated.</p>
 <p>hasResponses (bool):
@@ -1883,8 +1901,9 @@ with the following items:</p>
     The session id to close.</p>
 <h5 id="returns_18">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>haltSession</code> key.
-    The 'haltSession' value will contain these keys:</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>haltSession</code> item. The 'haltSession' value is a <code>dict</code> containing
+    these items:</p>
 <p>action (str):
     The action taken, either 'close' (if the session was connected) or 'none' if
     had previously been closed.</p>
@@ -1923,8 +1942,8 @@ file or from environment variables.</p>
     <code>tag</code> or id contains this string.</p>
 <h5 id="returns_19">Returns</h5>
 <p>data (list):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>sessions</code> key.
-    The <code>sessions</code> value is a list, where each item in the list
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>sessions</code> item. The <code>sessions</code> value is a list, where each item in the list
     is a Python <code>dict</code> containing summary information about the session`s
     identifier, name, and description.</p>
 <h5 id="raises_6">Raises</h5>
@@ -1956,7 +1975,13 @@ file or from environment variables.</p>
 be retrieved from the <code>credentials</code> attribute.</p>
 <h5 id="returns_20">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>login</code> key.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>login</code> item. The <code>login</code> item is a <code>dict</code> with these items:</p>
+<p>token (str):
+    The access token to be used for user access to the API.</p>
+<p>user (dict):
+    A Python <code>dict</code> with one string item, <code>userId</code>, that can be used
+    to create sessions.</p>
 <h5 id="raises_7">Raises</h5>
 <p>Exception
     If no data was returned by the query request, an exception is raised,
@@ -1976,15 +2001,15 @@ session to see if a result is ready.</p>
 If None is supplied (the default), find the most recently started task of any type.</p>
 <h5 id="returns_21">Returns</h5>
 <p>data (dict):
-    The <code>data</code> component of the GraphQL response, a Python <code>dict</code> with a <code>currentTask</code>
-    item, described below.</p>
+    The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with a
+    <code>currentTask</code> item, described below.</p>
 <p>errors (list):
-    The <code>errors</code> component of the GraphQL response. Each item in the list
+    The <code>errors</code> item of the GraphQL response. Each item in the list
     is guaranteed to have a <code>message</code> item.</p>
 <h5 id="notes_10">Notes</h5>
 <p>Either <code>data</code> or <code>errors</code> may be None.</p>
-<p>The <code>currentTask</code> value returned is a Python <code>dict</code> with information on the task
-(if found). The values in the dict are as follows:</p>
+<p>The <code>currentTask</code> value returned is a Python <code>dict</code> containing information
+on the task (if found). The items in the <code>dict</code> are as follows:</p>
 <p>taskId (str):
     The unique identifier for the task.</p>
 <p>type (str):
@@ -1997,12 +2022,12 @@ If None is supplied (the default), find the most recently started task of any ty
     The status of the task, either <code>new</code>, <code>running</code>, <code>success</code>, <code>failed</code>, or <code>canceled</code>.</p>
 <p>result (dict):
     If the status of the task is <code>success</code>, the value of the <code>result</code> is another
-    Python <code>dict</code>. The result dicts for each type of task are as follows:</p>
+    Python <code>dict</code>. The results for each type of task are as follows:</p>
 <h6 id="result-for-space-tasks">Result for "space" Tasks</h6>
 <p>The result for all tasks is a Python <code>dict</code>. For the "space" task,
 the <code>dict</code> has two items, <code>campaign</code> and <code>params</code>:</p>
 <p>campaign (dict):
-    A Python <code>dict</code> with these components:</p>
+    A Python <code>dict</code> with these items:</p>
 <p>gen (int):
     The generation number for the session (0).</p>
 <p>remaining (int):
@@ -2010,7 +2035,7 @@ the <code>dict</code> has two items, <code>campaign</code> and <code>params</cod
 <p>completed (bool):
     If available, whether the campaign has been completed.</p>
 <p>params (dict):
-    A Python <code>dict</code> with these components:</p>
+    A Python <code>dict</code> with these items:</p>
 <p>validated (bool):
     <code>True</code> if the space was validated.</p>
 <p>designCost (int):
@@ -2028,7 +2053,7 @@ containing the experimental space parameters.</p>
 <p>The result for an "generate" task will contain all the items as the result for a "space"
 task, described above, with an additional <code>experiments</code> item:</p>
 <p>experiments (dict):
-    A Python <code>dict</code> with these components:</p>
+    A Python <code>dict</code> with these items:</p>
 <p>gen (int):
     The generation number for this set of experiments.</p>
 <p>validated (bool):
@@ -2039,7 +2064,7 @@ task, described above, with an additional <code>experiments</code> item:</p>
     The number of rows of daptics-designed experiments in this set of experiments.
     <code>designRows</code> will be zero if these are initial experiments.</p>
 <p>table (dict):
-    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> components, as described in
+    A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> items, as described in
     the arguments for the <code>put_experiments</code> method.</p>
 <p>The <code>experiments</code> value will contain the generated design,
 and the <code>hasResponses</code> value within the design will be <code>False</code>, as the generated design
@@ -2056,7 +2081,7 @@ task, described above, with one additional item, <code>experimentsHistory</code>
 <p>experimentsHistory (list):
     A list of all the experiments in generations 1 through N, that were simulated.
     Each element of the list will be a Python <code>dict</code> with <code>gen</code>, <code>validated</code>,
-    <code>hasResponses</code>, <code>designRows</code> and <code>table</code> values as described above in the
+    <code>hasResponses</code>, <code>designRows</code> and <code>table</code> items as described above in the
     documentation for the result of an "update" task.</p>
 <p>If the <code>auto_export_path</code> option is set, a CSV file named
 "auto_history.csv" is written at that directory,
@@ -2075,16 +2100,16 @@ contents.</p>
 <p>Validates the experimental parameters at the beginning of a session,
 and starts a "space" task. The individual experimental parameter names,
 types and permissible values in the space definition are specified at
-the <code>['space']['table']</code> key of the <code>params</code> dict.</p>
+the <code>['space']['table']</code> key of the <code>params</code> <code>dict</code>.</p>
 <h5 id="arguments_22">Arguments</h5>
 <p>params (dict):
-    A dictionary containing the experimental parameters to be
+    A Python <code>dict</code> containing the experimental parameters to be
     used for the session. See the Notes section that describes the
-    required keys for the <code>params</code> dict.</p>
+    required items for the <code>params</code> <code>dict</code>.</p>
 <h5 id="returns_22">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
-    <code>putExperimentalParameters</code> key. The <code>putExperimentalParameters</code> value
+    <code>putExperimentalParameters</code> item. The <code>putExperimentalParameters</code> value
     is a Python <code>dict</code> with information about the "space" task.</p>
 <h5 id="raises_8">Raises</h5>
 <p>Exception
@@ -2100,14 +2125,14 @@ successfully, the result of the task can be accessed at
 <code>data['putExperimentalParameters']['result']</code>.</p>
 <p>See the documentation on the "space" task result in the <code>poll_for_current_task</code> method
 for information on the CSV file generated if the <code>auto_export_path</code> option is set.</p>
-<p>These are the required keys for the <code>params</code> dict:</p>
+<p>These are the required items for the <code>params</code> <code>dict</code>:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
 <p>replicates (int):
     The number of replicates. A non-negative integer. The total number of
     experiments per design generation is <code>populationSize * (replicates + 1)</code>.</p>
 <p>space (dict):
-    The experimental space definition. Required keys for the <code>space</code> dict are:</p>
+    The experimental space definition. The required items for the <code>space</code> <code>dict</code> are:</p>
 <p>type (str):
     The type of the space, a string, either "factorial" or "mixture".</p>
 <p>totalUnits (int):
@@ -2197,7 +2222,7 @@ types and permissible values in the space definition are read from a CSV file.</
 <h5 id="returns_23">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
-    <code>putExperimentalParameters</code> key. The <code>putExperimentalParameters</code> value
+    <code>putExperimentalParameters</code> item. The <code>putExperimentalParameters</code> value
     is a Python <code>dict</code> with information about the "space" task.</p>
 <h5 id="raises_9">Raises</h5>
 <p>csv.Error
@@ -2212,14 +2237,14 @@ successfully, the result of the task can be accessed at
 <code>data['putExperimentalParameters']['result']</code>.</p>
 <p>See the documentation on the "space" task result in the <code>poll_for_current_task</code> method
 for information on the CSV file generated if the <code>auto_export_path</code> option is set.</p>
-<p>Keys for the <code>params</code> dict are:</p>
+<p>Items for the <code>params</code> <code>dict</code> are:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
 <p>replicates (int):
     The number of replicates. A non-negative integer. The total number of
     experiments per design generation is <code>populationSize * (replicates + 1)</code>.</p>
 <p>space (dict):
-    The experimental space definition. The single required key for the <code>space</code> dict is:</p>
+    The experimental space definition. The single required item for the <code>space</code> <code>dict</code> is:</p>
 <p>type (str):
     "factorial" or "mixture"</p>
 <p>In addition to the required <code>params</code> listed above, optional additional
@@ -2295,7 +2320,12 @@ be provided.</p>
 rows that use any valid experimental parameter values can be provided.</p>
 <h5 id="returns_24">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with <code>putExperiments</code> item.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>putExperiments</code> item.</p>
+<h5 id="raises_10">Raises</h5>
+<p>Exception
+    If no data was returned by the query request, an exception is raised,
+    containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="notes_13">Notes</h5>
 <p>If the experiments were successfully validated, the following actions may be
 automatically performed:</p>
@@ -2345,7 +2375,12 @@ generated.</p>
     below for an example.</p>
 <h5 id="returns_25">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with <code>putExperiments</code> item.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>putExperiments</code> item.</p>
+<h5 id="raises_11">Raises</h5>
+<p>Exception
+    If no data was returned by the query request, an exception is raised,
+    containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="notes_14">Notes</h5>
 <p>If the experiments were successfully validated, the following actions may be
 automatically performed:</p>
@@ -2405,7 +2440,7 @@ generated parameter values as well as responses.</p>
     A Python <code>dict</code> that defines the experimental space.</p>
 <p>design (dict, optional):
     If supplied, a Python <code>dict</code> that defines the currently generated
-    design as a table. The dict has <code>colHeaders</code> and <code>data</code> keys.</p>
+    design as a table. The <code>dict</code> has <code>colHeaders</code> and <code>data</code> items.</p>
 <p>num_extras: int, optional
     If non-zero, generate this number of extra rows. The extra rows
     will be appended to any designed rows.</p>
@@ -2443,11 +2478,11 @@ for the space type and specified parameter definition.</p>
     The session id to find.</p>
 <h5 id="returns_29">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with a <code>session</code> key.
-    The <code>session</code> value is a Python <code>dict</code> containing information about the session`s
-    name, description, experimental space parameters, experiments history, and
-    any active tasks.</p>
-<h5 id="raises_10">Raises</h5>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>session</code> item. The <code>session</code> value is a Python <code>dict</code> containing
+    information about the session's name, description, experimental
+    space parameters, experiments history, and any active tasks.</p>
+<h5 id="raises_12">Raises</h5>
 <p>Exception
     If no data was returned by the query request, an exception is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
@@ -2487,9 +2522,9 @@ an individual experiment.</p>
 <h5 id="returns_30">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
-    <code>simulateExperiments</code> key. See the documentation for the <code>get_experiments</code>
+    <code>simulateExperiments</code> item. See the documentation for the <code>get_experiments</code>
     method for a description of the values returned.</p>
-<h5 id="raises_11">Raises</h5>
+<h5 id="raises_13">Raises</h5>
 <p>Exception
     If no data was returned by the query request, an exception is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
@@ -2512,8 +2547,8 @@ will find one of the lower peaks.</p>
     the parameters for designed and any extra experiments.</p>
 <h5 id="returns_31">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with
-    <code>simulateExperiments</code> key.</p>
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>simulateExperiments</code> item.</p>
 <h5 id="method-space_table_column_names">Method <code>space_table_column_names</code></h5>
 <blockquote>
 <p><code>def space_table_column_names(self, space)</code></p>
@@ -2557,26 +2592,26 @@ to run.</p>
 <p>params (dict):
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session. See the Notes section that describes the
-    required keys for the <code>params</code> dict.</p>
+    required items for the <code>params</code> <code>dict</code>.</p>
 <h5 id="returns_34">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with <code>runSimulation</code> key.
-    The <code>runSimulation</code> value will contain information on the
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>runSimulation</code> item. The <code>runSimulation</code> value contains information on the
     "simulate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
-<h5 id="raises_12">Raises</h5>
+<h5 id="raises_14">Raises</h5>
 <p>Exception
     If no data was returned by the query request, an exception is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="notes_17">Notes</h5>
-<p>Keys for the <code>params</code> dict are:</p>
+<p>Items to be specified in the <code>params</code> <code>dict</code> are:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
 <p>replicates (int):
     The number of replicates. A non-negative integer. The total number of
     experiments per design generation is <code>populationSize * (replicates + 1)</code>.</p>
 <p>space (dict):
-    The experimental space definition. Keys for the <code>space</code> dict are:</p>
+    The experimental space definition. Items in the <code>space</code> <code>dict</code> are:</p>
 <p>type (str):
     The type of the space, a string, either "factorial" or "mixture".</p>
 <p>totalUnits (int):
@@ -2616,25 +2651,25 @@ are successfully validated a "simulate" task is started.</p>
 <p>params (dict):
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session.  See the Notes section that describes the
-    required keys for the <code>params</code> dict.</p>
+    required items for the <code>params</code> <code>dict</code>.</p>
 <h5 id="returns_35">Returns</h5>
 <p>data (dict):
-    The JSON response from the GraphQL request, a Python <code>dict</code> with <code>runSimulation</code> key.
-    The <code>runSimulation</code> value will contain information on the
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>runSimulation</code> item. The <code>runSimulation</code> value will contain information on the
     "simulate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
-<h5 id="raises_13">Raises</h5>
+<h5 id="raises_15">Raises</h5>
 <p>csv.Error
     If the specified CSV file is incorrectly formatted.</p>
 <h5 id="notes_18">Notes</h5>
-<p>Keys for the <code>params</code> dict are:</p>
+<p>Items to be specified in the <code>params</code> <code>dict</code> are:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
 <p>replicates (int):
     The number of replicates. A non-negative integer. The total number of
     experiments per design generation is <code>populationSize * (replicates + 1)</code>.</p>
 <p>space (dict):
-    The experimental space definition. Keys for the <code>space</code> dict are:</p>
+    The experimental space definition. Items in the <code>space</code> <code>dict</code> are:</p>
 <p>type (str):
     The type of the space, a string, either "factorial" or "mixture".</p>
 <p>totalUnits (int):
@@ -2666,15 +2701,15 @@ If None is supplied (the default), find the most recently started task of any ty
     Maximum number of seconds to wait. If None or a negative number, wait forever.</p>
 <h5 id="returns_36">Returns</h5>
 <p>data (dict):
-    The <code>data</code> component of the GraphQL response, a Python <code>dict</code> with a <code>currentTask</code>
-    item, described below.</p>
+    The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with a
+    <code>currentTask</code> item, described below.</p>
 <p>errors (list):
-    The <code>errors</code> component of the GraphQL response. Each item in the list
+    The <code>errors</code> item of the GraphQL response. Each item in the list
     is guaranteed to have a <code>message</code> item.</p>
 <h5 id="notes_19">Notes</h5>
 <p>Either <code>data</code> or <code>errors</code> may be None.</p>
 <p>See the documentation on the <code>poll_for_current_task</code> method for more information
-about the <code>data</code> component returned for different types of tasks,
+about the <code>data</code> item returned for different types of tasks,
 and for how task completion affects attributes of the client instance.</p>
 <h3 id="class-dapticsexperimentstype">Class <code>DapticsExperimentsType</code></h3>
 <blockquote>
@@ -2777,8 +2812,9 @@ submitted for generating random experiments.</p>
 <blockquote>
 <p><code>class TokenAuth()</code></p>
 </blockquote>
-<p>A callable authentication object for the Python "requests" moudule.
-If acess token is set, add a "Bearer" authorization header to the HTTP request.</p>
+<p>A callable authentication object for the Python <code>requests</code> moudule.
+If the <code>token</code> attribute is set, the <code>__call__</code> method will insert an
+"Authorization" header with a "Bearer" token into the HTTP request.</p>
 <h3 id="attributes">Attributes</h3>
 <p>token (str):
     An access token obtained from the API for the authenticated user.</p>

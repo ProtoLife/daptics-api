@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.9.3 (23/01/2020)
+
+* Bug fix for _auto_task method.
+* https://api-alpha.daptics.ai is now the API server URL
+
+### Breaking changes to daptics client
+
+Changes in `daptics_client.py`:
+
+* Better return value from get_all_analytics_files
+
+
 ## v0.9.2 (17/01/2020)
 
 Better documentation using mkdocs and pdoc3.

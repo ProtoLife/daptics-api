@@ -1,21 +1,17 @@
-site_name: Daptics Python Client
-
 # To generate graphql_api.md, go to the pydocmd folder and run:
 # graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
 #
 # To generate python_client.md, go to the python_client folder and run:
 # pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md
+site_name: Daptics Python Client
 nav:
   - Daptics API Index: index.md
   - Python API Client: daptics_client.md
   - Daptics GraphQL API: graphql_api.md
   - Jupyter Notebooks: jupyter_notebooks.md
-
-# These options all show off their default values. You don't have to add
-# them to your configuration if you're fine with the default.
 docs_dir: ./pydocmd
-site_dir: ./docs            # Required for GitHub Pages
+site_dir: ./docs # Required for GitHub Pages
 theme:
-  name: 'rtd-dropdown'
+  name: "rtd-dropdown"
   navigation_depth: 3
   collapse_navigation: false

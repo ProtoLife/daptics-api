@@ -8,10 +8,12 @@
   * [Objects](#objects)
     * [Analytics](#analytics)
     * [AnalyticsFileInfo](#analyticsfileinfo)
+    * [AnalyticsTaskResult](#analyticstaskresult)
     * [ApiParameters](#apiparameters)
     * [AuthenticationToken](#authenticationtoken)
     * [CampaignInfo](#campaigninfo)
     * [CategorizedError](#categorizederror)
+    * [CreateTaskResult](#createtaskresult)
     * [DataFrame](#dataframe)
     * [ExperimentalSpace](#experimentalspace)
     * [ExperimentalSpaceTemplate](#experimentalspacetemplate)
@@ -20,9 +22,9 @@
     * [HaltSessionResult](#haltsessionresult)
     * [Loadavg](#loadavg)
     * [PasswordChanged](#passwordchanged)
+    * [RootSubscriptionType](#rootsubscriptiontype)
     * [Server](#server)
     * [Session](#session)
-    * [SessionAuth](#sessionauth)
     * [SessionParameters](#sessionparameters)
     * [SessionSummary](#sessionsummary)
     * [SimulateTaskResult](#simulatetaskresult)
@@ -100,7 +102,7 @@ If provided, only returns information if the task's id matches.
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-If provided, only returns information if the task's type ('space', 'generate', 'update', or 'simulate') matches.
+If provided, only returns information if the task's type ('space', 'update', 'generate', 'simulate', or 'analytics') matches.
 
 </td>
 </tr>
@@ -276,11 +278,11 @@ Get list of all, or just un-archived tasks in the session. For non-admin users, 
 </td>
 </tr>
 <tr>
-<td colspan="2" align="right" valign="top">includeArchivedTasks</td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td colspan="2" align="right" valign="top">includeArchived</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If false, limits the response to tasks that have not completed.
+If omitted or false, limits the response to tasks that have not completed.
 
 </td>
 </tr>
@@ -453,10 +455,10 @@ The user's id, required if not authenticating via token.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>createAnalytics</strong></td>
-<td valign="top"><a href="#analytics">Analytics</a></td>
+<td valign="top"><a href="#task">Task</a></td>
 <td>
 
-Generate a list of analytics files for all generations in the session.
+Start a 'generate' task to create analytics files for all generations in the session.
 
 </td>
 </tr>
@@ -642,7 +644,7 @@ The session's id.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>putExperiments</strong></td>
-<td valign="top"><a href="#experiments">Experiments</a></td>
+<td valign="top"><a href="#task">Task</a></td>
 <td>
 
 Validate initial, extra and/or generated experiment responses.
@@ -839,6 +841,7 @@ and has not expired and user account is inactive), return the user account profi
 Normally, verification tokens are sent to a non-API endpoint, but this
 mutation can also be used.
 
+
 </td>
 </tr>
 <tr>
@@ -937,6 +940,68 @@ The file's title, like 'Response Barplot Time Series'.
 <td>
 
 The file's url, like 'http://localhost:4041/session/sess_id/analytics/gen/1/RespSortBarplotSequence.pdf'.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### AnalyticsTaskResult
+
+Result of a create analyticss task.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>analytics</strong></td>
+<td valign="top"><a href="#analytics">Analytics</a></td>
+<td>
+
+Analytics file information.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>errors</strong></td>
+<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
+<td>
+
+Errors encountered when validating the experiments.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>taskId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's type ('analytics').
 
 </td>
 </tr>
@@ -1130,7 +1195,7 @@ An error encountered while processing a query or mutation.
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-The type of error.
+The type of error: 'validation', 'execution', 'system'.
 
 </td>
 </tr>
@@ -1153,11 +1218,136 @@ A description of the error.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>path</strong></td>
+<td valign="top">[<a href="#string">String</a>!]</td>
+<td>
+
+For validation errors, the path to the invalid input field.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>systemError</strong></td>
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
 True if the error is an internal system error.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### CreateTaskResult
+
+Result of a create session task.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>active</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if this is an active (non-archived) session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>demo</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if this was created as a demo session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>description</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's description.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>errors</strong></td>
+<td valign="top">[<a href="#categorizederror">CategorizedError</a>]</td>
+<td>
+
+Errors encountered when creating the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>host</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The id for the server associated with the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>name</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's name (unique for the associated user).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>tag</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's (unique) tag.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>taskId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>type</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The task's type ('create').
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>version</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The build version for the session, if available.
 
 </td>
 </tr>
@@ -1552,6 +1742,39 @@ The time that the password was updated.
 </tbody>
 </table>
 
+### RootSubscriptionType
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>taskUpdated</strong></td>
+<td valign="top"><a href="#task">Task</a></td>
+<td>
+
+Subscribe to updates for long-running tasks (creation, progress and completion).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+Filter by session: the id of the session whose tasks are to be be monitored.
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### Server
 
 Information about a PDT server.
@@ -1702,7 +1925,7 @@ API location and key information.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>auth</strong></td>
-<td valign="top"><a href="#sessionauth">SessionAuth</a></td>
+<td valign="top"><a href="#authenticationtoken">AuthenticationToken</a></td>
 <td>
 
 Authorization information, if available.
@@ -1800,29 +2023,11 @@ Current unvalidated or validated experimental space parameters.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>path</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The filesytem path on the server associated with the session that contains the session's system and user data files.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>platformMode</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
 Settings for the runtime platform (`development`, `test` or `production`).
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>restartedAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a></td>
-<td>
-
-The date and time that this session was last restarted.
 
 </td>
 </tr>
@@ -1849,7 +2054,7 @@ Experimental space parameter templates that can be used as examples.
 <td valign="top"><a href="#datetime">DateTime</a></td>
 <td>
 
-True if the campaign has completed (no additional experiments can be generated).
+The date and time that this session was last started.
 
 </td>
 </tr>
@@ -1886,59 +2091,6 @@ The user profile associated with the session.
 <td>
 
 The build version for the session, if available.
-
-</td>
-</tr>
-</tbody>
-</table>
-
-### SessionAuth
-
-Information about the access token for the session.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>expirationTime</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-(TBD)
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>message</strong></td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-(TBD)
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>status</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The status of the the token ('active' or 'revoked').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>token</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The token.
 
 </td>
 </tr>
@@ -2081,15 +2233,6 @@ The session's name (unique for the associated user).
 <td>
 
 Current unvalidated or validated experimental space parameters, if available.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>path</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The filesytem path on the server associated with the session that contains the session's system and user data files.
 
 </td>
 </tr>
@@ -2325,6 +2468,15 @@ Errors returned by a failed or canceled task.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>gen</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The generation number when the task was started.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>progress</strong></td>
 <td valign="top"><a href="#taskprogress">TaskProgress</a></td>
 <td>
@@ -2365,7 +2517,7 @@ The date and time the task was started.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's status ('new', 'running', 'success', 'error', or 'canceled').
+The task's status ('new', 'running', 'success', 'failed', or 'canceled').
 
 </td>
 </tr>
@@ -2383,7 +2535,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', 'update', or 'simulate').
+The task's type ('space', 'update', 'generate', 'simulate', or 'analytics').
 
 </td>
 </tr>
@@ -2418,7 +2570,7 @@ A description of the last activity returned by the task.
 <td valign="top"><a href="#int">Int</a></td>
 <td>
 
-(TBD)
+The completion percentage, if available.
 
 </td>
 </tr>
@@ -2427,7 +2579,7 @@ A description of the last activity returned by the task.
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-(TBD)
+The task's phase ('allocating', 'validating', 'executing', 'detached', or 'completed').
 
 </td>
 </tr>
@@ -2480,7 +2632,7 @@ The date and time the task was started.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's status ('new', 'running', 'success', 'error', or 'canceled').
+The task's status ('new', 'running', 'success', 'failed', or 'canceled').
 
 </td>
 </tr>
@@ -2498,7 +2650,7 @@ The task's id.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The task's type ('space', 'generate', 'update', or 'simulate').
+The task's type ('space', 'update', 'generate', 'simulate', or 'analytics').
 
 </td>
 </tr>
@@ -2730,7 +2882,7 @@ Profile and activity information for the associated user's account.
 
 ### UpdateTaskResult
 
-Result of a save experiments task.
+Result of a put experiments task.
 
 <table>
 <thead>
@@ -2909,6 +3061,15 @@ The user's email address.
 <td>
 
 The user's first name.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>lastActiveSession</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The session id of the last active session.
 
 </td>
 </tr>
@@ -3356,6 +3517,15 @@ The user's email address.
 <td>
 
 The user's first name.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>lastActiveSession</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The session id of the last active session.
 
 </td>
 </tr>
@@ -4066,7 +4236,7 @@ The `Boolean` scalar type represents `true` or `false`.
 The `DateTime` scalar type represents a date and time in the UTC
 timezone. The DateTime appears in a JSON response as an ISO8601 formatted
 string, including UTC timezone ("Z"). The parsed date and time string will
-be converted to UTC and any UTC offset other than 0 will be rejected.
+be converted to UTC if there is an offset.
 
 ### Float
 

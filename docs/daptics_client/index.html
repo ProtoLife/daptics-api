@@ -79,8 +79,8 @@
           
 
   <li class="toctree-l2 current with-children">
-    <a href="#classes">
-      Classes
+    <a href="#functions">
+      Functions
       <span class="toctree-expand"></span>
     </a>
   </li>
@@ -89,6 +89,36 @@
 
   <li class="toctree-l2 current">
     <ul class="subnav-l2 current">
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#function-can_set_result">Function can_set_result</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#function-default_task_coroutine">Function default_task_coroutine</a>
+        </li>
+    
+    </ul>
+  </li>
+
+      
+    
+      
+          
+
+  <li class="toctree-l2">
+    <a href="#classes">
+      Classes
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l2">
+    <ul class="subnav-l2 toc-hidden">
     
       
         <li class="toctree-l3">
@@ -137,12 +167,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#variable-get_analytics_timeout">Variable GET_ANALYTICS_TIMEOUT</a>
+          <a class="toctree-l6" href="#variable-required_space_params">Variable REQUIRED_SPACE_PARAMS</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#variable-required_space_params">Variable REQUIRED_SPACE_PARAMS</a>
+          <a class="toctree-l6" href="#variable-task_fragment">Variable TASK_FRAGMENT</a>
         </li>
     
     </ul>
@@ -252,12 +282,27 @@
     
       
         <li class="toctree-l5">
+          <a class="toctree-l6" href="#variable-task_updated_coroutine">Variable task_updated_coroutine</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#variable-task_updated_kwargs">Variable task_updated_kwargs</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
           <a class="toctree-l6" href="#variable-user_id">Variable user_id</a>
         </li>
     
       
         <li class="toctree-l5">
           <a class="toctree-l6" href="#variable-validated_params">Variable validated_params</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#variable-websocket_url">Variable websocket_url</a>
         </li>
     
     </ul>
@@ -337,7 +382,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-error_messages">Method error_messages</a>
+          <a class="toctree-l6" href="#method-download_all_analytics_files">Method download_all_analytics_files</a>
         </li>
     
       
@@ -352,7 +397,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-experiment_with_random_response">Method experiment_with_random_response</a>
+          <a class="toctree-l6" href="#raises_1">Raises</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-download_analytics_file">Method download_analytics_file</a>
         </li>
     
       
@@ -367,7 +417,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-experiments_table_column_names">Method experiments_table_column_names</a>
+          <a class="toctree-l6" href="#raises_2">Raises</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-error_messages">Method error_messages</a>
         </li>
     
       
@@ -382,7 +437,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-experiments_table_template">Method experiments_table_template</a>
+          <a class="toctree-l6" href="#method-execute_query">Method execute_query</a>
         </li>
     
       
@@ -397,12 +452,62 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-export_csv">Method export_csv</a>
+          <a class="toctree-l6" href="#raises_3">Raises</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-experiment_with_random_response">Method experiment_with_random_response</a>
         </li>
     
       
         <li class="toctree-l5">
           <a class="toctree-l6" href="#arguments_6">Arguments</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#returns_6">Returns</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-experiments_table_column_names">Method experiments_table_column_names</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#arguments_7">Arguments</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#returns_7">Returns</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-experiments_table_template">Method experiments_table_template</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#arguments_8">Arguments</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#returns_8">Returns</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-export_csv">Method export_csv</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#arguments_9">Arguments</a>
         </li>
     
       
@@ -417,56 +522,6 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#arguments_7">Arguments</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_6">Returns</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-export_experiments_history_csv">Method export_experiments_history_csv</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#arguments_8">Arguments</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_7">Returns</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_4">Notes</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-export_generated_design_csv">Method export_generated_design_csv</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#arguments_9">Arguments</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_8">Returns</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-export_initial_experiments_template_csv">Method export_initial_experiments_template_csv</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
           <a class="toctree-l6" href="#arguments_10">Arguments</a>
         </li>
     
@@ -477,7 +532,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-generate_design">Method generate_design</a>
+          <a class="toctree-l6" href="#method-export_experiments_history_csv">Method export_experiments_history_csv</a>
         </li>
     
       
@@ -492,17 +547,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_1">Raises</a>
+          <a class="toctree-l6" href="#notes_4">Notes</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_5">Notes</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-get_all_analytics_files">Method get_all_analytics_files</a>
+          <a class="toctree-l6" href="#method-export_generated_design_csv">Method export_generated_design_csv</a>
         </li>
     
       
@@ -517,7 +567,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-get_analytics_file">Method get_analytics_file</a>
+          <a class="toctree-l6" href="#method-export_initial_experiments_template_csv">Method export_initial_experiments_template_csv</a>
         </li>
     
       
@@ -532,7 +582,42 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#method-get_analytics_file_list">Method get_analytics_file_list</a>
+          <a class="toctree-l6" href="#method-generate_analytics">Method generate_analytics</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#returns_13">Returns</a>
+        </li>
+    
+      
+          
+
+  <li class="toctree-l5">
+    <a href="#raises_4">
+      Raises
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l5">
+    <ul class="subnav-l5 toc-hidden">
+    
+      
+        <li class="toctree-l6">
+          <a class="toctree-l7" href="#notes_5"># Notes</a>
+        </li>
+    
+    </ul>
+  </li>
+
+      
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-generate_design">Method generate_design</a>
         </li>
     
       
@@ -542,7 +627,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_13">Returns</a>
+          <a class="toctree-l6" href="#returns_14">Returns</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#raises_5">Raises</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#notes_6">Notes</a>
         </li>
     
       
@@ -552,7 +647,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_14">Returns</a>
+          <a class="toctree-l6" href="#returns_15">Returns</a>
         </li>
     
       
@@ -567,12 +662,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_15">Returns</a>
+          <a class="toctree-l6" href="#returns_16">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_2">Raises</a>
+          <a class="toctree-l6" href="#raises_6">Raises</a>
         </li>
     
       
@@ -582,17 +677,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_16">Returns</a>
+          <a class="toctree-l6" href="#returns_17">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_3">Raises</a>
+          <a class="toctree-l6" href="#raises_7">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_6">Notes</a>
+          <a class="toctree-l6" href="#notes_7">Notes</a>
         </li>
     
       
@@ -607,7 +702,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_17">Returns</a>
+          <a class="toctree-l6" href="#returns_18">Returns</a>
         </li>
     
       
@@ -622,12 +717,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_18">Returns</a>
+          <a class="toctree-l6" href="#returns_19">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_4">Raises</a>
+          <a class="toctree-l6" href="#raises_8">Raises</a>
         </li>
     
       
@@ -637,12 +732,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_5">Raises</a>
+          <a class="toctree-l6" href="#raises_9">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_7">Notes</a>
+          <a class="toctree-l6" href="#notes_8">Notes</a>
         </li>
     
       
@@ -657,12 +752,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_19">Returns</a>
+          <a class="toctree-l6" href="#returns_20">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_6">Raises</a>
+          <a class="toctree-l6" href="#raises_10">Raises</a>
         </li>
     
       
@@ -677,7 +772,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_8">Notes</a>
+          <a class="toctree-l6" href="#notes_9">Notes</a>
         </li>
     
       
@@ -692,17 +787,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_20">Returns</a>
+          <a class="toctree-l6" href="#returns_21">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_7">Raises</a>
+          <a class="toctree-l6" href="#raises_11">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_9">Notes</a>
+          <a class="toctree-l6" href="#notes_10">Notes</a>
         </li>
     
       
@@ -717,14 +812,14 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_21">Returns</a>
+          <a class="toctree-l6" href="#returns_22">Returns</a>
         </li>
     
       
           
 
   <li class="toctree-l5">
-    <a href="#notes_10">
+    <a href="#notes_11">
       Notes
       <span class="toctree-expand"></span>
     </a>
@@ -742,12 +837,22 @@
     
       
         <li class="toctree-l6">
+          <a class="toctree-l7" href="#result-for-update-tasks">Result for "update" Tasks</a>
+        </li>
+    
+      
+        <li class="toctree-l6">
           <a class="toctree-l7" href="#result-for-generate-tasks">Result for "generate" Tasks</a>
         </li>
     
       
         <li class="toctree-l6">
           <a class="toctree-l7" href="#result-for-simulate-tasks">Result for "simulate" Tasks</a>
+        </li>
+    
+      
+        <li class="toctree-l6">
+          <a class="toctree-l7" href="#result-for-analytics-tasks">Result for "analytics" Tasks</a>
         </li>
     
     </ul>
@@ -772,17 +877,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_22">Returns</a>
+          <a class="toctree-l6" href="#returns_23">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_8">Raises</a>
+          <a class="toctree-l6" href="#raises_12">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_11">Notes</a>
+          <a class="toctree-l6" href="#notes_12">Notes</a>
         </li>
     
       
@@ -802,17 +907,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_23">Returns</a>
+          <a class="toctree-l6" href="#returns_24">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_9">Raises</a>
+          <a class="toctree-l6" href="#raises_13">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_12">Notes</a>
+          <a class="toctree-l6" href="#notes_13">Notes</a>
         </li>
     
       
@@ -832,17 +937,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_24">Returns</a>
+          <a class="toctree-l6" href="#returns_25">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_10">Raises</a>
+          <a class="toctree-l6" href="#raises_14">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_13">Notes</a>
+          <a class="toctree-l6" href="#notes_14">Notes</a>
         </li>
     
       
@@ -862,17 +967,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_25">Returns</a>
+          <a class="toctree-l6" href="#returns_26">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_11">Raises</a>
-        </li>
-    
-      
-        <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_14">Notes</a>
+          <a class="toctree-l6" href="#notes_15">Notes</a>
         </li>
     
       
@@ -892,7 +992,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_26">Returns</a>
+          <a class="toctree-l6" href="#returns_27">Returns</a>
         </li>
     
       
@@ -907,7 +1007,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_27">Returns</a>
+          <a class="toctree-l6" href="#returns_28">Returns</a>
         </li>
     
       
@@ -922,7 +1022,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_28">Returns</a>
+          <a class="toctree-l6" href="#returns_29">Returns</a>
         </li>
     
       
@@ -937,17 +1037,22 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_29">Returns</a>
+          <a class="toctree-l6" href="#returns_30">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_12">Raises</a>
+          <a class="toctree-l6" href="#raises_15">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_15">Notes</a>
+          <a class="toctree-l6" href="#notes_16">Notes</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#method-run_task_async">Method run_task_async</a>
         </li>
     
       
@@ -962,7 +1067,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_16">Notes</a>
+          <a class="toctree-l6" href="#notes_17">Notes</a>
         </li>
     
       
@@ -977,12 +1082,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_30">Returns</a>
+          <a class="toctree-l6" href="#returns_31">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_13">Raises</a>
+          <a class="toctree-l6" href="#raises_16">Raises</a>
         </li>
     
       
@@ -997,7 +1102,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_31">Returns</a>
+          <a class="toctree-l6" href="#returns_32">Returns</a>
         </li>
     
       
@@ -1012,7 +1117,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_32">Returns</a>
+          <a class="toctree-l6" href="#returns_33">Returns</a>
         </li>
     
       
@@ -1027,7 +1132,7 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_33">Returns</a>
+          <a class="toctree-l6" href="#returns_34">Returns</a>
         </li>
     
       
@@ -1042,17 +1147,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_34">Returns</a>
+          <a class="toctree-l6" href="#returns_35">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_14">Raises</a>
+          <a class="toctree-l6" href="#raises_17">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_17">Notes</a>
+          <a class="toctree-l6" href="#notes_18">Notes</a>
         </li>
     
       
@@ -1067,17 +1172,17 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_35">Returns</a>
+          <a class="toctree-l6" href="#returns_36">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#raises_15">Raises</a>
+          <a class="toctree-l6" href="#raises_18">Raises</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_18">Notes</a>
+          <a class="toctree-l6" href="#notes_19">Notes</a>
         </li>
     
       
@@ -1092,12 +1197,12 @@
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#returns_36">Returns</a>
+          <a class="toctree-l6" href="#returns_37">Returns</a>
         </li>
     
       
         <li class="toctree-l5">
-          <a class="toctree-l6" href="#notes_19">Notes</a>
+          <a class="toctree-l6" href="#notes_20">Notes</a>
         </li>
     
     </ul>
@@ -1197,6 +1302,11 @@
     
       
         <li class="toctree-l5">
+          <a class="toctree-l6" href="#variable-analytics">Variable ANALYTICS</a>
+        </li>
+    
+      
+        <li class="toctree-l5">
           <a class="toctree-l6" href="#variable-generate">Variable GENERATE</a>
         </li>
     
@@ -1210,6 +1320,11 @@
           <a class="toctree-l6" href="#variable-space">Variable SPACE</a>
         </li>
     
+      
+        <li class="toctree-l5">
+          <a class="toctree-l6" href="#variable-update">Variable UPDATE</a>
+        </li>
+    
     </ul>
   </li>
 
@@ -1219,6 +1334,11 @@
   </li>
 
       
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#class-graphqlerror">Class GraphQLError</a>
+        </li>
     
       
         <li class="toctree-l3">
@@ -1360,7 +1480,7 @@ please visit or contact daptics:</p>
 <li>On the web at <a href="https://daptics.ai"><a href="https://daptics.ai">https://daptics.ai</a></li>
 <li>By email at <a href="mailto:support@daptics.ai">support@daptics.ai</a></li>
 </ul>
-<p>Daptics API Version 0.9.3
+<p>Daptics API Version 0.12.0
 Copyright (c) 2020 Daptics Inc.</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -1377,6 +1497,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.</p>
+<h2 id="functions">Functions</h2>
+<h3 id="function-can_set_result">Function <code>can_set_result</code></h3>
+<blockquote>
+<p><code>def can_set_result(future)</code></p>
+</blockquote>
+<p>Helper function to see if a future is done or canceled.</p>
+<h3 id="function-default_task_coroutine">Function <code>default_task_coroutine</code></h3>
+<blockquote>
+<p><code>async def default_task_coroutine(task, **kwargs)</code></p>
+</blockquote>
+<p>The default coroutine (callback) that will be called asynchronously if the
+"run_tasks_async" option has been set in the client. This coroutine logs
+progress information to a file named <code>daptics_task.log</code> in the current directory.</p>
 <h2 id="classes">Classes</h2>
 <h3 id="class-csvfileemptyerror">Class <code>CsvFileEmptyError</code></h3>
 <blockquote>
@@ -1408,6 +1541,7 @@ last generated design, etc. are retained in the object's attributes.</p>
 <p><code>auto_export_path</code> - see <code>options</code> below</p>
 <p><code>auto_generate_next_design</code> - see <code>options</code> below</p>
 <p><code>auto_task_timeout</code> - see <code>options</code> below</p>
+<p><code>run_tasks_async</code> - see <code>options</code> below</p>
 <p>If `config is set to None, configuration can be read from OS environment
 variables, if they exist. The environment variable names are:</p>
 <p><code>DAPTICS_HOST</code> - host part of the API endpoint</p>
@@ -1416,9 +1550,10 @@ variables, if they exist. The environment variable names are:</p>
 <p><code>DAPTICS_AUTO_EXPORT_PATH</code> - see <code>options</code> below</p>
 <p><code>DAPTICS_AUTO_GENERATE_NEXT_DESIGN</code> - see <code>options</code> below</p>
 <p><code>DAPTICS_AUTO_TASK_TIMEOUT</code> - see <code>options</code> below</p>
+<p><code>DAPTICS_RUN_TASKS_ASYNC</code> - see <code>options</code> below</p>
 <p>options (dict):
     A Python <code>dict</code> containing runtime options. As of this version, there
-    are three available options:</p>
+    are four available options:</p>
 <p><code>auto_export_path</code> - If not None, a string indicating the relative or absolute directory
 where the validated experimental space and generated design files will be saved,
 so that the user will not have to explicitly call the <code>export</code> functions.</p>
@@ -1433,13 +1568,26 @@ just-created task, so that the user will not have to explicitly call
 number, means to wait indefinitely. Setting the option to zero will poll the task
 just once. The default, None, means that the user wants to explicitly call
 <code>poll_for_current_task</code> or <code>wait_for_current_task</code>.</p>
+<p><code>run_tasks_async</code> - If set (True), methods that start long-running tasks
+(<code>put_experimental_parameters</code>, <code>put_experiments</code>, <code>generate_design</code>, <code>run_simulation</code>,
+and <code>create_analytics</code>) will be run in an asynchronous event loop. Normally
+you will only set this flag if you want to receive progress information via
+a coroutine (callback) function.</p>
 <h4 id="class-variables">Class variables</h4>
 <h5 id="variable-default_config">Variable <code>DEFAULT_CONFIG</code></h5>
 <p>The default location for the option configuration file.</p>
-<h5 id="variable-get_analytics_timeout">Variable <code>GET_ANALYTICS_TIMEOUT</code></h5>
-<p>The default timeout for generating analytics files, in seconds.</p>
 <h5 id="variable-required_space_params">Variable <code>REQUIRED_SPACE_PARAMS</code></h5>
 <p>The names of required experimental space parameters.</p>
+<h5 id="variable-task_fragment">Variable <code>TASK_FRAGMENT</code></h5>
+<p>str(object='') -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.<strong>str</strong>() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to 'strict'.</p>
 <h4 id="instance-variables">Instance variables</h4>
 <h5 id="variable-api_url">Variable <code>api_url</code></h5>
 <p>The full API endpoint URL.</p>
@@ -1486,11 +1634,41 @@ can be generated until the entire design space has been explored.</p>
 <h5 id="variable-task_info">Variable <code>task_info</code></h5>
 <p>A Python <code>dict</code> that holds information about the polling status for
 running tasks in the session.</p>
+<h5 id="variable-task_updated_coroutine">Variable <code>task_updated_coroutine</code></h5>
+<p>A user-specified coroutine (callback) that will be called with information
+on task progress.  The coroutine will be called with a Python <code>dict</code> containing
+<code>progress</code> and <code>status</code> items. Optional keyword arguments that the coroutine
+will receive can be specified by setting the client's <code>task_updated_kwargs</code>
+attribute.</p>
+<p>If you supply a coroutine, the coroutine MUST be defined as <code>async</code>
+and MUST return a boolean value. The return value of your coroutine
+indicates whether you wish to continue receiving the callback for the
+current task. Generally, you should return <code>False</code> if the <code>status</code>
+value of the task does not have the value "running", meaning that the
+the task has completed or failed.</p>
+<p>Here's a simple example of a coroutine. See the code for <a href="#daptics_client.default_task_coroutine"><code>default_task_coroutine()</code></a>
+in this module for another example.</p>
+<pre><code>async def my_coroutine(task, **kwargs):
+    if 'progress' in task:
+        print(task['progress']['message'])
+
+    if task['status'] == 'running':
+        # Return True to continue receiving callbacks
+        return True
+
+    # Return False to stop receiving callbacks
+    return False
+</code></pre>
+
+<h5 id="variable-task_updated_kwargs">Variable <code>task_updated_kwargs</code></h5>
+<p>User-specified keyword dictionary to be passed to the async task updated coroutine.</p>
 <h5 id="variable-user_id">Variable <code>user_id</code></h5>
 <p>The user id for the authenticated user, set by the <code>login</code> method.</p>
 <h5 id="variable-validated_params">Variable <code>validated_params</code></h5>
 <p>A Python <code>dict</code> containing the experimental space parameters as updated
 from the result of a "space" task.</p>
+<h5 id="variable-websocket_url">Variable <code>websocket_url</code></h5>
+<p>The full websocket endpoint URL.</p>
 <h4 id="methods">Methods</h4>
 <h5 id="method-call_api">Method <code>call_api</code></h5>
 <blockquote>
@@ -1552,19 +1730,91 @@ The <code>gql.Client</code> value is stored in the client's <code>gql</code> att
     <code>createSession</code> item.</p>
 <h5 id="notes_2">Notes</h5>
 <p>On successful creation, the session id, session name and
-    initial parameters are stored in the client's attributes.</p>
+initial parameters are stored in the client's attributes.</p>
+<h5 id="method-download_all_analytics_files">Method <code>download_all_analytics_files</code></h5>
+<blockquote>
+<p><code>def download_all_analytics_files(self, analytics, directory='.', name_by_gen=False)</code></p>
+</blockquote>
+<p>Processes the result of an "analytics" task for all the available analytics
+by downloading the contents of each file, and saving them to the specified directory.</p>
+<p>For each file, download its contents and save it in the specified directory.</p>
+<h5 id="arguments_2">Arguments</h5>
+<p>analytics (dict):
+    The <code>analytics</code> <code>dict</code> from the results of an "analytics" task, with <code>gen</code>,
+    and <code>files</code> items.  You can use <code>self.analytics</code> to use the most recent
+    analytics results.</p>
+<p>directory (str, optional):
+    If supplied, the target directory to save the files to. If the directory
+    does not exist, attempt to create it.</p>
+<p>name_by_gen (bool, optional):
+    If true, <code>auto_genN_</code> will be prefixed to each file name.</p>
+<h5 id="returns_2">Returns</h5>
+<p>file_count (int):
+    The number of files created.</p>
+<h5 id="raises_1">Raises</h5>
+<p>PermissionError
+     If the user does not have permission to create directories or files in the specified
+     directory.</p>
+<h5 id="method-download_analytics_file">Method <code>download_analytics_file</code></h5>
+<blockquote>
+<p><code>def download_analytics_file(self, url, fname)</code></p>
+</blockquote>
+<p>Gets the contents of an analytics file. Once a URL to a particular analytics file
+has been obtained from the result of an "analytics" task, specify the <code>url</code> and <code>filename</code>
+values from the result as the arguments to this convenience method to request the file's
+contents over HTTP, submitting a request with the authentication token that
+was stored in the client.</p>
+<h5 id="arguments_3">Arguments</h5>
+<p>url (str):
+    The URL for the file, as returned from the result of an "analytics" task.</p>
+<p>fname (str):
+    Save the file's contents to this file system location.
+    The directory that the file will be created in must exist
+    and the user must have permission to create files in that directory.</p>
+<h5 id="returns_3">Returns</h5>
+<p>response (<code>requests.Response</code>)
+    The <code>requests</code> library's <code>response</code> object for the authenticated HTTP request.</p>
+<h5 id="raises_2">Raises</h5>
+<p>PermissionError
+     If the user does not have permission to create a file at the specified
+     file system location.</p>
 <h5 id="method-error_messages">Method <code>error_messages</code></h5>
 <blockquote>
 <p><code>def error_messages(self, errors)</code></p>
 </blockquote>
 <p>Extracts the <code>message</code> values from the <code>errors</code> list returned in a GraphQL response.</p>
-<h5 id="arguments_2">Arguments</h5>
+<h5 id="arguments_4">Arguments</h5>
 <p>errors (list):
     The list of GraphQL errors. Each error must have a <code>message</code> value, and
     can optionally have <code>key</code>, <code>path</code> and <code>locations</code> values.</p>
-<h5 id="returns_2">Returns</h5>
+<h5 id="returns_4">Returns</h5>
 <p>message (str or list):
     The message (or messages) extracted from the GraphQL response.</p>
+<h5 id="method-execute_query">Method <code>execute_query</code></h5>
+<blockquote>
+<p><code>def execute_query(self, document, vars, timeout=None)</code></p>
+</blockquote>
+<p>Performs validation on the GraphQL query or mutation document and then
+executes the query. Converts errors returned by <code>gql</code> into <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a>
+errors.</p>
+<h5 id="arguments_5">Arguments</h5>
+<p>document (str):
+    The GraphQL query document, as a string.</p>
+<p>vars (dict):
+    A python 'dict' containing the variables for the query.</p>
+<p>timeout (float, optional):
+    The maximum number of seconds to wait before a response is returned.</p>
+<h5 id="returns_5">Returns</h5>
+<p>data (dict):
+    The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with an
+    item whose key is the GraphQL query name for the request.</p>
+<p>errors (list):
+    The <code>errors</code> item of the GraphQL response. Each item in the list
+    is guaranteed to have a <code>message</code> item.</p>
+<h5 id="raises_3">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
+    containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="method-experiment_with_random_response">Method <code>experiment_with_random_response</code></h5>
 <blockquote>
 <p><code>def experiment_with_random_response(self, experiment, max_response_value)</code></p>
@@ -1572,13 +1822,13 @@ The <code>gql.Client</code> value is stored in the client's <code>gql</code> att
 <p>Uses a random number generator to generate a numerical response value
 in the range [0, n] and then replaces any existing response value with
 the generated value.</p>
-<h5 id="arguments_3">Arguments</h5>
+<h5 id="arguments_6">Arguments</h5>
 <p>experiment (list):
     A list of values representing an experiment, including a (possibly
     empty) response value.</p>
 <p>max_response_value (float):
     The maximum random response value to be generated for the experiment.</p>
-<h5 id="returns_3">Returns</h5>
+<h5 id="returns_6">Returns</h5>
 <p>experiment (list):
     The list of parameter values for the specified experiment, and a generated
     response value. Each value is encoded as a string.</p>
@@ -1589,10 +1839,10 @@ the generated value.</p>
 <p>Generates the required header for the experiments table, including the
 names of each parameter in the experimental space, and the reserved name
 "Response" for the experiment response value.</p>
-<h5 id="arguments_4">Arguments</h5>
+<h5 id="arguments_7">Arguments</h5>
 <p>space (dict):
     A Python <code>dict</code> that defines the experimental space.</p>
-<h5 id="returns_4">Returns</h5>
+<h5 id="returns_7">Returns</h5>
 <p>column_headers (list):
     The list is made up from the names of all parameters, and the additional
     string "Response".</p>
@@ -1603,10 +1853,10 @@ names of each parameter in the experimental space, and the reserved name
 <p>Generates the column header for the experiments table, with no data
 rows. Can be used to export an empty experiments table template CSV file,
 or to submit "empty" initial experiments.</p>
-<h5 id="arguments_5">Arguments</h5>
+<h5 id="arguments_8">Arguments</h5>
 <p>space (dict):
     A Python <code>dict</code> that defines the experimental space.</p>
-<h5 id="returns_5">Returns</h5>
+<h5 id="returns_8">Returns</h5>
 <p>table (dict):
     A Python <code>dict</code> with with a <code>colHeaders</code>
     item containing the column header row, and an empty <code>data</code> list item.</p>
@@ -1615,7 +1865,7 @@ or to submit "empty" initial experiments.</p>
 <p><code>def export_csv(self, fname, table, headers=True)</code></p>
 </blockquote>
 <p>Writes an experimental space or experiments table to a CSV file on disk.</p>
-<h5 id="arguments_6">Arguments</h5>
+<h5 id="arguments_9">Arguments</h5>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
 <p>table (dict):
@@ -1633,10 +1883,10 @@ or to submit "empty" initial experiments.</p>
 </blockquote>
 <p>Gets the validated experimental space table and writes the table to
 a CSV file on disk.</p>
-<h5 id="arguments_7">Arguments</h5>
+<h5 id="arguments_10">Arguments</h5>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
-<h5 id="returns_6">Returns</h5>
+<h5 id="returns_9">Returns</h5>
 <p>space (dict):
     A Python <code>dict</code> representing the validated experimental space.</p>
 <h5 id="method-export_experiments_history_csv">Method <code>export_experiments_history_csv</code></h5>
@@ -1646,10 +1896,10 @@ a CSV file on disk.</p>
 <p>Gets and returns the experiments and responses for all generations in the session,
 and writes them to a summary CSV file on disk. Also updates the <code>experiments_history</code>
 attribute in the client.</p>
-<h5 id="arguments_8">Arguments</h5>
+<h5 id="arguments_11">Arguments</h5>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
-<h5 id="returns_7">Returns</h5>
+<h5 id="returns_10">Returns</h5>
 <p>experiments_history (list): or None
     The value of the client's <code>experiments_history</code> attribute, which may be
     None if no experiments have been submitted or designed, or is a list of <code>dict</code>s.
@@ -1669,13 +1919,13 @@ experiment submitted by the user.</p>
 </blockquote>
 <p>Gets a design generation from the session, and writes the
 table (with empty responses) to a CSV file on disk.</p>
-<h5 id="arguments_9">Arguments</h5>
+<h5 id="arguments_12">Arguments</h5>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
 <p>gen (int, optional):
     The generation number for the design to be retrieved.
     If None, retreive the design for the current generation.</p>
-<h5 id="returns_8">Returns</h5>
+<h5 id="returns_11">Returns</h5>
 <p>design_table (dict):
     The generated design, a Python <code>dict</code> representing an experiments table
     with empty responses with <code>colHeaders</code>, and <code>data</code> keys.</p>
@@ -1685,33 +1935,59 @@ table (with empty responses) to a CSV file on disk.</p>
 </blockquote>
 <p>Gets the validated experimental space table and writes an
 empty initial experiments table to a CSV file on disk.</p>
-<h5 id="arguments_10">Arguments</h5>
+<h5 id="arguments_13">Arguments</h5>
 <p>fname (str):
     The filesystem path where the file will be written.</p>
-<h5 id="returns_9">Returns</h5>
+<h5 id="returns_12">Returns</h5>
 <p>column_headers (list):
     The experiments table header row that was written to disk, as a list of strings.</p>
+<h5 id="method-generate_analytics">Method <code>generate_analytics</code></h5>
+<blockquote>
+<p><code>def generate_analytics(self)</code></p>
+</blockquote>
+<p>Starts an "analytics" task that will create and return a list of all the
+available analytics files for the session at the current design generation.</p>
+<h5 id="returns_13">Returns</h5>
+<p>data (dict):
+    The JSON response from the GraphQL request, a Python <code>dict</code> with a
+    <code>createAnalytics</code> item. The <code>createAnalytics</code> value will contain information on the
+    "analytics" task that was started, as described in the return value for the
+    <code>poll_for_current_task</code> method.</p>
+<h5 id="raises_4">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
+    containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
+<h6 id="notes_5"># Notes</h6>
+<p>If the <code>auto_task_timeout</code> option was set to a
+positive or negative number, the task will be retried until a result is obtained
+or the task failed, or the timeout is exceeded. If the "analytics" task completes
+successfully, the result of the task can be accessed at
+<code>data['createAnalytics']['result']</code>.</p>
+<p>If the task completes successfully and the <code>auto_export_path</code> option is set,
+the set of all available PDF analytics files for the generation will be
+downloaded to that directory. The file name for each of the downloaded files
+will have the prefix <code>auto_genN_</code> where <code>N</code> is the generation number.</p>
 <h5 id="method-generate_design">Method <code>generate_design</code></h5>
 <blockquote>
 <p><code>def generate_design(self, gen=None)</code></p>
 </blockquote>
 <p>If (initial or subsequent) experiments have been successfully validated against the
 experimental parameters, a "generate" task is started.</p>
-<h5 id="arguments_11">Arguments</h5>
+<h5 id="arguments_14">Arguments</h5>
 <p>gen (int, optional):
     The current generation number for the experiments that have successfully validated.
     Use zero for initial experiments. Use <code>None</code> to use the <code>gen</code> attribute stored
     in the client.</p>
-<h5 id="returns_10">Returns</h5>
+<h5 id="returns_14">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>generateDesign</code> item. The <code>generateDesign</code> contains information on the
     "generate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
-<h5 id="raises_1">Raises</h5>
-<p>Exception
+<h5 id="raises_5">Raises</h5>
+<p>GraphQLError
     If the task failed or timed out.</p>
-<h5 id="notes_5">Notes</h5>
+<h5 id="notes_6">Notes</h5>
 <p>If the <code>auto_export_path</code> option is set, a CSV file of the generated
 design is saved at <code>auto_genN_design.csv</code>.</p>
 <p>If the <code>auto_task_timeout</code> option was set to a
@@ -1722,74 +1998,6 @@ successfully, the result of the task can be accessed at
 <p>See the documentation on the "generate" task result in
 the <code>poll_for_current_task</code> method for information on the CSV file
 generated if the <code>auto_export_path</code> option is set.</p>
-<h5 id="method-get_all_analytics_files">Method <code>get_all_analytics_files</code></h5>
-<blockquote>
-<p><code>def get_all_analytics_files(self, directory='.', timeout=90)</code></p>
-</blockquote>
-<p>Creates an "analytics" task and waits for it to complete. If the task
-completes successfully, process the result for all the available analytics
-files.</p>
-<p>For each file, download its contents and save it in the specified directory.</p>
-<h5 id="arguments_12">Arguments</h5>
-<p>directory (str, optional):
-    If supplied, the target directory to save the files to. If the directory
-    does not exist, attempt to create it.</p>
-<p>timeout (int, optional):
-    The maximum number of seconds that the client will wait for a
-    response from the session. The default is 90 seconds.</p>
-<h5 id="returns_11">Returns</h5>
-<p>data (dict):
-    The JSON response from the gql request, a Python <code>dict</code> with a
-    <code>createAnalytics</code> item. See the documentation for the
-    <code>get_analytics_file_list</code> method for a description of the
-    data returned.</p>
-<h5 id="method-get_analytics_file">Method <code>get_analytics_file</code></h5>
-<blockquote>
-<p><code>def get_analytics_file(self, url, save_as=None)</code></p>
-</blockquote>
-<p>Gets the contents of an analytics file. Once a URL to a particular analytics file
-has been obtained using the <code>generate_analytics</code> method, and the result of the
-"analytics" task has been returned, use the <code>url</code> and <code>filename</code> values from
-the result as the arguments to this convenience method to request the file's
-contents over HTTP, submitting a request with the authentication token that
-was stored in the client.</p>
-<h5 id="arguments_13">Arguments</h5>
-<p>url (str):
-    The URL for the file, as returned from <code>get_analytics</code> method.</p>
-<p>save_as (str, optional):
-    If supplied, save the file's contents to this file system location.
-    The location must be writable by the calling user.</p>
-<h5 id="returns_12">Returns</h5>
-<p>response (<code>requests.Response</code>)
-    The <code>requests</code> library's <code>response</code> object for the authenticated HTTP request.</p>
-<h5 id="method-get_analytics_file_list">Method <code>get_analytics_file_list</code></h5>
-<blockquote>
-<p><code>def get_analytics_file_list(self, timeout=90)</code></p>
-</blockquote>
-<p>Gets a list of the available analytics files for the session.</p>
-<h5 id="arguments_14">Arguments</h5>
-<p>timeout (int):
-    The maximum number of seconds that the client will wait for a
-    response from the session. The default is 90 seconds.</p>
-<h5 id="returns_13">Returns</h5>
-<p>data (dict):
-    The JSON response from the gql request, a Python <code>dict</code> with a
-    <code>createAnalytics</code> item. If there are any files available, they will be
-    returned in the <code>createAnalytics</code> value as a list.
-    Each item in the list will be a Python <code>dict</code> with two items:</p>
-<p>gen (int):
-    The current generation number in the session, for which the files were created.</p>
-<p>files (list):
-    A list of the availiable files. Each file is represented by a Python <code>dict</code>
-    with the following keys:</p>
-<p>title (str):
-    The title (description) for the file.</p>
-<p>filename (str):
-    The default file name that can be passed to the <code>get_analytics_file</code> method.</p>
-<p>url (str):
-    The HTTP URL where the file can be downloaded. A valid authentication token for the
-    user must be included as the value of a <code>token</code> query string parameter
-    added to the URL for the download request.</p>
 <h5 id="method-get_experimental_space">Method <code>get_experimental_space</code></h5>
 <blockquote>
 <p><code>def get_experimental_space(self)</code></p>
@@ -1798,7 +2006,7 @@ was stored in the client.</p>
 the session. If the session was restarted and the experimental space
 had been previously validated, it will be in the <code>validated_params</code>
 attribute of the client, and this method will return it.</p>
-<h5 id="returns_14">Returns</h5>
+<h5 id="returns_15">Returns</h5>
 <p>space (dict):
     The validated space, a Python <code>dict</code> with <code>type</code>, and <code>table</code> items, and
     a <code>totalUnits</code> item if the space type is "mixture", or None if
@@ -1816,7 +2024,7 @@ previous generation.</p>
 <p>gen (int):
     The generation number to search for. Use 0 to specify initial
     experiments. Use <code>None</code> to search for the last designed generation.</p>
-<h5 id="returns_15">Returns</h5>
+<h5 id="returns_16">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with an
     <code>experiments</code> item. The <code>experiments</code> value is a <code>dict</code> containing
@@ -1831,16 +2039,16 @@ previous generation.</p>
 <p>table (dict):
     A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> items, representing the
     experiments submitted or designed for the generation.</p>
-<h5 id="raises_2">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_6">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="method-get_experiments_history">Method <code>get_experiments_history</code></h5>
 <blockquote>
 <p><code>def get_experiments_history(self)</code></p>
 </blockquote>
 <p>Gets all of the experiments and any responses for all the generations in the session.</p>
-<h5 id="returns_16">Returns</h5>
+<h5 id="returns_17">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with an
     <code>experimentsHistory</code> item. The <code>experimentsHistory</code> value is either <code>None</code>
@@ -1848,11 +2056,11 @@ previous generation.</p>
     Each item in the list is either <code>None</code>, or a <code>dict</code> with information
     about a generation. The first item in the list is for generation "zero",
     the initial experiments.</p>
-<h5 id="raises_3">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_7">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_6">Notes</h5>
+<h5 id="notes_7">Notes</h5>
 <p>Each generation available in the list (not <code>None</code>), is a Python <code>dict</code>
 with the following items:</p>
 <p>gen (int):
@@ -1877,7 +2085,7 @@ with the following items:</p>
 <p>gen (int):
     The generation number for the design to be retrieved.
     If <code>None</code>, retreive the design for the current generation.</p>
-<h5 id="returns_17">Returns</h5>
+<h5 id="returns_18">Returns</h5>
 <p>experiments (dict):
     The value of the <code>experiments</code> item from the GraphQL response,
     a Python <code>dict</code> with these items:</p>
@@ -1899,7 +2107,7 @@ with the following items:</p>
 <h5 id="arguments_17">Arguments</h5>
 <p>session_id (str):
     The session id to close.</p>
-<h5 id="returns_18">Returns</h5>
+<h5 id="returns_19">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>haltSession</code> item. The 'haltSession' value is a <code>dict</code> containing
@@ -1910,9 +2118,9 @@ with the following items:</p>
 <p>status (str):
     The session status, which should always be 'closed', if the action was successful,
     or if the sesson had previously been closed.</p>
-<h5 id="raises_4">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_8">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="method-init_config">Method <code>init_config</code></h5>
 <blockquote>
@@ -1920,13 +2128,13 @@ with the following items:</p>
 </blockquote>
 <p>Reads and processes the client configuration from either a configuration
 file or from environment variables.</p>
-<h5 id="raises_5">Raises</h5>
+<h5 id="raises_9">Raises</h5>
 <p>MissingConfigError
     If the config file specified does not exist.</p>
 <p>InvalidConfigError
     If the config file specified cannot be parsed, or does not have a 'host'
     value.</p>
-<h5 id="notes_7">Notes</h5>
+<h5 id="notes_8">Notes</h5>
 <p>There is nothing returned by this method.</p>
 <h5 id="method-list_sessions">Method <code>list_sessions</code></h5>
 <blockquote>
@@ -1940,15 +2148,15 @@ file or from environment variables.</p>
 <p>name (str):
     (optional) Limit the results to any session whose name, description,
     <code>tag</code> or id contains this string.</p>
-<h5 id="returns_19">Returns</h5>
+<h5 id="returns_20">Returns</h5>
 <p>data (list):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>sessions</code> item. The <code>sessions</code> value is a list, where each item in the list
     is a Python <code>dict</code> containing summary information about the session`s
     identifier, name, and description.</p>
-<h5 id="raises_6">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_10">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <code>GraphQLError</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="method-load">Method <code>load</code></h5>
 <blockquote>
@@ -1958,7 +2166,7 @@ file or from environment variables.</p>
 <h5 id="arguments_19">Arguments</h5>
 <p>fname (str):
     The file path to restore the client state from.</p>
-<h5 id="notes_8">Notes</h5>
+<h5 id="notes_9">Notes</h5>
 <p>There is nothing returned by this method.</p>
 <h5 id="method-login">Method <code>login</code></h5>
 <blockquote>
@@ -1973,7 +2181,7 @@ file or from environment variables.</p>
     The cleartext password of the database user that will be used for authentication.</p>
 <p>If called with default (<code>None</code>) arguments, the email and password will
 be retrieved from the <code>credentials</code> attribute.</p>
-<h5 id="returns_20">Returns</h5>
+<h5 id="returns_21">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>login</code> item. The <code>login</code> item is a <code>dict</code> with these items:</p>
@@ -1982,13 +2190,13 @@ be retrieved from the <code>credentials</code> attribute.</p>
 <p>user (dict):
     A Python <code>dict</code> with one string item, <code>userId</code>, that can be used
     to create sessions.</p>
-<h5 id="raises_7">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_11">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_9">Notes</h5>
+<h5 id="notes_10">Notes</h5>
 <p>On successful authentication, the user id and access token
-    are stored in the client's <code>user_id</code> and <code>auth</code> attributes.</p>
+are stored in the client's <code>user_id</code> and <code>auth</code> attributes.</p>
 <h5 id="method-poll_for_current_task">Method <code>poll_for_current_task</code></h5>
 <blockquote>
 <p><code>def poll_for_current_task(self, task_type=None)</code></p>
@@ -1997,16 +2205,16 @@ be retrieved from the <code>credentials</code> attribute.</p>
 session to see if a result is ready.</p>
 <h5 id="arguments_21">Arguments</h5>
 <p>task_type (<a href="#daptics_client.DapticsTaskType"><code>DapticsTaskType</code></a>):
-    <code>SPACE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, or None.
+    <code>SPACE</code>, <code>UPDATE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, <code>ANALYTICS</code>, or None.
 If None is supplied (the default), find the most recently started task of any type.</p>
-<h5 id="returns_21">Returns</h5>
+<h5 id="returns_22">Returns</h5>
 <p>data (dict):
     The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with a
     <code>currentTask</code> item, described below.</p>
 <p>errors (list):
     The <code>errors</code> item of the GraphQL response. Each item in the list
     is guaranteed to have a <code>message</code> item.</p>
-<h5 id="notes_10">Notes</h5>
+<h5 id="notes_11">Notes</h5>
 <p>Either <code>data</code> or <code>errors</code> may be None.</p>
 <p>The <code>currentTask</code> value returned is a Python <code>dict</code> containing information
 on the task (if found). The items in the <code>dict</code> are as follows:</p>
@@ -2049,8 +2257,8 @@ set to zero.</p>
 <p>Also, if the <code>auto_export_path</code> option is set, a CSV file named
 "auto_validated_space.csv" is written at that directory,
 containing the experimental space parameters.</p>
-<h6 id="result-for-generate-tasks">Result for "generate" Tasks</h6>
-<p>The result for an "generate" task will contain all the items as the result for a "space"
+<h6 id="result-for-update-tasks">Result for "update" Tasks</h6>
+<p>The result for an "update" task will contain all the items as the result for a "space"
 task, described above, with an additional <code>experiments</code> item:</p>
 <p>experiments (dict):
     A Python <code>dict</code> with these items:</p>
@@ -2066,7 +2274,20 @@ task, described above, with an additional <code>experiments</code> item:</p>
 <p>table (dict):
     A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> items, as described in
     the arguments for the <code>put_experiments</code> method.</p>
-<p>The <code>experiments</code> value will contain the generated design,
+<p>If the <code>auto_generate_next_design</code> option has been set on the client, when an
+"update" task completes, a "generate" task will be automatically started. The
+information on the "generate" task will be returned in the location
+<code>data['currentTask']['autoGenerateTask']</code>.</p>
+<p>If the <code>auto_task_timeout</code> option has also been set, and the "generate" task
+result has completed, the result (containing the next generation design),
+will be available at the location <code>data['currentTask']['autoGenerateTask']['result']</code>,
+formatted as described below.</p>
+<p>Also, if the <code>auto_export_path</code> option is set, a CSV file named
+"auto_genN_experiments.csv" is written at that directory,
+containing the validated experiments, where "N" is the generation number.</p>
+<h6 id="result-for-generate-tasks">Result for "generate" Tasks</h6>
+<p>The result for a "generate" task has the same structure as the result for a
+"update" task, described above. The <code>experiments</code> value will contain the generated design,
 and the <code>hasResponses</code> value within the design will be <code>False</code>, as the generated design
 returned in the result will not have responses.</p>
 <p>If the "generate" task has successfully completed, the client's <code>gen</code> attribute is updated
@@ -2088,6 +2309,31 @@ task, described above, with one additional item, <code>experimentsHistory</code>
 containing all the simulated experiments. See the documentation for the
 <code>export_experiments_history_csv</code> method for a description of this file's
 contents.</p>
+<h6 id="result-for-analytics-tasks">Result for "analytics" Tasks</h6>
+<p>The result <code>dict</code> will have one item, <code>analytics</code>:</p>
+<p>analytics (dict):
+    A Python <code>dict</code> with these items:</p>
+<p>gen (int):
+    The current generation number that the analytics were generated for.</p>
+<p>files (list):
+    A list of Python <code>dict</code>s, with information about each analytics file
+    generated.</p>
+<p>Information about each file is contained in a Python <code>dict</code> with these items:</p>
+<p>title (str):
+    The title (caption) describing the file.</p>
+<p>filename (str):
+    The suggested filename to save the file to.</p>
+<p>url (str):
+    The HTTP URL where the file can be downloaded. A valid authentication token for the
+    user must be included as the value of a <code>token</code> query string parameter
+    added to the URL for the download request.</p>
+<p>If the "analytics" task has successfully completed, the <code>analytics</code> Python <code>dict</code>,
+containing the generation number and file list, will be stored in the client's
+<code>analytics</code> attribute.</p>
+<p>If the <code>auto_export_path</code> option is set, the set of all available PDF analytics
+files for the generation will be downloaded to that directory.
+The file name for each of the downloaded files will have the
+prefix <code>auto_genN_</code> where <code>N</code> is the generation number.</p>
 <h5 id="method-print">Method <code>print</code></h5>
 <blockquote>
 <p><code>def print(self)</code></p>
@@ -2106,20 +2352,20 @@ the <code>['space']['table']</code> key of the <code>params</code> <code>dict</c
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session. See the Notes section that describes the
     required items for the <code>params</code> <code>dict</code>.</p>
-<h5 id="returns_22">Returns</h5>
+<h5 id="returns_23">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>putExperimentalParameters</code> item. The <code>putExperimentalParameters</code> value
     is a Python <code>dict</code> with information about the "space" task.</p>
-<h5 id="raises_8">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_12">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_11">Notes</h5>
+<h5 id="notes_12">Notes</h5>
 <p>If the task was successfully started, the task information is stored in the client's
 <code>task_info</code> attribute.</p>
 <p>If the <code>auto_task_timeout</code> option was set to a
-positive or negative number,  the task will be retried until a result is obtained
+positive or negative number, the task will be retried until a result is obtained
 or the task failed, or the timeout is exceeded. If the "space" task completes
 successfully, the result of the task can be accessed at
 <code>data['putExperimentalParameters']['result']</code>.</p>
@@ -2219,15 +2465,15 @@ types and permissible values in the space definition are read from a CSV file.</
 <p>params (dict):
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session. See the Notes section for more information.</p>
-<h5 id="returns_23">Returns</h5>
+<h5 id="returns_24">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>putExperimentalParameters</code> item. The <code>putExperimentalParameters</code> value
     is a Python <code>dict</code> with information about the "space" task.</p>
-<h5 id="raises_9">Raises</h5>
+<h5 id="raises_13">Raises</h5>
 <p>csv.Error
     If the specified CSV file is incorrectly formatted.</p>
-<h5 id="notes_12">Notes</h5>
+<h5 id="notes_13">Notes</h5>
 <p>If the task was successfully started, the task information is stored in the client's
 <code>task_info</code> attribute.</p>
 <p>If the <code>auto_task_timeout</code> option was set to a
@@ -2318,25 +2564,37 @@ rows, that use any valid experimental parameter values, can also
 be provided.</p>
 <p>For the <code>INITIAL_EXTRAS_ONLY</code> and <code>FINAL_EXTRAS_ONLY</code> experiments types,
 rows that use any valid experimental parameter values can be provided.</p>
-<h5 id="returns_24">Returns</h5>
+<h5 id="returns_25">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
-    <code>putExperiments</code> item.</p>
-<h5 id="raises_10">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+    <code>putExperiments</code> item. The <code>putExperiments</code> value will contain information on the
+    "update" task that was started, as described in the return value for the
+    <code>poll_for_current_task</code> method.</p>
+<h5 id="raises_14">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_13">Notes</h5>
+<h5 id="notes_14">Notes</h5>
+<p>If the task was successfully started, the task information is stored in the client's
+<code>task_info</code> attribute.</p>
 <p>If the experiments were successfully validated, the following actions may be
 automatically performed:</p>
-<p>If the <code>auto_export_path</code> option is set, a CSV file of the validated experiments
-is saved at <code>auto_genN_experiments.csv</code>.</p>
-<p>If the <code>auto_generate_next_design</code> option is set, a <code>generate</code>
-task is started, and the <code>task</code> key of the <code>putExperiments</code> key will contain
-information on the task.</p>
+<p>If the <code>auto_task_timeout</code> option was set to a
+positive or negative number, the task will be retried until a result is obtained
+or the task failed, or the timeout is exceeded. If the "update" task completes
+successfully, the result of the task can be accessed at
+<code>data['putExperiments']['result']</code>.</p>
+<p>If the <code>auto_generate_next_design</code> option is set, a "generate"
+task is started, and the <code>autoGenerateTask</code> item of the <code>putExperiments</code>
+item will contain information on the "generate" task that was started.</p>
 <p>If the <code>auto_generate_next_design</code> AND <code>auto_task_timeout</code> options are set,
-this method will block as the task is polled until it succeeds, fails, or
-the timeout value is exceeded.</p>
+the "generate" task will be polled until it completes, fails, or times out.
+If the "generate" task completes, the generated design can be accessed at
+<code>data['putExperiments']['autoGenerateTask']['result']['experiments']</code>. See
+the documentation for the <code>poll_for_current_task</code> for more information.</p>
+<p>See the documentation on the "update" and "generate" task results in
+the <code>poll_for_current_task</code> method for information on the CSV files
+generated if the <code>auto_export_path</code> option is set.</p>
 <h5 id="examples_2">Examples</h5>
 <p>Here's an expamle of an experiments table:</p>
 <pre><code class="python">&gt;&gt;&gt; experiments = {
@@ -2360,38 +2618,47 @@ next design, or finalizing the campaign.</p>
 <h5 id="arguments_25">Arguments</h5>
 <p>experiments_type (<a href="#daptics_client.DapticsExperimentsType"><code>DapticsExperimentsType</code></a>):
     Describes the types of experiments that are being added to the session.</p>
-<p>If you wish to submit calibrating or existing experimental responses prior
-to the first design generartion, use <code>INITIAL_EXTRAS_ONLY</code>.</p>
-<p>If you are submitting the responses for a daptics-generated design, along
-with any extra experiments, use <code>DESIGNED_WITH_OPTIONAL_EXTRAS</code>.</p>
-<p>If you wish to submit any final extra experiments when you are satisified
+<pre><code>If you wish to submit calibrating or existing experimental responses prior
+to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+
+If you are submitting the responses for a daptics-generated design, along
+with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+
+If you wish to submit any final extra experiments when you are satisified
 with the session's optimization but do not want to include the last
-generated experimental design use <code>FINAL_EXTRAS_ONLY</code>. Note that this
+generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
 will end the session's optimization and that no more designs will be
-generated.</p>
+generated.
+</code></pre>
 <p>fname (str):
     The location on the filesystem for a CSV file that will define
     the results of the designed and any extra experiments. See the Examples section
     below for an example.</p>
-<h5 id="returns_25">Returns</h5>
+<h5 id="returns_26">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
-    <code>putExperiments</code> item.</p>
-<h5 id="raises_11">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
-    containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_14">Notes</h5>
+    <code>putExperiments</code> item. The <code>putExperiments</code> value will contain information on the
+    "update" task that was started, as described in the return value for the
+    <code>poll_for_current_task</code> method.</p>
+<h5 id="notes_15">Notes</h5>
 <p>If the experiments were successfully validated, the following actions may be
 automatically performed:</p>
-<p>If the <code>auto_export_path</code> option is set, a CSV file of the validated experiments
-is saved at <code>auto_genN_experiments.csv</code>.</p>
-<p>If the <code>auto_generate_next_design</code> option is set, a <code>generate</code>
-task is started, and the <code>task</code> key of the <code>putExperiments</code> key will contain
-information on the task.</p>
+<p>If the <code>auto_task_timeout</code> option was set to a
+positive or negative number, the task will be retried until a result is obtained
+or the task failed, or the timeout is exceeded. If the "update" task completes
+successfully, the result of the task can be accessed at
+<code>data['putExperiments']['result']</code>.</p>
+<p>If the <code>auto_generate_next_design</code> option is set, a "generate"
+task is started, and the <code>autoGenerateTask</code> item of the <code>putExperiments</code> item
+will contain information on the "generate" task that was started.</p>
 <p>If the <code>auto_generate_next_design</code> AND <code>auto_task_timeout</code> options are set,
-this method will block as the task is polled until it succeeds, fails, or
-the timeout value is exceeded.</p>
+the "generate" task will be polled until it completes, fails, or times out.
+If the "generate" task completes, the generated design can be accessed at
+<code>data['putExperiments']['autoGenerateTask']['result']['experiments']</code>. See
+the documentation for the <code>poll_for_current_task</code> for more information.</p>
+<p>See the documentation on the "update" and "generate" task results in
+the <code>poll_for_current_task</code> method for information on the CSV files
+generated if the <code>auto_export_path</code> option is set.</p>
 <h5 id="examples_3">Examples</h5>
 <p>A header row must be provided, the columns in the header row
 must match the names of the parameters defined by the experimental space definition
@@ -2419,7 +2686,7 @@ optionally to create a random response value.</p>
     If omiited, the experiment is generated with an empty response.
     If a number, the response value is a randomly generated number
     in the range [0.0, max_response_value].</p>
-<h5 id="returns_26">Returns</h5>
+<h5 id="returns_27">Returns</h5>
 <p>experiment (list):
     The list of randomly generated parameter values for an experiment,
     and the optionally generated response value. Each value is encoded as a string.
@@ -2447,7 +2714,7 @@ generated parameter values as well as responses.</p>
 <p>max_response_value (float):
     The maximum value for generated responses. Each genreated response value
     is a randomly generated number in the range [0.0, max_response_value].</p>
-<h5 id="returns_27">Returns</h5>
+<h5 id="returns_28">Returns</h5>
 <p>table (dict):
     A Python <code>dict</code> with <code>colHeaders</code> and <code>data</code> values, representing an
     experiments table.</p>
@@ -2465,7 +2732,7 @@ for the space type and specified parameter definition.</p>
     a particular parameter in the space (name, type, and min / max or
     allowed values for the parameter). Each element in the list is
     encoded as a string.</p>
-<h5 id="returns_28">Returns</h5>
+<h5 id="returns_29">Returns</h5>
 <p>param_value (str):
     A valid value for the parameter, encoded as a string.</p>
 <h5 id="method-reconnect_session">Method <code>reconnect_session</code></h5>
@@ -2476,18 +2743,28 @@ for the space type and specified parameter definition.</p>
 <h5 id="arguments_29">Arguments</h5>
 <p>session_id (str):
     The session id to find.</p>
-<h5 id="returns_29">Returns</h5>
+<h5 id="returns_30">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>session</code> item. The <code>session</code> value is a Python <code>dict</code> containing
     information about the session's name, description, experimental
     space parameters, experiments history, and any active tasks.</p>
-<h5 id="raises_12">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_15">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_15">Notes</h5>
+<h5 id="notes_16">Notes</h5>
 <p>Sets client attributes for the reconnected session.</p>
+<h5 id="method-run_task_async">Method <code>run_task_async</code></h5>
+<blockquote>
+<p><code>def run_task_async(self, document, vars)</code></p>
+</blockquote>
+<p>Performs validation on the GraphQL mutation document and then
+executes the query, returning both the <code>data</code> and <code>errors</code> items from the JSON
+response. Before submitting the query, a "taskUpdated" subscription is
+set up, and the asynchronous loop processes subscription data messages,
+eventually passing task progress and status information to the coroutine
+specified by the client's <code>task_updated_coroutine</code> attribute.</p>
 <h5 id="method-save">Method <code>save</code></h5>
 <blockquote>
 <p><code>def save(self, fname)</code></p>
@@ -2496,7 +2773,7 @@ for the space type and specified parameter definition.</p>
 <h5 id="arguments_30">Arguments</h5>
 <p>fname (str):
     The file path to save the client state to.</p>
-<h5 id="notes_16">Notes</h5>
+<h5 id="notes_17">Notes</h5>
 <p>There is nothing returned by this method.</p>
 <h5 id="method-simulate_experiment_responses">Method <code>simulate_experiment_responses</code></h5>
 <blockquote>
@@ -2519,14 +2796,14 @@ will find one of the lower peaks.</p>
     experiments.</p>
 <p>Each row in the <code>data</code> value for the table represents
 an individual experiment.</p>
-<h5 id="returns_30">Returns</h5>
+<h5 id="returns_31">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>simulateExperiments</code> item. See the documentation for the <code>get_experiments</code>
     method for a description of the values returned.</p>
-<h5 id="raises_13">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_16">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
 <h5 id="method-simulate_experiment_responses_csv">Method <code>simulate_experiment_responses_csv</code></h5>
 <blockquote>
@@ -2545,7 +2822,7 @@ will find one of the lower peaks.</p>
 <p>fname (str):
     The location on the filesystem for a CSV file that will define
     the parameters for designed and any extra experiments.</p>
-<h5 id="returns_31">Returns</h5>
+<h5 id="returns_32">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>simulateExperiments</code> item.</p>
@@ -2558,7 +2835,7 @@ the experimental space table.</p>
 <h5 id="arguments_33">Arguments</h5>
 <p>space (dict):
     A Python <code>dict</code> that defines the experimental space.</p>
-<h5 id="returns_32">Returns</h5>
+<h5 id="returns_33">Returns</h5>
 <p>column_headers (list):
     A list of strings to build the column header for an experimental space.
     The list will contain "Name", "Type", "Min" and "Max" for a "mixture" space,
@@ -2573,7 +2850,7 @@ the experimental space table.</p>
     "mixture" or "factorial"</p>
 <p>i (int):
     Index of the value column (starting at zero).</p>
-<h5 id="returns_33">Returns</h5>
+<h5 id="returns_34">Returns</h5>
 <p>column_name (str):
     "Min" or "Max" for a "mixture" space type, or "Value.1", "Value.2", etc.
     for a "factorial" space type.</p>
@@ -2593,17 +2870,17 @@ to run.</p>
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session. See the Notes section that describes the
     required items for the <code>params</code> <code>dict</code>.</p>
-<h5 id="returns_34">Returns</h5>
+<h5 id="returns_35">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>runSimulation</code> item. The <code>runSimulation</code> value contains information on the
     "simulate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
-<h5 id="raises_14">Raises</h5>
-<p>Exception
-    If no data was returned by the query request, an exception is raised,
+<h5 id="raises_17">Raises</h5>
+<p>GraphQLError
+    If no data was returned by the query request, a <a href="#daptics_client.GraphQLError"><code>GraphQLError</code></a> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.</p>
-<h5 id="notes_17">Notes</h5>
+<h5 id="notes_18">Notes</h5>
 <p>Items to be specified in the <code>params</code> <code>dict</code> are:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
@@ -2652,16 +2929,16 @@ are successfully validated a "simulate" task is started.</p>
     A Python <code>dict</code> containing the experimental parameters to be
     used for the session.  See the Notes section that describes the
     required items for the <code>params</code> <code>dict</code>.</p>
-<h5 id="returns_35">Returns</h5>
+<h5 id="returns_36">Returns</h5>
 <p>data (dict):
     The JSON response from the GraphQL request, a Python <code>dict</code> with a
     <code>runSimulation</code> item. The <code>runSimulation</code> value will contain information on the
     "simulate" task that was started, as described in the return value for the
     <code>poll_for_current_task</code> method.</p>
-<h5 id="raises_15">Raises</h5>
+<h5 id="raises_18">Raises</h5>
 <p>csv.Error
     If the specified CSV file is incorrectly formatted.</p>
-<h5 id="notes_18">Notes</h5>
+<h5 id="notes_19">Notes</h5>
 <p>Items to be specified in the <code>params</code> <code>dict</code> are:</p>
 <p>populationSize (int):
     The number of experiments per replicate. A positive integer.</p>
@@ -2695,18 +2972,18 @@ see the documentation for the <code>put_experimental_parameters</code> method.</
 when <code>status</code> is <code>success</code> or <code>failure</code>.</p>
 <h5 id="arguments_37">Arguments</h5>
 <p>task_type (<a href="#daptics_client.DapticsTaskType"><code>DapticsTaskType</code></a>, optional):
-    <code>SPACE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, or None.
-If None is supplied (the default), find the most recently started task of any type.</p>
+    <code>SPACE</code>, <code>UPDATE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, <code>ANALYTICS</code>, or None.
+    If None is supplied (the default), find the most recently started task of any type.</p>
 <p>timeout (float, optional):
     Maximum number of seconds to wait. If None or a negative number, wait forever.</p>
-<h5 id="returns_36">Returns</h5>
+<h5 id="returns_37">Returns</h5>
 <p>data (dict):
     The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with a
     <code>currentTask</code> item, described below.</p>
 <p>errors (list):
     The <code>errors</code> item of the GraphQL response. Each item in the list
     is guaranteed to have a <code>message</code> item.</p>
-<h5 id="notes_19">Notes</h5>
+<h5 id="notes_20">Notes</h5>
 <p>Either <code>data</code> or <code>errors</code> may be None.</p>
 <p>See the documentation on the <code>poll_for_current_task</code> method for more information
 about the <code>data</code> item returned for different types of tasks,
@@ -2722,7 +2999,8 @@ session via the <code>put_experiments</code> or <code>put_experiments_csv</code>
 <p>The experiments submitted are designed experiments, and may also include optional
 extra experiments.</p>
 <h5 id="variable-final_extras_only">Variable <code>FINAL_EXTRAS_ONLY</code></h5>
-<p>Not used in current API.</p>
+<p>Indicates that the experiments being submitted are final experiments.
+Not used in current API version.</p>
 <h5 id="variable-initial_extras_only">Variable <code>INITIAL_EXTRAS_ONLY</code></h5>
 <p>The experiments submitted are initial experiments. No designed experiments are included.</p>
 <h3 id="class-dapticstasktype">Class <code>DapticsTaskType</code></h3>
@@ -2733,6 +3011,8 @@ extra experiments.</p>
 that can be searched for using the <code>poll_for_current_task</code> or <code>wait_for_current_task</code>
 methods.</p>
 <h4 id="class-variables_2">Class variables</h4>
+<h5 id="variable-analytics">Variable <code>ANALYTICS</code></h5>
+<p>A task that generates analytics files at the current generation.</p>
 <h5 id="variable-generate">Variable <code>GENERATE</code></h5>
 <p>The task type to be searched was created by the <code>generate_design</code> method.</p>
 <h5 id="variable-simulate">Variable <code>SIMULATE</code></h5>
@@ -2740,6 +3020,14 @@ methods.</p>
 <h5 id="variable-space">Variable <code>SPACE</code></h5>
 <p>The task type to be searched was created by the <code>put_experimental_parameters</code>
 or <code>put_experimental_parameters_csv</code> methods.</p>
+<h5 id="variable-update">Variable <code>UPDATE</code></h5>
+<p>The task type to be searched was created by the <code>put_experiments</code>
+or <code>put_experimens_csv</code> methods.</p>
+<h3 id="class-graphqlerror">Class <code>GraphQLError</code></h3>
+<blockquote>
+<p><code>class GraphQLError(message)</code></p>
+</blockquote>
+<p>An error raised by converting the first item in the <code>errors</code> item of the GraphQL response.</p>
 <h3 id="class-invalidconfigerror">Class <code>InvalidConfigError</code></h3>
 <blockquote>
 <p><code>class InvalidConfigError(path)</code></p>

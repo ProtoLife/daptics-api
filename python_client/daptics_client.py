@@ -7,7 +7,7 @@ please visit or contact daptics:
 * On the web at <a href="https://daptics.ai">https://daptics.ai
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
-Daptics API Version 0.9.3
+Daptics API Version 0.12.0
 Copyright (c) 2020 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,8 +30,13 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 """
 
+# File restored from commit daa2d83
+
+import asyncio
+from async_timeout import timeout as atimeout
 import csv
 import enum
+from graphql.language.printer import print_ast
 import gql
 import gql.transport.requests
 import os
@@ -42,7 +47,9 @@ import requests
 import requests.auth
 import time
 import sys
-
+import json
+import logging
+from phoenix import Phoenix, Absinthe
 
 # Authentication object used to authorize DapticsClient requests
 class TokenAuth(requests.auth.AuthBase):
@@ -144,6 +151,11 @@ class SpaceOrDesignRequiredError(Exception):
     def __init__(self):
         self.message = 'To generate random experiments you must supply experimental space or design.'
 
+class GraphQLError(Exception):
+    """An error raised by converting the first item in the `errors` item of the GraphQL response."""
+    def __init__(self, message):
+        self.message = message
+
 
 # Enums used by the DapticsClient class
 @enum.unique
@@ -158,11 +170,20 @@ class DapticsTaskType(enum.Enum):
     or `put_experimental_parameters_csv` methods.
     """
 
+    UPDATE = 'update'
+    """The task type to be searched was created by the `put_experiments`
+    or `put_experimens_csv` methods.
+    """
+
     GENERATE = 'generate'
     """The task type to be searched was created by the `generate_design` method."""
 
     SIMULATE = 'simulate'
     """A task that simulates a given number of experimental generations."""
+
+    ANALYTICS = 'analytics'
+    """A task that generates analytics files at the current generation."""
+
 
 @enum.unique
 class DapticsExperimentsType(enum.Enum):
@@ -179,7 +200,39 @@ class DapticsExperimentsType(enum.Enum):
     """
 
     FINAL_EXTRAS_ONLY = 'final'
-    """Not used in current API."""
+    """Indicates that the experiments being submitted are final experiments.
+    Not used in current API version.
+    """
+
+
+async def default_task_coroutine(task, **kwargs):
+    """The default coroutine (callback) that will be called asynchronously if the
+    "run_tasks_async" option has been set in the client. This coroutine logs
+    progress information to a file named `daptics_task.log` in the current directory.
+    """
+    with open('daptics_task.log', mode='a') as log_file:
+        if 'progress' in task:
+            print('gen {} {} task progress {}'.format(
+                task['gen'], task['type'], task['progress']['message']), file=log_file)
+
+        if task['status'] == 'running':
+            # Return True to continue
+            return True
+
+        print('gen {} {} task status {}'.format(
+            task['gen'], task['type'], task['status']), file=log_file)
+        # Return False to cancel
+        return False
+
+
+def can_set_result(future):
+    """Helper function to see if a future is done or canceled.
+    """
+    if future.done():
+        return (False, "done")
+    if future.cancelled():
+        return (False, "cancelled")
+    return (True, "")
 
 
 # The main DapticsClient class
@@ -208,6 +261,8 @@ class DapticsClient(object):
 
     `auto_task_timeout` - see `options` below
 
+    `run_tasks_async` - see `options` below
+
     If `config is set to None, configuration can be read from OS environment
     variables, if they exist. The environment variable names are:
 
@@ -223,9 +278,11 @@ class DapticsClient(object):
 
     `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
+    `DAPTICS_RUN_TASKS_ASYNC` - see `options` below
+
     options (dict):
         A Python `dict` containing runtime options. As of this version, there
-        are three available options:
+        are four available options:
 
     `auto_export_path` - If not None, a string indicating the relative or absolute directory
     where the validated experimental space and generated design files will be saved,
@@ -243,6 +300,12 @@ class DapticsClient(object):
     number, means to wait indefinitely. Setting the option to zero will poll the task
     just once. The default, None, means that the user wants to explicitly call
     `poll_for_current_task` or `wait_for_current_task`.
+
+    `run_tasks_async` - If set (True), methods that start long-running tasks
+    (`put_experimental_parameters`, `put_experiments`, `generate_design`, `run_simulation`,
+    and `create_analytics`) will be run in an asynchronous event loop. Normally
+    you will only set this flag if you want to receive progress information via
+    a coroutine (callback) function.
     """
 
     REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
@@ -251,8 +314,91 @@ class DapticsClient(object):
     DEFAULT_CONFIG = './daptics.conf'
     """The default location for the option configuration file."""
 
-    GET_ANALYTICS_TIMEOUT = 90
-    """The default timeout for generating analytics files, in seconds."""
+    TASK_FRAGMENT = """
+fragment TaskFragment on Task {
+    sessionId taskId type description status gen startedAt progress {
+        phase message
+    }
+    errors {
+        message category fatalError systemError
+    }
+    result {
+        ... on CreateTaskResult {
+            type sessionId version tag name description host active demo
+        }
+        ... on SpaceTaskResult {
+            type campaign {
+                gen remaining completed
+            }
+            params {
+                validated populationSize replicates designCost space {
+                    type totalUnits table {
+                        colHeaders data
+                    }
+                }
+            }
+        }
+        ... on UpdateTaskResult {
+            type campaign {
+                gen remaining completed
+            }
+            params {
+                validated populationSize replicates designCost space {
+                    type totalUnits table {
+                        colHeaders data
+                    }
+                }
+            }
+            experiments {
+                gen validated hasResponses designRows table {
+                    colHeaders data
+                }
+            }
+        }
+        ... on GenerateTaskResult {
+            type campaign {
+                gen remaining completed
+            }
+            params {
+                validated populationSize replicates designCost space {
+                    type totalUnits table {
+                        colHeaders data
+                    }
+                }
+            }
+            experiments {
+                gen validated hasResponses designRows table {
+                    colHeaders data
+                }
+            }
+        }
+        ... on SimulateTaskResult {
+            type campaign {
+                gen remaining completed
+            }
+            params {
+                validated populationSize replicates designCost space {
+                    type totalUnits table {
+                        colHeaders data
+                    }
+                }
+            }
+            experimentsHistory {
+                gen validated hasResponses designRows table {
+                    colHeaders data
+                }
+            }
+        }
+        ... on AnalyticsTaskResult {
+            type analytics {
+                gen files {
+                    title filename url
+                }
+            }
+        }
+    }
+}
+"""
 
     def __init__(self, host=None, config=None):
         self.host = host
@@ -268,7 +414,8 @@ class DapticsClient(object):
         self.options = {
             'auto_export_path': None,
             'auto_generate_next_design': False,
-            'auto_task_timeout': None
+            'auto_task_timeout': None,
+            'run_tasks_async': False
         }
         """A Python `dict` containing the runtime options."""
 
@@ -279,6 +426,43 @@ class DapticsClient(object):
 
         self.api_url = None
         """The full API endpoint URL."""
+
+        self.websocket_url = None
+        """The full websocket endpoint URL."""
+
+        self.task_updated_coroutine = None
+        """A user-specified coroutine (callback) that will be called with information
+        on task progress.  The coroutine will be called with a Python `dict` containing
+        `progress` and `status` items. Optional keyword arguments that the coroutine
+        will receive can be specified by setting the client's `task_updated_kwargs`
+        attribute.
+
+        If you supply a coroutine, the coroutine MUST be defined as `async`
+        and MUST return a boolean value. The return value of your coroutine
+        indicates whether you wish to continue receiving the callback for the
+        current task. Generally, you should return `False` if the `status`
+        value of the task does not have the value "running", meaning that the
+        the task has completed or failed.
+
+        Here's a simple example of a coroutine. See the code for `default_task_coroutine`
+        in this module for another example.
+
+        ```
+        async def my_coroutine(task, **kwargs):
+            if 'progress' in task:
+                print(task['progress']['message'])
+
+            if task['status'] == 'running':
+                # Return True to continue receiving callbacks
+                return True
+
+            # Return False to stop receiving callbacks
+            return False
+        ```
+        """
+
+        self.task_updated_kwargs = None
+        """User-specified keyword dictionary to be passed to the async task updated coroutine."""
 
         self.pp = pprint.PrettyPrinter(indent=4)
         """A `pprint.PrettyPrinter` object used for printing Python `dict`s."""
@@ -392,6 +576,51 @@ class DapticsClient(object):
         else:
             print('Experiments History: None')
 
+        if self.analytics is not None:
+            print('Analytics for Generation {}:'.format(self.analytics['gen']))
+            for file in self.analytics['files']:
+                print('\t{}: {}'.format(file['title'], file['filename']))
+        else:
+            print('Analytics: None')
+
+    def execute_query(self, document, vars, timeout=None):
+        """Performs validation on the GraphQL query or mutation document and then
+        executes the query. Converts errors returned by `gql` into `GraphQLError`
+        errors.
+
+        # Arguments
+        document (str):
+            The GraphQL query document, as a string.
+
+        vars (dict):
+            A python 'dict' containing the variables for the query.
+
+        timeout (float, optional):
+            The maximum number of seconds to wait before a response is returned.
+
+        # Returns
+        data (dict):
+            The `data` item of the GraphQL response, a Python `dict` with an
+            item whose key is the GraphQL query name for the request.
+
+        errors (list):
+            The `errors` item of the GraphQL response. Each item in the list
+            is guaranteed to have a `message` item.
+
+        # Raises
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
+            containing the message for the first item in the GraphQL response's `errors` list.
+        """
+        if self.gql.schema:
+            self.gql.validate(document)
+
+        try:
+            result = self.gql._get_result(document, variable_values=vars, timeout=timeout)
+            return result.data
+        except Exception as e:
+            raise GraphQLError(str(e))
+
     def call_api(self, document, vars, timeout=None):
         """Performs validation on the GraphQL query or mutation document and then
         executes the query, returning both the `data` and `errors` items from the JSON
@@ -429,6 +658,125 @@ class DapticsClient(object):
             return (result.data, result.errors)
         except Exception as e:
             return (None, [{'message': str(e)}])
+
+    def run_task_async(self, document, vars):
+        """Performs validation on the GraphQL mutation document and then
+        executes the query, returning both the `data` and `errors` items from the JSON
+        response. Before submitting the query, a "taskUpdated" subscription is
+        set up, and the asynchronous loop processes subscription data messages,
+        eventually passing task progress and status information to the coroutine
+        specified by the client's `task_updated_coroutine` attribute.
+        """
+        loop = asyncio.get_event_loop()
+        task_future = asyncio.Future()
+        loop.run_until_complete(self._do_run_async(document, vars, loop, task_future))
+        return task_future.result()
+
+    # Just unpack the `task` dict from the subscription message
+    # and call the user-specified coroutine. Stop the callbacks
+    # if no user coroutine was supplied.
+    async def _task_updated_message_coroutine(self, message, **kwargs):
+        # print('_task_updated_message_coroutine: {}'.format(message.payload))
+
+        user_coro = kwargs.get('user_coro')
+        if user_coro is None:
+            # print('_task_updated_message_coroutine returning False')
+            return False
+
+        task = message.payload['result']['data']['taskUpdated']
+
+        # print('_task_updated_message_coroutine running user_coro with task')
+        return await user_coro(task, **kwargs)
+
+    # Make an authenticated websocket connection, join the Absinthe channel that
+    # handles our GraphQL communications, subcribe to the "taskUpdated"
+    # GraphQL subscription, and then send the task-creating mutation.
+    # If the task was successfully created, listen for incoming messages
+    # on the subscription. Finally, unsubscribe, leave the Absinthe channel,
+    # and disconnect.
+    async def _do_run_async(self, document, vars, loop, task_future):
+        if self.session_id is None:
+            task_future.set_result((None, [{'message': 'No session_id'}],))
+            return
+
+        if self.gql.schema:
+            self.gql.validate(document)
+
+        kwargs = self.task_updated_kwargs
+        if kwargs is None:
+            kwargs = {}
+        if self.task_updated_coroutine is not None:
+            kwargs['user_coro'] = self.task_updated_coroutine
+
+        subscription_vars = {
+            'sessionId': self.session_id
+        }
+
+        subscription_doc = self.TASK_FRAGMENT + """
+subscription TaskUpdated($sessionId: String!) {
+    taskUpdated(sessionId: $sessionId) {
+        ... TaskFragment
+    }
+}
+        """
+
+        try:
+            async with Phoenix(self.websocket_url, params={'token': self.auth.token}, loop=loop) as socket:
+                async with Absinthe(socket) as absinthe:
+                    sub_id = await absinthe.subscribe(
+                        self._task_updated_message_coroutine,
+                        subscription_doc, variables=subscription_vars, **kwargs)
+                    mutation_doc = print_ast(document)
+                    response = await absinthe.push_doc(mutation_doc, variables=vars)
+                    if 'response' in response:
+                        response = response['response']
+                        can_set, why_not = can_set_result(task_future)
+                        if can_set:
+                            task_future.set_result((response.get('data'), response.get('errors'), ))
+                        else:
+                            # print('_do_run_async subscription response received ({})'.format(why_not))
+                            pass
+                        if self._successful(response.get('data')):
+                            await absinthe.run_subscription(sub_id)
+                    else:
+                        can_set, why_not = can_set_result(task_future)
+                        if can_set:
+                            task_future.set_result((None, [{'message': 'No response'}],))
+                        else:
+                            # print('_do_run_async no subscrip[tion response ({})'.format(why_not))
+                            pass
+
+        except asyncio.TimeoutError:
+            can_set, why_not = can_set_result(task_future)
+            if can_set:
+                task_future.set_result((None, [{'message': 'Timed out'}],))
+            else:
+                # print('_do_run_async TimeoutError ({})'.format(why_not))
+                pass
+
+        except Exception as e:
+            can_set, why_not = can_set_result(task_future)
+            if can_set:
+                task_future.set_result((None, [{'message': str(e)}],))
+            else:
+                # print('_do_run_async Exception {} ({})'.format(e, why_not))
+                pass
+
+    def _successful(self, data):
+        if data is None:
+            return False
+        keys = list(data)
+        if len(keys) != 1:
+            return False
+        return data[keys[0]] is not None
+
+    def __raise_exception_on_error(self, data, errors):
+        if not self._successful(data):
+            if errors:
+                # This is what gql does with errors
+                raise GraphQLError(str(errors[0]))
+            else:
+                raise GraphQLError('Unknown error')
 
     def error_messages(self, errors):
         """Extracts the `message` values from the `errors` list returned in a GraphQL response.
@@ -597,6 +945,8 @@ class DapticsClient(object):
             if self.host is None:
                 raise NoHostError()
             self.api_url = '{0}/api'.format(self.host)
+            ws_host = self.host.replace('http', 'ws', 1)
+            self.websocket_url = '{0}/socket/websocket'.format(ws_host)
             http = gql.transport.requests.RequestsHTTPTransport(
                 self.api_url, auth=self.auth, use_json=True)
             self.gql = gql.Client(transport=http, fetch_schema_from_transport=True)
@@ -628,13 +978,13 @@ class DapticsClient(object):
             to create sessions.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
         On successful authentication, the user id and access token
-            are stored in the client's `user_id` and `auth` attributes.
+        are stored in the client's `user_id` and `auth` attributes.
         """
 
         if email is None or password is None:
@@ -660,7 +1010,7 @@ mutation Login($email:String!, $password:String!) {
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        data = self.execute_query(doc, vars)
         if 'login' in data and data['login'] is not None:
             self.auth.token = data['login']['token']
             self.user_id = data['login']['user']['userId']
@@ -683,7 +1033,7 @@ mutation Login($email:String!, $password:String!) {
 
         # Notes
         On successful creation, the session id, session name and
-            initial parameters are stored in the client's attributes.
+        initial parameters are stored in the client's attributes.
         """
         vars = {
             'session': {
@@ -700,7 +1050,7 @@ mutation Login($email:String!, $password:String!) {
         doc = gql.gql("""
 mutation CreateSession($session:NewSessionInput!) {
     createSession(session:$session) {
-        sessionId version tag name description host path active demo campaign {
+        sessionId version tag name description host active demo campaign {
             gen remaining completed
         }
         params {
@@ -757,8 +1107,8 @@ mutation CreateSession($session:NewSessionInput!) {
             identifier, name, and description.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
         """
         vars = {
@@ -772,7 +1122,7 @@ query GetSessions($userId:String, $q:String) {
     sessions(userId:$userId, q:$q) { sessionId tag name description active demo }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars)
+        return self.execute_query(doc, vars)
 
     def reconnect_session(self, session_id):
         """Finds an existing session and returns session information.
@@ -789,8 +1139,8 @@ query GetSessions($userId:String, $q:String) {
             space parameters, experiments history, and any active tasks.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
@@ -804,7 +1154,7 @@ query GetSessions($userId:String, $q:String) {
         doc = gql.gql("""
 query GetSession($sessionId:String!) {
     session(sessionId:$sessionId) {
-        sessionId version tag name description host path active demo campaign {
+        sessionId version tag name description host active demo campaign {
             gen remaining completed
         }
         params {
@@ -825,7 +1175,7 @@ query GetSession($sessionId:String!) {
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        data = self.execute_query(doc, vars)
         if 'session' in data and data['session'] is not None:
             session = data['session']
             self.session_id = session['sessionId']
@@ -863,8 +1213,8 @@ query GetSession($sessionId:String!) {
             or if the sesson had previously been closed.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
         """
 
@@ -879,7 +1229,7 @@ mutation HaltSession($sessionId:String!) {
     }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars)
+        return self.execute_query(doc, vars)
 
     def put_experimental_parameters(self, params):
         """Validates the experimental parameters at the beginning of a session,
@@ -900,8 +1250,8 @@ mutation HaltSession($sessionId:String!) {
             is a Python `dict` with information about the "space" task.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
@@ -909,7 +1259,7 @@ mutation HaltSession($sessionId:String!) {
         `task_info` attribute.
 
         If the `auto_task_timeout` option was set to a
-        positive or negative number,  the task will be retried until a result is obtained
+        positive or negative number, the task will be retried until a result is obtained
         or the task failed, or the timeout is exceeded. If the "space" task completes
         successfully, the result of the task can be accessed at
         `data['putExperimentalParameters']['result']`.
@@ -1037,7 +1387,12 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        if self.options.get('run_tasks_async', False):
+            data, errors = self.run_task_async(doc, vars)
+        else:
+            data, errors = self.call_api(doc, vars)
+        self.__raise_exception_on_error(data, errors)
+
         if 'putExperimentalParameters' in data and data['putExperimentalParameters'] is not None:
             task_id = data['putExperimentalParameters']['taskId']
             self.task_info[task_id] = data['putExperimentalParameters']
@@ -1187,8 +1542,8 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             experiments submitted or designed for the generation.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
         """
 
@@ -1210,7 +1565,7 @@ query GetExperiments($sessionId:String!, $designOnly:Boolean!, $gen:Int){
     }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars)
+        return self.execute_query(doc, vars)
 
     def get_experiments_history(self):
         """Gets all of the experiments and any responses for all the generations in the session.
@@ -1225,8 +1580,8 @@ query GetExperiments($sessionId:String!, $designOnly:Boolean!, $gen:Int){
             the initial experiments.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
@@ -1265,7 +1620,7 @@ query GetExperimentsHistory($sessionId:String!){
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        data = self.execute_query(doc, vars)
 
         if 'experimentsHistory' in data:
             self.experiments_history = data['experimentsHistory']
@@ -1330,8 +1685,8 @@ query GetExperimentsHistory($sessionId:String!){
             method for a description of the values returned.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
         """
 
@@ -1351,7 +1706,7 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
     }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars)
+        return self.execute_query(doc, vars)
 
     def simulate_experiment_responses_csv(self, fname):
         """Generates values for the "Response" column.  The values are a
@@ -1433,27 +1788,41 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
         # Returns
         data (dict):
             The JSON response from the GraphQL request, a Python `dict` with a
-            `putExperiments` item.
+            `putExperiments` item. The `putExperiments` value will contain information on the
+            "update" task that was started, as described in the return value for the
+            `poll_for_current_task` method.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
+        If the task was successfully started, the task information is stored in the client's
+        `task_info` attribute.
+
         If the experiments were successfully validated, the following actions may be
         automatically performed:
 
-        If the `auto_export_path` option is set, a CSV file of the validated experiments
-        is saved at `auto_genN_experiments.csv`.
+        If the `auto_task_timeout` option was set to a
+        positive or negative number, the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded. If the "update" task completes
+        successfully, the result of the task can be accessed at
+        `data['putExperiments']['result']`.
 
-        If the `auto_generate_next_design` option is set, a `generate`
-        task is started, and the `task` key of the `putExperiments` key will contain
-        information on the task.
+        If the `auto_generate_next_design` option is set, a "generate"
+        task is started, and the `autoGenerateTask` item of the `putExperiments`
+        item will contain information on the "generate" task that was started.
 
         If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
-        this method will block as the task is polled until it succeeds, fails, or
-        the timeout value is exceeded.
+        the "generate" task will be polled until it completes, fails, or times out.
+        If the "generate" task completes, the generated design can be accessed at
+        `data['putExperiments']['autoGenerateTask']['result']['experiments']`. See
+        the documentation for the `poll_for_current_task` for more information.
+
+        See the documentation on the "update" and "generate" task results in
+        the `poll_for_current_task` method for information on the CSV files
+        generated if the `auto_export_path` option is set.
 
         # Examples
         Here's an expamle of an experiments table:
@@ -1491,23 +1860,22 @@ mutation SimulateResponses($sessionId:String!, $experiments:DataFrameInput) {
         doc = gql.gql("""
 mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
     putExperiments(sessionId:$sessionId, experiments:$experiments) {
-        gen validated hasResponses designRows table {
-            colHeaders data
-        }
+        sessionId taskId type description status startedAt
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
-        if 'putExperiments' in data and data['putExperiments'] is not None:
-            auto_export_path = self.options.get('auto_export_path')
-            if auto_export_path is not None:
-                fname = os.path.join(auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
-                self.export_csv(fname, data['putExperiments']['table'], True)
+        if self.options.get('run_tasks_async', False):
+            data, errors = self.run_task_async(doc, vars)
+        else:
+            data, errors = self.call_api(doc, vars)
+        self.__raise_exception_on_error(data, errors)
 
-            if self.options.get('auto_generate_next_design'):
-                if self.remaining is None or self.remaining > 0:
-                    task_data = self.generate_design()
-                    data['putExperiments']['task'] = task_data['generateDesign']
+        if 'putExperiments' in data and data['putExperiments'] is not None:
+            task_id = data['putExperiments']['taskId']
+            self.task_info[task_id] = data['putExperiments']
+            auto_task = self._auto_task()
+            if auto_task is not None:
+                return {'putExperiments': auto_task}
         return data
 
     def put_experiments_csv(self, experiments_type, fname):
@@ -1520,17 +1888,17 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
         experiments_type (`DapticsExperimentsType`):
             Describes the types of experiments that are being added to the session.
 
-        If you wish to submit calibrating or existing experimental responses prior
-        to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
+            If you wish to submit calibrating or existing experimental responses prior
+            to the first design generartion, use `INITIAL_EXTRAS_ONLY`.
 
-        If you are submitting the responses for a daptics-generated design, along
-        with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
+            If you are submitting the responses for a daptics-generated design, along
+            with any extra experiments, use `DESIGNED_WITH_OPTIONAL_EXTRAS`.
 
-        If you wish to submit any final extra experiments when you are satisified
-        with the session's optimization but do not want to include the last
-        generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
-        will end the session's optimization and that no more designs will be
-        generated.
+            If you wish to submit any final extra experiments when you are satisified
+            with the session's optimization but do not want to include the last
+            generated experimental design use `FINAL_EXTRAS_ONLY`. Note that this
+            will end the session's optimization and that no more designs will be
+            generated.
 
         fname (str):
             The location on the filesystem for a CSV file that will define
@@ -1540,28 +1908,33 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
         # Returns
         data (dict):
             The JSON response from the GraphQL request, a Python `dict` with a
-            `putExperiments` item.
-
-        # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
-            containing the message for the first item in the GraphQL response's `errors` list.
-
+            `putExperiments` item. The `putExperiments` value will contain information on the
+            "update" task that was started, as described in the return value for the
+            `poll_for_current_task` method.
 
         # Notes
         If the experiments were successfully validated, the following actions may be
         automatically performed:
 
-        If the `auto_export_path` option is set, a CSV file of the validated experiments
-        is saved at `auto_genN_experiments.csv`.
+        If the `auto_task_timeout` option was set to a
+        positive or negative number, the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded. If the "update" task completes
+        successfully, the result of the task can be accessed at
+        `data['putExperiments']['result']`.
 
-        If the `auto_generate_next_design` option is set, a `generate`
-        task is started, and the `task` key of the `putExperiments` key will contain
-        information on the task.
+        If the `auto_generate_next_design` option is set, a "generate"
+        task is started, and the `autoGenerateTask` item of the `putExperiments` item
+        will contain information on the "generate" task that was started.
 
         If the `auto_generate_next_design` AND `auto_task_timeout` options are set,
-        this method will block as the task is polled until it succeeds, fails, or
-        the timeout value is exceeded.
+        the "generate" task will be polled until it completes, fails, or times out.
+        If the "generate" task completes, the generated design can be accessed at
+        `data['putExperiments']['autoGenerateTask']['result']['experiments']`. See
+        the documentation for the `poll_for_current_task` for more information.
+
+        See the documentation on the "update" and "generate" task results in
+        the `poll_for_current_task` method for information on the CSV files
+        generated if the `auto_export_path` option is set.
 
         # Examples
         A header row must be provided, the columns in the header row
@@ -1592,7 +1965,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             raise CsvNoDataRowsError(fname)
         return self.put_experiments(experiments_type, experiments)
 
-    def generate_design(self, gen = None):
+    def generate_design(self, gen=None):
         """If (initial or subsequent) experiments have been successfully validated against the
         experimental parameters, a "generate" task is started.
 
@@ -1610,7 +1983,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             `poll_for_current_task` method.
 
         # Raises
-        Exception
+        GraphQLError
             If the task failed or timed out.
 
         # Notes
@@ -1646,11 +2019,11 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
     }
 }
         """)
-
-        data, errors = self.call_api(doc, vars)
-        if errors:
-            # This is what gql does with errors
-            raise Exception(str(errors[0]))
+        if self.options.get('run_tasks_async', False):
+            data, errors = self.run_task_async(doc, vars)
+        else:
+            data, errors = self.call_api(doc, vars)
+        self._raise_exception_on_error(data, errors)
 
         if 'generateDesign' in data and data['generateDesign'] is not None:
             task_id = data['generateDesign']['taskId']
@@ -1684,8 +2057,8 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             `poll_for_current_task` method.
 
         # Raises
-        Exception
-            If no data was returned by the query request, an exception is raised,
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
             containing the message for the first item in the GraphQL response's `errors` list.
 
         # Notes
@@ -1740,7 +2113,12 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
     }
 }
         """)
-        data = self.gql.execute(doc, variable_values=vars)
+        if self.options.get('run_tasks_async', False):
+            data, errors = self.run_task_async(doc, vars)
+        else:
+            data, errors = self.call_api(doc, vars)
+        self.__raise_exception_on_error(data, errors)
+
         if 'runSimulation' in data and data['runSimulation'] is not None:
             task_id = data['runSimulation']['taskId']
             self.task_info[task_id] = data['runSimulation']
@@ -1832,7 +2210,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
 
         # Arguments
         task_type (`DapticsTaskType`):
-            `SPACE`, `GENERATE`, `SIMULATE`, or None.
+            `SPACE`, `UPDATE`, `GENERATE`, `SIMULATE`, `ANALYTICS`, or None.
         If None is supplied (the default), find the most recently started task of any type.
 
         # Returns
@@ -1906,8 +2284,8 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         "auto_validated_space.csv" is written at that directory,
         containing the experimental space parameters.
 
-        ## Result for "generate" Tasks
-        The result for an "generate" task will contain all the items as the result for a "space"
+        ## Result for "update" Tasks
+        The result for an "update" task will contain all the items as the result for a "space"
         task, described above, with an additional `experiments` item:
 
         experiments (dict):
@@ -1930,7 +2308,23 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             A Python `dict` with `colHeaders` and `data` items, as described in
             the arguments for the `put_experiments` method.
 
-        The `experiments` value will contain the generated design,
+        If the `auto_generate_next_design` option has been set on the client, when an
+        "update" task completes, a "generate" task will be automatically started. The
+        information on the "generate" task will be returned in the location
+        `data['currentTask']['autoGenerateTask']`.
+
+        If the `auto_task_timeout` option has also been set, and the "generate" task
+        result has completed, the result (containing the next generation design),
+        will be available at the location `data['currentTask']['autoGenerateTask']['result']`,
+        formatted as described below.
+
+        Also, if the `auto_export_path` option is set, a CSV file named
+        "auto_genN_experiments.csv" is written at that directory,
+        containing the validated experiments, where "N" is the generation number.
+
+        ## Result for "generate" Tasks
+        The result for a "generate" task has the same structure as the result for a
+        "update" task, described above. The `experiments` value will contain the generated design,
         and the `hasResponses` value within the design will be `False`, as the generated design
         returned in the result will not have responses.
 
@@ -1957,6 +2351,41 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         containing all the simulated experiments. See the documentation for the
         `export_experiments_history_csv` method for a description of this file's
         contents.
+
+        ## Result for "analytics" Tasks
+        The result `dict` will have one item, `analytics`:
+
+        analytics (dict):
+            A Python `dict` with these items:
+
+        gen (int):
+            The current generation number that the analytics were generated for.
+
+        files (list):
+            A list of Python `dict`s, with information about each analytics file
+            generated.
+
+        Information about each file is contained in a Python `dict` with these items:
+
+        title (str):
+            The title (caption) describing the file.
+
+        filename (str):
+            The suggested filename to save the file to.
+
+        url (str):
+            The HTTP URL where the file can be downloaded. A valid authentication token for the
+            user must be included as the value of a `token` query string parameter
+            added to the URL for the download request.
+
+        If the "analytics" task has successfully completed, the `analytics` Python `dict`,
+        containing the generation number and file list, will be stored in the client's
+        `analytics` attribute.
+
+        If the `auto_export_path` option is set, the set of all available PDF analytics
+        files for the generation will be downloaded to that directory.
+        The file name for each of the downloaded files will have the
+        prefix `auto_genN_` where `N` is the generation number.
         """
 
         vars = {
@@ -1979,80 +2408,10 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         # an error. If the task has completed, we update self.gen
         # for 'space' and 'generate' task results, and save self.design
         # from a 'generate' task result.
-        doc = gql.gql("""
+        doc = gql.gql(self.TASK_FRAGMENT + """
 query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
     currentTask(sessionId:$sessionId, taskId:$taskId, type:$type) {
-        taskId type description status startedAt progress {
-            message
-        }
-        errors {
-            message category fatalError systemError
-        }
-        result {
-            ... on SpaceTaskResult {
-                type campaign {
-                    gen remaining completed
-                }
-                params {
-                    validated populationSize replicates designCost space {
-                        type totalUnits table {
-                            colHeaders data
-                        }
-                    }
-                }
-            }
-            ... on GenerateTaskResult {
-                type campaign {
-                    gen remaining completed
-                }
-                params {
-                    validated populationSize replicates designCost space {
-                        type totalUnits table {
-                            colHeaders data
-                        }
-                    }
-                }
-                experiments {
-                    gen validated hasResponses designRows table {
-                        colHeaders data
-                    }
-                }
-            }
-            ... on UpdateTaskResult {
-                type campaign {
-                    gen remaining completed
-                }
-                params {
-                    validated populationSize replicates designCost space {
-                        type totalUnits table {
-                            colHeaders data
-                        }
-                    }
-                }
-                experiments {
-                    gen validated hasResponses designRows table {
-                        colHeaders data
-                    }
-                }
-            }
-            ... on SimulateTaskResult {
-                type campaign {
-                    gen remaining completed
-                }
-                params {
-                    validated populationSize replicates designCost space {
-                        type totalUnits table {
-                            colHeaders data
-                        }
-                    }
-                }
-                experimentsHistory {
-                    gen validated hasResponses designRows table {
-                        colHeaders data
-                    }
-                }
-            }
-        }
+        ... TaskFragment
     }
 }
         """)
@@ -2088,6 +2447,18 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             if auto_export_path is not None:
                                 fname = os.path.join(auto_export_path, 'auto_validated_space.csv')
                                 self.export_csv(fname, self.validated_params['space']['table'], False)
+                        elif type_ == 'update':
+                            self.gen = result['campaign']['gen']
+                            self.remaining = result['campaign']['remaining']
+                            self.completed = result['campaign']['completed']
+                            self.design = result['experiments']
+                            if auto_export_path is not None:
+                                fname = os.path.join(auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
+                                self.export_csv(fname, self.design['table'], True)
+                            if self.options.get('auto_generate_next_design'):
+                                if self.remaining is None or self.remaining > 0:
+                                    task_data = self.generate_design()
+                                    data['currentTask']['autoGenerateTask'] = task_data['generateDesign']
                         elif type_ == 'generate':
                             self.gen = result['campaign']['gen']
                             self.remaining = result['campaign']['remaining']
@@ -2105,6 +2476,10 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             if auto_export_path is not None:
                                 fname = os.path.join(auto_export_path, 'auto_history.csv')
                                 self.export_experiments_history_csv(fname)
+                        elif type_ == 'analytics':
+                            self.analytics = result['analytics']
+                            if auto_export_path is not None:
+                                self.download_all_analytics_files(self.analytics, auto_export_path, True)
         else:
             data = {'currentTask': None}
         return (data, errors)
@@ -2115,8 +2490,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         # Arguments
         task_type (`DapticsTaskType`, optional):
-            `SPACE`, `GENERATE`, `SIMULATE`, or None.
-        If None is supplied (the default), find the most recently started task of any type.
+            `SPACE`, `UPDATE`, `GENERATE`, `SIMULATE`, `ANALYTICS`, or None.
+            If None is supplied (the default), find the most recently started task of any type.
 
         timeout (float, optional):
             Maximum number of seconds to wait. If None or a negative number, wait forever.
@@ -2187,16 +2562,17 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 sys.stdout.write('\nNo current task was found!')
                 return (data, errors)
 
-    def _auto_task(self):
-        timeout_option = self.options.get('auto_task_timeout')
-        if timeout_option is not None:
-            data, errors = self.wait_for_current_task(task_type=None, timeout=timeout_option)
-            if errors:
-                # This is what gql does with errors
-                raise Exception(str(errors[0]))
-            return data['currentTask']
-        else:
+    def _auto_task(self, timeout_override=None):
+        timeout = timeout_override
+        if timeout is None:
+            timeout = self.options.get('auto_task_timeout')
+        if timeout is None:
             return None
+
+        data, errors = self.wait_for_current_task(task_type=None, timeout=timeout)
+        self.__raise_exception_on_error(data, errors)
+
+        return data['currentTask']
 
     def get_experimental_space(self):
         """Utility method to retrieve the validated experimental space from
@@ -2216,150 +2592,141 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         return None
 
-    def get_analytics_file_list(self, timeout=GET_ANALYTICS_TIMEOUT):
-        """Gets a list of the available analytics files for the session.
-
-        # Arguments
-        timeout (int):
-            The maximum number of seconds that the client will wait for a
-            response from the session. The default is 90 seconds.
+    def generate_analytics(self):
+        """Starts an "analytics" task that will create and return a list of all the
+        available analytics files for the session at the current design generation.
 
         # Returns
         data (dict):
-            The JSON response from the gql request, a Python `dict` with a
-            `createAnalytics` item. If there are any files available, they will be
-            returned in the `createAnalytics` value as a list.
-            Each item in the list will be a Python `dict` with two items:
+            The JSON response from the GraphQL request, a Python `dict` with a
+            `createAnalytics` item. The `createAnalytics` value will contain information on the
+            "analytics" task that was started, as described in the return value for the
+            `poll_for_current_task` method.
 
-        gen (int):
-            The current generation number in the session, for which the files were created.
+        # Raises
+        GraphQLError
+            If no data was returned by the query request, a `GraphQLError` is raised,
+            containing the message for the first item in the GraphQL response's `errors` list.
 
-        files (list):
-            A list of the availiable files. Each file is represented by a Python `dict`
-            with the following keys:
+        # Notes
+        -----
+        If the `auto_task_timeout` option was set to a
+        positive or negative number, the task will be retried until a result is obtained
+        or the task failed, or the timeout is exceeded. If the "analytics" task completes
+        successfully, the result of the task can be accessed at
+        `data['createAnalytics']['result']`.
 
-        title (str):
-            The title (description) for the file.
-
-        filename (str):
-            The default file name that can be passed to the `get_analytics_file` method.
-
-        url (str):
-            The HTTP URL where the file can be downloaded. A valid authentication token for the
-            user must be included as the value of a `token` query string parameter
-            added to the URL for the download request.
+        If the task completes successfully and the `auto_export_path` option is set,
+        the set of all available PDF analytics files for the generation will be
+        downloaded to that directory. The file name for each of the downloaded files
+        will have the prefix `auto_genN_` where `N` is the generation number.
         """
 
         vars = {
             'sessionId': self.session_id,
         }
 
-        # The 'createAnalytics' mutation generates PDF files on the
+        # The 'analytics' task generates PDF files on the
         # server, and returns the titles and file names for these PDF files.
-        # To download one or more of these files, another query (not tested here)
-        # will be used.
         doc = gql.gql("""
 mutation CreateAnalytics($sessionId:String!) {
     createAnalytics(sessionId:$sessionId) {
-        gen files {
-            title filename url
-        }
+        sessionId taskId type description status startedAt
     }
 }
         """)
-        return self.gql.execute(doc, variable_values=vars, timeout=timeout)
+        if self.options.get('run_tasks_async', False):
+            data, errors = self.run_task_async(doc, vars)
+        else:
+            data, errors = self.call_api(doc, vars)
+        self.__raise_exception_on_error(data, errors)
 
-    def get_analytics_file(self, url, save_as=None):
-        """Fetches the contents of an analytics file. Once a URL to a particular analytics file
-        has been obtained using the `get_analytics` method, use this method to request the
-        file's contents over HTTP.
+        if 'createAnalytics' in data and data['createAnalytics'] is not None:
+            task_id = data['createAnalytics']['taskId']
+            self.task_info[task_id] = data['createAnalytics']
+            auto_task = self._auto_task()
+            if auto_task is not None:
+                return {'createAnalytics': auto_task}
+        return data
 
-        # Arguments
-        url (str):
-            The URL for the file, as returned from `get_analytics` method.
-
-        save_as (str):
-            If supplied, save the file's contents to this file system location.
-            The location must be writable by the calling user.
-
-        # Returns
-        response (`requests.Response`):
-            The `requests` library's `response` object for the authenticated HTTP request.
-        """
-
-        # Access token is added as query string
-        params = {}
-        if self.auth and self.auth.token:
-            params['token'] = self.auth.token
-        response = requests.get(url, params=params)
-        if save_as is not None and response.status_code == requests.codes.ok and response.content is not None:
-            with open(save_as, "wb") as pdf_file:
-                pdf_file.write(response.content)
-        return response
-
-    def get_all_analytics_files(self, directory=".", timeout=GET_ANALYTICS_TIMEOUT):
-        """Creates an "analytics" task and waits for it to complete. If the task
-        completes successfully, process the result for all the available analytics
-        files.
+    def download_all_analytics_files(self, analytics, directory=".", name_by_gen=False):
+        """Processes the result of an "analytics" task for all the available analytics
+        by downloading the contents of each file, and saving them to the specified directory.
 
         For each file, download its contents and save it in the specified directory.
 
         # Arguments
+        analytics (dict):
+            The `analytics` `dict` from the results of an "analytics" task, with `gen`,
+            and `files` items.  You can use `self.analytics` to use the most recent
+            analytics results.
+
         directory (str, optional):
             If supplied, the target directory to save the files to. If the directory
             does not exist, attempt to create it.
 
-        timeout (int, optional):
-            The maximum number of seconds that the client will wait for a
-            response from the session. The default is 90 seconds.
+        name_by_gen (bool, optional):
+            If true, `auto_genN_` will be prefixed to each file name.
 
         # Returns
-        data (dict):
-            The JSON response from the gql request, a Python `dict` with a
-            `createAnalytics` item. See the documentation for the
-            `get_analytics_file_list` method for a description of the
-            data returned.
+        file_count (int):
+            The number of files created.
+
+        # Raises
+        PermissionError
+             If the user does not have permission to create directories or files in the specified
+             directory.
         """
 
         file_count = 0
-        path = os.path.abspath(directory)
-        data = self.get_analytics_file_list(timeout=timeout)
-        if 'createAnalytics' in data:
+        if analytics is not None and 'files' in analytics:
+            gen = analytics.get('gen')
+            path = os.path.abspath(directory)
+
             # Access token is added as query string
             params = {}
             if self.auth and self.auth.token:
                 params['token'] = self.auth.token
-            for file_info in data['createAnalytics']['files']:
-                response = requests.get(file_info['url'], params=params)
-                if response.status_code == requests.codes.ok and response.content is not None:
-                    if file_count == 0:
-                        os.makedirs(path, exist_ok=True)
-                    save_as = os.path.join(path, file_info['filename'])
-                    with open(save_as, "wb") as pdf_file:
-                        pdf_file.write(response.content)
-                        file_count += 1
+            for file in analytics['files']:
+                if 'url' in file and 'filename' in file:
+                    response = requests.get(file['url'], params=params)
+                    if response.status_code == requests.codes.ok and response.content is not None:
+                        if file_count == 0:
+                            os.makedirs(path, exist_ok=True)
+                        filename = file['filename']
+                        if name_by_gen and (gen is not None):
+                            filename = 'auto_gen{}_{}'.format(gen, filename)
+                        save_as = os.path.join(path, filename)
+                        with open(save_as, 'wb') as pdf_file:
+                            pdf_file.write(response.content)
+                            file_count += 1
 
-        return data
+        return file_count
 
-    def get_analytics_file(self, url, save_as=None):
+    def download_analytics_file(self, url, fname):
         """Gets the contents of an analytics file. Once a URL to a particular analytics file
-        has been obtained using the `generate_analytics` method, and the result of the
-        "analytics" task has been returned, use the `url` and `filename` values from
-        the result as the arguments to this convenience method to request the file's
+        has been obtained from the result of an "analytics" task, specify the `url` and `filename`
+        values from the result as the arguments to this convenience method to request the file's
         contents over HTTP, submitting a request with the authentication token that
         was stored in the client.
 
         # Arguments
         url (str):
-            The URL for the file, as returned from `get_analytics` method.
+            The URL for the file, as returned from the result of an "analytics" task.
 
-        save_as (str, optional):
-            If supplied, save the file's contents to this file system location.
-            The location must be writable by the calling user.
+        fname (str):
+            Save the file's contents to this file system location.
+            The directory that the file will be created in must exist
+            and the user must have permission to create files in that directory.
 
         # Returns
         response (`requests.Response`)
             The `requests` library's `response` object for the authenticated HTTP request.
+
+        # Raises
+        PermissionError
+             If the user does not have permission to create a file at the specified
+             file system location.
         """
 
         # Access token is added as query string
@@ -2367,8 +2734,8 @@ mutation CreateAnalytics($sessionId:String!) {
         if self.auth and self.auth.token:
             params['token'] = self.auth.token
         response = requests.get(url, params=params)
-        if save_as is not None and response.status_code == requests.codes.ok and response.content is not None:
-            with open(save_as, "wb") as pdf_file:
+        if response.status_code == requests.codes.ok and response.content is not None:
+            with open(fname, "wb") as pdf_file:
                 pdf_file.write(response.content)
         return response
 

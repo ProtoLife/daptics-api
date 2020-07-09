@@ -518,6 +518,11 @@ fragment TaskFragment on Task {
         result of a "generate" task.
         """
 
+        self.analytics = None
+        """A Python `dict` containing information and links to available analytics files,
+        as updated by the result of a "analytics" task.
+        """
+
         self.experiments_history = None
         """A list of Python `dict`s containing all the experiments and responses that
         have been simulated, as updated by the result of a "simulate" task.
@@ -770,7 +775,7 @@ subscription TaskUpdated($sessionId: String!) {
             return False
         return data[keys[0]] is not None
 
-    def __raise_exception_on_error(self, data, errors):
+    def _raise_exception_on_error(self, data, errors):
         if not self._successful(data):
             if errors:
                 # This is what gql does with errors
@@ -1391,7 +1396,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self.__raise_exception_on_error(data, errors)
+        self._raise_exception_on_error(data, errors)
 
         if 'putExperimentalParameters' in data and data['putExperimentalParameters'] is not None:
             task_id = data['putExperimentalParameters']['taskId']
@@ -1868,7 +1873,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self.__raise_exception_on_error(data, errors)
+        self._raise_exception_on_error(data, errors)
 
         if 'putExperiments' in data and data['putExperiments'] is not None:
             task_id = data['putExperiments']['taskId']
@@ -2117,7 +2122,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self.__raise_exception_on_error(data, errors)
+        self._raise_exception_on_error(data, errors)
 
         if 'runSimulation' in data and data['runSimulation'] is not None:
             task_id = data['runSimulation']['taskId']
@@ -2285,6 +2290,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         containing the experimental space parameters.
 
         ## Result for "update" Tasks
+
         The result for an "update" task will contain all the items as the result for a "space"
         task, described above, with an additional `experiments` item:
 
@@ -2323,6 +2329,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         containing the validated experiments, where "N" is the generation number.
 
         ## Result for "generate" Tasks
+
         The result for a "generate" task has the same structure as the result for a
         "update" task, described above. The `experiments` value will contain the generated design,
         and the `hasResponses` value within the design will be `False`, as the generated design
@@ -2353,6 +2360,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         contents.
 
         ## Result for "analytics" Tasks
+        
         The result `dict` will have one item, `analytics`:
 
         analytics (dict):
@@ -2570,7 +2578,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
             return None
 
         data, errors = self.wait_for_current_task(task_type=None, timeout=timeout)
-        self.__raise_exception_on_error(data, errors)
+        self._raise_exception_on_error(data, errors)
 
         return data['currentTask']
 
@@ -2639,7 +2647,7 @@ mutation CreateAnalytics($sessionId:String!) {
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self.__raise_exception_on_error(data, errors)
+        self._raise_exception_on_error(data, errors)
 
         if 'createAnalytics' in data and data['createAnalytics'] is not None:
             task_id = data['createAnalytics']['taskId']

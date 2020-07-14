@@ -30,8 +30,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 """
 
-# File restored from commit daa2d83
-
 import asyncio
 from async_timeout import timeout as atimeout
 import csv
@@ -52,6 +50,8 @@ import logging
 from phoenix import Phoenix, Absinthe
 
 # Authentication object used to authorize DapticsClient requests
+
+
 class TokenAuth(requests.auth.AuthBase):
     """A callable authentication object for the Python `requests` moudule.
     If the `token` attribute is set, the `__call__` method will insert an
@@ -61,6 +61,7 @@ class TokenAuth(requests.auth.AuthBase):
     token (str):
         An access token obtained from the API for the authenticated user.
     """
+
     def __init__(self):
         self.token = None
 
@@ -74,85 +75,120 @@ class TokenAuth(requests.auth.AuthBase):
 # Errors raised by the DapticsClient class
 class MissingConfigError(Exception):
     """An error raised if the option configuration file cannot be found."""
+
     def __init__(self, path):
-        self.message = 'The specified configuration file {} does not exist.'.format(path)
+        self.message = 'The specified configuration file {} does not exist.'.format(
+            path)
+
 
 class InvalidConfigError(Exception):
     """An error raised if the option configuration file cannot be parsed."""
+
     def __init__(self, path):
         self.message = 'The configuration file {} is invalid.'.format(path)
 
+
 class NoHostError(Exception):
     """An error raised if no `host` value was specified."""
+
     def __init__(self):
         self.message = 'No host or configuration file specified.'
 
+
 class NoCredentialsError(Exception):
     """An error raised if no login credentials were specified."""
+
     def __init__(self):
         self.message = 'No credentials or configuration file specified.'
 
+
 class NoCurrentTaskError(Exception):
     """An error raised if no current task could be found, when one was expected."""
+
     def __init__(self):
         self.message = 'There is no current task active in the session.'
 
+
 class InvalidTaskTypeError(Exception):
     """An error raised if the task type specified was not a valid type."""
+
     def __init__(self, task_type):
         self.message = 'The task type {} is not valid.'.format(task_type)
 
+
 class TaskTimeoutError(Exception):
     """An error raised if a task was not completed within the specified timeout."""
+
     def __init__(self):
         self.message = 'The current task did not complete within the timeout duration.'
 
+
 class TaskFailedError(Exception):
     """An error raised if a completed task did not return a valid result."""
+
     def __init__(self, type_):
-        self.message = 'The {} task failed to return a valid result.'.format(type_)
+        self.message = 'The {} task failed to return a valid result.'.format(
+            type_)
+
 
 class SessionParametersNotValidatedError(Exception):
     """An error raised if the method cannot be completed, because the experimental space
     parameters for the session have not been saved and validated yet."""
+
     def __init__(self):
         self.message = 'The experimental space parameters for the session have not been validated.'
 
+
 class InvalidSpaceParameterError(Exception):
     """An error raised if the specified experimental space parameters are missing or invalid."""
+
     def __init__(self, space_type, param):
-        self.message = 'Invalid parameter for space type {}: {}.'.format(space_type, param)
+        self.message = 'Invalid parameter for space type {}: {}.'.format(
+            space_type, param)
+
 
 class InvalidExperimentsTypeError(Exception):
     """An error raised if the type of experiments is not a valid type."""
+
     def __init__(self, experiments_type):
-        self.message = 'The experiments type {} is not valid.'.format(experiments_type)
+        self.message = 'The experiments type {} is not valid.'.format(
+            experiments_type)
+
 
 class NextGenerationError(Exception):
     """An error raised if the generation number specified is not the next generation
     number for the session."""
+
     def __init__(self, gen):
         self.message = 'The next requested generation must be {}.'.format(gen)
 
+
 class CsvFileEmptyError(Exception):
     """An error raised if there were no rows that could be read from the specified CSV file."""
+
     def __init__(self, fname):
         self.message = 'No rows were found in the file {}.'.format(fname)
+
 
 class CsvNoDataRowsError(Exception):
     """An error raised if there were no rows after the header row that could be read from
     the specified CSV file."""
+
     def __init__(self, fname):
         self.message = 'No data rows were found in the file {}.'.format(fname)
+
 
 class SpaceOrDesignRequiredError(Exception):
     """An error raised if neither an experimental space nor an experimental design was
     submitted for generating random experiments."""
+
     def __init__(self):
         self.message = 'To generate random experiments you must supply experimental space or design.'
 
+
 class GraphQLError(Exception):
     """An error raised by converting the first item in the `errors` item of the GraphQL response."""
+
     def __init__(self, message):
         self.message = message
 
@@ -197,11 +233,6 @@ class DapticsExperimentsType(enum.Enum):
     DESIGNED_WITH_OPTIONAL_EXTRAS = 'designed'
     """The experiments submitted are designed experiments, and may also include optional
     extra experiments.
-    """
-
-    FINAL_EXTRAS_ONLY = 'final'
-    """Indicates that the experiments being submitted are final experiments.
-    Not used in current API version.
     """
 
 
@@ -308,7 +339,8 @@ class DapticsClient(object):
     a coroutine (callback) function.
     """
 
-    REQUIRED_SPACE_PARAMS = frozenset(('populationSize', 'replicates', 'space'))
+    REQUIRED_SPACE_PARAMS = frozenset(
+        ('populationSize', 'replicates', 'space'))
     """The names of required experimental space parameters."""
 
     DEFAULT_CONFIG = './daptics.conf'
@@ -550,7 +582,8 @@ fragment TaskFragment on Task {
                             print('\t ESD Data:')
                             print('\t\t', sp['table']['colHeaders'])
                             for z in sp['table']['data']:
-                                zz = [z[i] for i in range(len(z)) if z[i] != '']
+                                zz = [z[i]
+                                      for i in range(len(z)) if z[i] != '']
                                 print('\t\t', zz)
                         else:
                             print('\t', y, ':  ', sp[y])
@@ -621,7 +654,8 @@ fragment TaskFragment on Task {
             self.gql.validate(document)
 
         try:
-            result = self.gql._get_result(document, variable_values=vars, timeout=timeout)
+            result = self.gql._get_result(
+                document, variable_values=vars, timeout=timeout)
             return result.data
         except Exception as e:
             raise GraphQLError(str(e))
@@ -659,7 +693,8 @@ fragment TaskFragment on Task {
             self.gql.validate(document)
 
         try:
-            result = self.gql._get_result(document, variable_values=vars, timeout=timeout)
+            result = self.gql._get_result(
+                document, variable_values=vars, timeout=timeout)
             return (result.data, result.errors)
         except Exception as e:
             return (None, [{'message': str(e)}])
@@ -674,7 +709,8 @@ fragment TaskFragment on Task {
         """
         loop = asyncio.get_event_loop()
         task_future = asyncio.Future()
-        loop.run_until_complete(self._do_run_async(document, vars, loop, task_future))
+        loop.run_until_complete(self._do_run_async(
+            document, vars, loop, task_future))
         return task_future.result()
 
     # Just unpack the `task` dict from the subscription message
@@ -737,7 +773,8 @@ subscription TaskUpdated($sessionId: String!) {
                         response = response['response']
                         can_set, why_not = can_set_result(task_future)
                         if can_set:
-                            task_future.set_result((response.get('data'), response.get('errors'), ))
+                            task_future.set_result(
+                                (response.get('data'), response.get('errors'), ))
                         else:
                             # print('_do_run_async subscription response received ({})'.format(why_not))
                             pass
@@ -746,7 +783,8 @@ subscription TaskUpdated($sessionId: String!) {
                     else:
                         can_set, why_not = can_set_result(task_future)
                         if can_set:
-                            task_future.set_result((None, [{'message': 'No response'}],))
+                            task_future.set_result(
+                                (None, [{'message': 'No response'}],))
                         else:
                             # print('_do_run_async no subscrip[tion response ({})'.format(why_not))
                             pass
@@ -896,9 +934,12 @@ subscription TaskUpdated($sessionId: String!) {
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    self.options['auto_export_path'] = config.get('auto_export_path', self.options['auto_export_path'])
-                    self.options['auto_generate_next_design'] = config.get('auto_generate_next_design', self.options['auto_generate_next_design'])
-                    self.options['auto_task_timeout'] = config.get('auto_task_timeout', self.options['auto_task_timeout'])
+                    self.options['auto_export_path'] = config.get(
+                        'auto_export_path', self.options['auto_export_path'])
+                    self.options['auto_generate_next_design'] = config.get(
+                        'auto_generate_next_design', self.options['auto_generate_next_design'])
+                    self.options['auto_task_timeout'] = config.get(
+                        'auto_task_timeout', self.options['auto_task_timeout'])
                     return True
             except:
                 raise InvalidConfigError(config_path)
@@ -914,10 +955,13 @@ subscription TaskUpdated($sessionId: String!) {
             password = os.getenv('DAPTICS_PASSWORD')
             if username and password:
                 self.credentials = (username, password)
-        self.options['auto_export_path'] = os.getenv('DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
-        auto_generate_next_design = os.getenv('DAPTICS_AUTO_GENERATE_NEXT_DESIGN')
+        self.options['auto_export_path'] = os.getenv(
+            'DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
+        auto_generate_next_design = os.getenv(
+            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN')
         if auto_generate_next_design is not None:
-            self.options['auto_generate_next_design'] = auto_generate_next_design.lower() in ("true", "t", "yes", "y", "on", "enabled", "1")
+            self.options['auto_generate_next_design'] = auto_generate_next_design.lower(
+            ) in ("true", "t", "yes", "y", "on", "enabled", "1")
         auto_task_timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
         if auto_task_timeout is not None:
             self.options['auto_task_timeout'] = float(auto_task_timeout)
@@ -954,7 +998,8 @@ subscription TaskUpdated($sessionId: String!) {
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
             http = gql.transport.requests.RequestsHTTPTransport(
                 self.api_url, auth=self.auth, use_json=True)
-            self.gql = gql.Client(transport=http, fetch_schema_from_transport=True)
+            self.gql = gql.Client(
+                transport=http, fetch_schema_from_transport=True)
 
     def login(self, email=None, password=None):
         """Authenticates to a user record in the database as identified in the client's
@@ -1087,7 +1132,8 @@ mutation CreateSession($session:NewSessionInput!) {
         else:
             print('Problem creating session!')
             print('Error: {}'.format(self.error_messages(errors)))
-            print('Hint: session name may have already been taken, in which case choose another one.')
+            print(
+                'Hint: session name may have already been taken, in which case choose another one.')
             return None
 
         return data
@@ -1371,8 +1417,10 @@ mutation HaltSession($sessionId:String!) {
         params['space']['table']['colHeaders'] = col_headers
 
         # Split off additional params, format them and add them to the required params.
-        params_ = {key: params[key] for key in (params.keys() & self.REQUIRED_SPACE_PARAMS)}
-        additional_params = [{'name': key, 'jsonValue': json.dumps(params[key])} for key in (params.keys() - self.REQUIRED_SPACE_PARAMS)]
+        params_ = {key: params[key] for key in (
+            params.keys() & self.REQUIRED_SPACE_PARAMS)}
+        additional_params = [{'name': key, 'jsonValue': json.dumps(
+            params[key])} for key in (params.keys() - self.REQUIRED_SPACE_PARAMS)]
         params_['additionalParams'] = additional_params
 
         vars = {
@@ -1510,7 +1558,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
         with open(fname, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             param_rows = [r for r in reader]
-        params['space']['table'] = { 'data': param_rows }
+        params['space']['table'] = {'data': param_rows}
         return self.put_experimental_parameters(params)
 
     def get_experiments(self, design_only=False, gen=None):
@@ -1662,7 +1710,7 @@ query GetExperimentsHistory($sessionId:String!){
         data = self.get_experiments(design_only=True, gen=gen)
         return data['experiments']
 
-    def simulate_experiment_responses(self, experiments = None):
+    def simulate_experiment_responses(self, experiments=None):
         """Generates values for the "Response" column.  The values are a
         substitute for actual experimental results, computed with a
         synthetic data generator that takes as an input each
@@ -1958,7 +2006,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
         for these rows must match the design exactly. Additional "extra" experiment
         rows can also be provided.
         """
-        experiments = { 'colHeaders': '', 'data': [] }
+        experiments = {'colHeaders': '', 'data': []}
         header_and_experiments = []
         with open(fname, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
@@ -2206,7 +2254,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         with open(fname, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             param_rows = [r for r in reader]
-        params['space']['table'] = { 'data': param_rows }
+        params['space']['table'] = {'data': param_rows}
         return self.start_simulation(ngens, params)
 
     def poll_for_current_task(self, task_type=None):
@@ -2360,7 +2408,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
         contents.
 
         ## Result for "analytics" Tasks
-        
+
         The result `dict` will have one item, `analytics`:
 
         analytics (dict):
@@ -2407,7 +2455,6 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             else:
                 raise InvalidTaskTypeError(task_type)
 
-
         # Saving the experimental and space parameters will start a long running
         # 'space' task. Saving experimental responses will start a long running
         # 'generate' task. This function queries the backend to check the status
@@ -2453,16 +2500,20 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             self.completed = result['campaign']['completed']
                             self.validated_params = result['params']
                             if auto_export_path is not None:
-                                fname = os.path.join(auto_export_path, 'auto_validated_space.csv')
-                                self.export_csv(fname, self.validated_params['space']['table'], False)
+                                fname = os.path.join(
+                                    auto_export_path, 'auto_validated_space.csv')
+                                self.export_csv(
+                                    fname, self.validated_params['space']['table'], False)
                         elif type_ == 'update':
                             self.gen = result['campaign']['gen']
                             self.remaining = result['campaign']['remaining']
                             self.completed = result['campaign']['completed']
                             self.design = result['experiments']
                             if auto_export_path is not None:
-                                fname = os.path.join(auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
-                                self.export_csv(fname, self.design['table'], True)
+                                fname = os.path.join(
+                                    auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
+                                self.export_csv(
+                                    fname, self.design['table'], True)
                             if self.options.get('auto_generate_next_design'):
                                 if self.remaining is None or self.remaining > 0:
                                     task_data = self.generate_design()
@@ -2473,8 +2524,10 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             self.completed = result['campaign']['completed']
                             self.design = result['experiments']
                             if auto_export_path is not None:
-                                fname = os.path.join(auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
-                                self.export_csv(fname, self.design['table'], True)
+                                fname = os.path.join(
+                                    auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
+                                self.export_csv(
+                                    fname, self.design['table'], True)
                         elif type_ == 'simulate':
                             self.gen = result['campaign']['gen']
                             self.remaining = result['campaign']['remaining']
@@ -2482,12 +2535,14 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                             self.validated_params = result['params']
                             self.experiments_history = result['experimentsHistory']
                             if auto_export_path is not None:
-                                fname = os.path.join(auto_export_path, 'auto_history.csv')
+                                fname = os.path.join(
+                                    auto_export_path, 'auto_history.csv')
                                 self.export_experiments_history_csv(fname)
                         elif type_ == 'analytics':
                             self.analytics = result['analytics']
                             if auto_export_path is not None:
-                                self.download_all_analytics_files(self.analytics, auto_export_path, True)
+                                self.download_all_analytics_files(
+                                    self.analytics, auto_export_path, True)
         else:
             data = {'currentTask': None}
         return (data, errors)
@@ -2555,13 +2610,14 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
                 # status == 'new' or status == 'running'
                 retry += 1
-                mystr = '\rTask status = {} after {} retries...'.format(status, retry)
+                mystr = '\rTask status = {} after {} retries...'.format(
+                    status, retry)
                 sys.stdout.write(mystr)
                 if max_time is not None and max_time <= time.time():
                     sys.stdout.write('\nTimed out.')
                     if errors is None:
                         errors = []
-                    errors.append({ 'message': 'timeout exceeded' })
+                    errors.append({'message': 'timeout exceeded'})
                     return (data, errors)
 
                 # We will try again
@@ -2577,7 +2633,8 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         if timeout is None:
             return None
 
-        data, errors = self.wait_for_current_task(task_type=None, timeout=timeout)
+        data, errors = self.wait_for_current_task(
+            task_type=None, timeout=timeout)
         self._raise_exception_on_error(data, errors)
 
         return data['currentTask']
@@ -2769,7 +2826,8 @@ mutation CreateAnalytics($sessionId:String!) {
 
         if table is not None and 'data' in table:
             with open(fname, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
+                writer = csv.writer(csvfile, delimiter=',',
+                                    quoting=csv.QUOTE_NONE)
                 if headers and 'colHeaders' in table and table['colHeaders'] is not None:
                     writer.writerow(table['colHeaders'])
                 if table['data'] is not None:
@@ -2814,7 +2872,7 @@ mutation CreateAnalytics($sessionId:String!) {
             raise SessionParametersNotValidatedError()
 
         col_headers = self.experiments_table_column_names(space)
-        self.export_csv(fname, {'colHeaders': col_headers, 'data':[]}, True)
+        self.export_csv(fname, {'colHeaders': col_headers, 'data': []}, True)
         return col_headers
 
     def export_generated_design_csv(self, fname, gen=None):
@@ -2870,13 +2928,15 @@ mutation CreateAnalytics($sessionId:String!) {
         history = self.experiments_history
         if history is not None and len(history) > 0:
             with open(fname, 'w', newline='') as csvfile:
-                writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_NONE)
+                writer = csv.writer(csvfile, delimiter=',',
+                                    quoting=csv.QUOTE_NONE)
                 seq = 0
                 header_written = False
                 for gen, exp in enumerate(history):
                     if exp is not None and 'table' in exp and exp['table'] is not None:
                         if not header_written:
-                            writer.writerow(['Seq_', 'Gen_', 'Designed_'] + exp['table']['colHeaders'])
+                            writer.writerow(
+                                ['Seq_', 'Gen_', 'Designed_'] + exp['table']['colHeaders'])
                             header_written = True
                         drows = exp['designRows']
                         for i, row in enumerate(exp['table']['data']):
@@ -2928,8 +2988,9 @@ mutation CreateAnalytics($sessionId:String!) {
         if len(params) > 0:
             space_type = space['type']
             n_value_cols = len(params[0]) - 2
-            value_cols = [ self.space_table_value_column_name(space_type, i) for i in range(0, n_value_cols) ]
-            return [ 'Name', 'Type' ] + value_cols
+            value_cols = [self.space_table_value_column_name(
+                space_type, i) for i in range(0, n_value_cols)]
+            return ['Name', 'Type'] + value_cols
         return []
 
     def experiments_table_column_names(self, space):
@@ -3033,7 +3094,8 @@ mutation CreateAnalytics($sessionId:String!) {
 
         space_type = space['type']
         params = space['table']['data']
-        experiment = [self.random_parameter_value(space_type, param) for param in params] + ['']
+        experiment = [self.random_parameter_value(
+            space_type, param) for param in params] + ['']
         if max_response_value is not None:
             return self.experiment_with_random_response(experiment, max_response_value)
         return experiment
@@ -3056,7 +3118,7 @@ mutation CreateAnalytics($sessionId:String!) {
         col_headers = self.experiments_table_column_names(space)
         if col_headers is None:
             raise SpaceOrDesignRequiredError()
-        return {'colHeaders': col_headers, 'data': [] }
+        return {'colHeaders': col_headers, 'data': []}
 
     def random_experiments_with_responses(self, space, design, num_extras=0, max_response_value=5.0):
         """Generates an experiments table where each experiment row
@@ -3094,10 +3156,12 @@ mutation CreateAnalytics($sessionId:String!) {
         if space is not None:
             col_headers = self.experiments_table_column_names(space)
             if num_extras > 0:
-                extra_experiments = [self.random_experiment_for_space(space, max_response_value) for i in range(0, num_extras)]
+                extra_experiments = [self.random_experiment_for_space(
+                    space, max_response_value) for i in range(0, num_extras)]
         if design is not None:
             col_headers = design['table']['colHeaders']
-            designed_experiments = [self.experiment_with_random_response(experiment, max_response_value) for experiment in design['table']['data']]
+            designed_experiments = [self.experiment_with_random_response(
+                experiment, max_response_value) for experiment in design['table']['data']]
         if col_headers is None:
             raise SpaceOrDesignRequiredError()
-        return { 'colHeaders': col_headers, 'data': designed_experiments + extra_experiments }
+        return {'colHeaders': col_headers, 'data': designed_experiments + extra_experiments}

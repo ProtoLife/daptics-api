@@ -1,63 +1,5 @@
 # Daptics GraphQL API
 
-<details>
-  <summary><strong>Table of Contents</strong></summary>
-
-  * [Query](#query)
-  * [Mutation](#mutation)
-  * [Objects](#objects)
-    * [Analytics](#analytics)
-    * [AnalyticsFileInfo](#analyticsfileinfo)
-    * [AnalyticsTaskResult](#analyticstaskresult)
-    * [ApiParameters](#apiparameters)
-    * [AuthenticationToken](#authenticationtoken)
-    * [CampaignInfo](#campaigninfo)
-    * [CategorizedError](#categorizederror)
-    * [CreateTaskResult](#createtaskresult)
-    * [DataFrame](#dataframe)
-    * [ExperimentalSpace](#experimentalspace)
-    * [ExperimentalSpaceTemplate](#experimentalspacetemplate)
-    * [Experiments](#experiments)
-    * [GenerateTaskResult](#generatetaskresult)
-    * [HaltSessionResult](#haltsessionresult)
-    * [Loadavg](#loadavg)
-    * [PasswordChanged](#passwordchanged)
-    * [RootSubscriptionType](#rootsubscriptiontype)
-    * [Server](#server)
-    * [Session](#session)
-    * [SessionParameters](#sessionparameters)
-    * [SessionSummary](#sessionsummary)
-    * [SimulateTaskResult](#simulatetaskresult)
-    * [SpaceTaskResult](#spacetaskresult)
-    * [Task](#task)
-    * [TaskProgress](#taskprogress)
-    * [TaskSummary](#tasksummary)
-    * [TokenSent](#tokensent)
-    * [Transaction](#transaction)
-    * [UpdateTaskResult](#updatetaskresult)
-    * [User](#user)
-    * [UserCreated](#usercreated)
-    * [UserProfile](#userprofile)
-    * [UserSummary](#usersummary)
-  * [Inputs](#inputs)
-    * [AdditionalParameterInput](#additionalparameterinput)
-    * [ChangePasswordInput](#changepasswordinput)
-    * [DataFrameInput](#dataframeinput)
-    * [ExperimentsInput](#experimentsinput)
-    * [NewSessionInput](#newsessioninput)
-    * [NewUserInput](#newuserinput)
-    * [SessionParametersInput](#sessionparametersinput)
-    * [SpaceInput](#spaceinput)
-    * [TaskInput](#taskinput)
-    * [UserProfileInput](#userprofileinput)
-  * [Scalars](#scalars)
-    * [Boolean](#boolean)
-    * [DateTime](#datetime)
-    * [Float](#float)
-    * [Int](#int)
-    * [String](#string)
-
-</details>
 
 ## Query (RootQueryType)
 <table>
@@ -251,11 +193,29 @@ Search sessions. For Admin-level users, returns search over all sessions.
 </td>
 </tr>
 <tr>
+<td colspan="2" align="right" valign="top">active</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If provided, list only active or inactive sessions.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">demo</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If provided, list only demo or standard (not demo) sessions.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" align="right" valign="top">q</td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
-A string to filter search on. If provided, will limit the response to matches on session's id, tag, name or description.
+If provided, list only sessions with a partially matching id, tag, name or description.
 
 </td>
 </tr>

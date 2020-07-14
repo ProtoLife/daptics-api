@@ -1,0 +1,17 @@
+site_name: Daptics API Documentation
+nav:
+  - Daptics API Index: index.md
+  - Python API Client: daptics_client.md
+  - Daptics GraphQL API: graphql_api.md
+  - Jupyter Notebooks: jupyter_notebooks.md
+
+# These options all show off their default values. You don't have to add
+# them to your configuration if you're fine with the default.
+docs_dir: ./pydocmd
+site_url: http:///api_docs/
+site_dir: ../pdt-rservex/apps/user_front_web/assets/static/api_docs
+use_directory_urls: true
+theme:
+  name: 'rtd-dropdown'
+  navigation_depth: 3
+  collapse_navigation: false

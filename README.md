@@ -32,7 +32,7 @@ server if you do not have access to a server that can open `.ipynb` files.
 
 1. Install [graphql-markdown](https://www.npmjs.com/package/graphql-markdown)
 
-2. Then in `pydocmd` folder, run:
+2. Then in the `pydocmd` folder, run:
 
 ```
 graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife.com:8080/api >graphql_api.md
@@ -40,7 +40,13 @@ graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>
 
-1. Install these tools: [pdoc3](https://pdoc3.github.io/pdoc/) and [MkDocs](https://www.mkdocs.org/).
+
+1. Install these tools in order: 
+
+    a. [tornado](https://www.tornadoweb.org/) - Important! Specify version 5.1.1 (version 6.0 will break MkDocs)
+    b. [pdoc3](https://pdoc3.github.io/pdoc/) 
+    c. [MkDocs](https://www.mkdocs.org/)
+    d. [mkdocs-rtd-dropdown](https://github.com/cjsheets/mkdocs-rtd-dropdown) - Theme for MkDocs
 
 2. Create Markdown documentation for the `daptics_client.py` file using `pdoc3`. In the
 `python_client` folder, run:

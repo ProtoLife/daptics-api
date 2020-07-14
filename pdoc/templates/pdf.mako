@@ -26,12 +26,17 @@
 %>
 
 <%def name="title(level, string, id=None)">
+<<<<<<< HEAD
     <%
         toc_skip = ''
         if level == 1:
             toc_skip = '<a class="tocSkip">'
      %>
 ${('#' * level) + ' ' + string + toc_skip}
+=======
+    <% id = '' %>
+${('#' * level) + ' ' + string + id}
+>>>>>>> v0.10.0
 </%def>
 
 <%def name="funcdef(f)">
@@ -70,6 +75,10 @@ links-as-notes: true
     def to_md(text):
         return _to_md(text, module)
 %>
+<<<<<<< HEAD
+=======
+${title(1, ('Namespace' if module.is_namespace else 'Module') + ' `%s`' % module.name, module.refname)}
+>>>>>>> v0.10.0
 ${module.docstring | to_md}
 
 % if submodules:

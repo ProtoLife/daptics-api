@@ -30,6 +30,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 """
 
+# File restored from commit daa2d83
+
 import asyncio
 from async_timeout import timeout as atimeout
 import csv
@@ -235,9 +237,14 @@ class DapticsExperimentsType(enum.Enum):
     extra experiments.
     """
 
+    FINAL_EXTRAS_ONLY = 'final'
+    """Indicates that the experiments being submitted are final experiments.
+    Not used in current API version.
+    """
 
-async def default_task_coroutine(task, **kwargs):
-    """The default coroutine (callback) that will be called asynchronously if the
+
+async def log_task_coroutine(task, **kwargs):
+    """A useful coroutine (callback) that can be be called asynchronously if the
     "run_tasks_async" option has been set in the client. This coroutine logs
     progress information to a file named `daptics_task.log` in the current directory.
     """
@@ -404,6 +411,13 @@ fragment TaskFragment on Task {
                 }
             }
         }
+        ... on AnalyticsTaskResult {
+            type analytics {
+                gen files {
+                    title filename url
+                }
+            }
+        }
         ... on SimulateTaskResult {
             type campaign {
                 gen remaining completed
@@ -418,13 +432,6 @@ fragment TaskFragment on Task {
             experimentsHistory {
                 gen validated hasResponses designRows table {
                     colHeaders data
-                }
-            }
-        }
-        ... on AnalyticsTaskResult {
-            type analytics {
-                gen files {
-                    title filename url
                 }
             }
         }
@@ -476,7 +483,7 @@ fragment TaskFragment on Task {
         value of the task does not have the value "running", meaning that the
         the task has completed or failed.
 
-        Here's a simple example of a coroutine. See the code for `default_task_coroutine`
+        Here's a simple example of a coroutine. See the code for `log_task_coroutine`
         in this module for another example.
 
         ```
@@ -515,6 +522,9 @@ fragment TaskFragment on Task {
 
         self.session_name = None
         """The name of the connected Daptics session, as set by the `create_session` method."""
+
+        self.session_tag = None
+        """The tag (a read-only identifier) of the connected Daptics session, as set by the `create_session` method."""
 
         self.task_info = {}
         """A Python `dict` that holds information about the polling status for
@@ -568,6 +578,7 @@ fragment TaskFragment on Task {
         print('user_id = ', self.user_id)
         print('session_id = ', self.session_id)
         print('session_name = ', self.session_name)
+        print('session_tag = ', self.session_tag)
         print('task_info = ', self.task_info)
         print('gen = ', self.gen)
         print('remaining = ', self.remaining)
@@ -602,7 +613,6 @@ fragment TaskFragment on Task {
 
         if self.experiments_history is not None:
             print('Experiments History:')
-            max_gen = len(self.experiments_history)
             for gen, exp in enumerate(self.experiments_history):
                 if exp is not None:
                     print('\tGeneration {}:'.format(gen))
@@ -771,38 +781,38 @@ subscription TaskUpdated($sessionId: String!) {
                     response = await absinthe.push_doc(mutation_doc, variables=vars)
                     if 'response' in response:
                         response = response['response']
-                        can_set, why_not = can_set_result(task_future)
+                        can_set, _why_not = can_set_result(task_future)
                         if can_set:
                             task_future.set_result(
                                 (response.get('data'), response.get('errors'), ))
                         else:
-                            # print('_do_run_async subscription response received ({})'.format(why_not))
+                            # print('_do_run_async subscription response received ({})'.format(_why_not))
                             pass
                         if self._successful(response.get('data')):
                             await absinthe.run_subscription(sub_id)
                     else:
-                        can_set, why_not = can_set_result(task_future)
+                        can_set, _why_not = can_set_result(task_future)
                         if can_set:
                             task_future.set_result(
                                 (None, [{'message': 'No response'}],))
                         else:
-                            # print('_do_run_async no subscrip[tion response ({})'.format(why_not))
+                            # print('_do_run_async no subscrip[tion response ({})'.format(_why_not))
                             pass
 
         except asyncio.TimeoutError:
-            can_set, why_not = can_set_result(task_future)
+            can_set, _why_not = can_set_result(task_future)
             if can_set:
                 task_future.set_result((None, [{'message': 'Timed out'}],))
             else:
-                # print('_do_run_async TimeoutError ({})'.format(why_not))
+                # print('_do_run_async TimeoutError ({})'.format(_why_not))
                 pass
 
         except Exception as e:
-            can_set, why_not = can_set_result(task_future)
+            can_set, _why_not = can_set_result(task_future)
             if can_set:
                 task_future.set_result((None, [{'message': str(e)}],))
             else:
-                # print('_do_run_async Exception {} ({})'.format(e, why_not))
+                # print('_do_run_async Exception {} ({})'.format(e, _why_not))
                 pass
 
     def _successful(self, data):
@@ -817,7 +827,7 @@ subscription TaskUpdated($sessionId: String!) {
         if not self._successful(data):
             if errors:
                 # This is what gql does with errors
-                raise GraphQLError(str(errors[0]))
+                raise GraphQLError(str(errors[0]['message']))
             else:
                 raise GraphQLError('Unknown error')
 
@@ -862,7 +872,8 @@ subscription TaskUpdated($sessionId: String!) {
                 'user_id': self.user_id,
                 'token': self.auth.token,
                 'session_id': self.session_id,
-                'session_name': self.session_name
+                'session_name': self.session_name,
+                'session_tag': self.session_tag
             }
             json.dump(data, outfile, ensure_ascii=False, indent=4)
 
@@ -880,6 +891,7 @@ subscription TaskUpdated($sessionId: String!) {
         self.user_id = None
         self.session_id = None
         self.session_name = None
+        self.session_tag = None
         self.task_info = {}
         self.gen = -1
         self.remaining = None
@@ -897,6 +909,8 @@ subscription TaskUpdated($sessionId: String!) {
                     self.session_id = data['session_id']
                 if 'session_name' in data and data['session_name'] is not None:
                     self.session_name = data['session_name']
+                if 'session_tag' in data and data['session_tag'] is not None:
+                    self.session_name = data['session_tag']
 
     def init_config(self):
         """Reads and processes the client configuration from either a configuration
@@ -921,7 +935,7 @@ subscription TaskUpdated($sessionId: String!) {
             if not self._load_config_file(config_path, config_must_exist):
                 self._load_config_env()
 
-    def _load_config_file(self, config_path, config_must_exit):
+    def _load_config_file(self, config_path, config_must_exist):
         if os.path.exists(config_path):
             try:
                 with open(config_path) as f:
@@ -1100,7 +1114,8 @@ mutation Login($email:String!, $password:String!) {
         doc = gql.gql("""
 mutation CreateSession($session:NewSessionInput!) {
     createSession(session:$session) {
-        sessionId version tag name description host active demo campaign {
+        sessionId version tag name description host active demo 
+        campaign {
             gen remaining completed
         }
         params {
@@ -1119,6 +1134,7 @@ mutation CreateSession($session:NewSessionInput!) {
             session = data['createSession']
             self.session_id = session['sessionId']
             self.session_name = session['name']
+            self.session_tag = session['tag']
             self.gen = session['campaign']['gen']
             self.remaining = session['campaign']['remaining']
             self.completed = session['campaign']['completed']
@@ -1170,7 +1186,11 @@ mutation CreateSession($session:NewSessionInput!) {
         # The 'sessions' query will return a list of sessions.
         doc = gql.gql("""
 query GetSessions($userId:String, $q:String) {
-    sessions(userId:$userId, q:$q) { sessionId tag name description active demo }
+    sessions(userId:$userId, q:$q) { 
+        sessionId version tag name description host active demo
+        gen spaceType parameterCount designCost
+        totalCost designedExperimentsCount extraExperimentsCount lastStartedAt
+    }
 }
         """)
         return self.execute_query(doc, vars)
@@ -1205,11 +1225,19 @@ query GetSessions($userId:String, $q:String) {
         doc = gql.gql("""
 query GetSession($sessionId:String!) {
     session(sessionId:$sessionId) {
-        sessionId version tag name description host active demo campaign {
+        sessionId version tag name description host active demo 
+        campaign {
             gen remaining completed
         }
         params {
             validated populationSize replicates designCost space {
+                type totalUnits table {
+                    colHeaders data
+                }
+            }
+        }
+        spaceTemplates {
+            name template {
                 type totalUnits table {
                     colHeaders data
                 }
@@ -1223,6 +1251,7 @@ query GetSession($sessionId:String!) {
         tasks {
             taskId type description status startedAt
         }
+        totalCost designedExperimentsCount extraExperimentsCount lastStartedAt
     }
 }
         """)
@@ -1231,6 +1260,7 @@ query GetSession($sessionId:String!) {
             session = data['session']
             self.session_id = session['sessionId']
             self.session_name = session['name']
+            self.session_tag = session['tag']
             self.gen = session['campaign']['gen']
             self.remaining = session['campaign']['remaining']
             self.completed = session['campaign']['completed']
@@ -1723,13 +1753,17 @@ query GetExperimentsHistory($sessionId:String!){
 
         # Arguments
         experiments (dict):
-            A "table" of experiments that includes columns,
+            An optional "table" of experiments that includes columns,
             defined in the `colHeaders` value of the table, for each of the defined
             space parameters, and a column named 'Response' to record the result of
             experiments.
 
         Each row in the `data` value for the table represents
-        an individual experiment.
+        an individual experiment. If `experiments` is set to `None`, and 
+        a generated design exists in the session (gen number is greater than zero),
+        simulated responses for the design will be created and returned.
+        It is an error to set `experiments` to `None` if no design has been
+        generated in the session (gen number is less than or equal to zero).
 
         # Returns
         data (dict):
@@ -2474,82 +2508,75 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
         data, errors = self.call_api(doc, vars)
         if data and 'currentTask' in data and data['currentTask'] is not None:
             if 'status' in data['currentTask'] and 'type' in data['currentTask']:
-                # A task's status can be 'new', 'running', 'success', 'error', or 'canceled'
                 task_id = data['currentTask']['taskId']
                 self.task_info[task_id] = data['currentTask']
                 status = data['currentTask']['status']
-                type_ = data['currentTask']['type']
-                if status == 'new' or status == 'running':
-                    # We will try again
-                    pass
-                elif status == 'canceled':
-                    # Message will be in response error
-                    # TESTME: will we ever get here, or will exception be thrown first?
-                    pass
-                elif status == 'error':
-                    # Message will be in response error
-                    # TESTME: will we ever get here, or will exception be thrown first?
-                    pass
-                elif status == 'success':
-                    if 'result' in data['currentTask'] and data['currentTask']['result'] is not None:
-                        auto_export_path = self.options.get('auto_export_path')
-                        result = data['currentTask']['result']
-                        if type_ == 'space':
-                            self.gen = result['campaign']['gen']
-                            self.remaining = result['campaign']['remaining']
-                            self.completed = result['campaign']['completed']
-                            self.validated_params = result['params']
-                            if auto_export_path is not None:
-                                fname = os.path.join(
-                                    auto_export_path, 'auto_validated_space.csv')
-                                self.export_csv(
-                                    fname, self.validated_params['space']['table'], False)
-                        elif type_ == 'update':
-                            self.gen = result['campaign']['gen']
-                            self.remaining = result['campaign']['remaining']
-                            self.completed = result['campaign']['completed']
-                            self.design = result['experiments']
-                            if auto_export_path is not None:
-                                fname = os.path.join(
-                                    auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
-                                self.export_csv(
-                                    fname, self.design['table'], True)
-                            if self.options.get('auto_generate_next_design'):
-                                if self.remaining is None or self.remaining > 0:
-                                    task_data = self.generate_design()
-                                    data['currentTask']['autoGenerateTask'] = task_data['generateDesign']
-                        elif type_ == 'generate':
-                            self.gen = result['campaign']['gen']
-                            self.remaining = result['campaign']['remaining']
-                            self.completed = result['campaign']['completed']
-                            self.design = result['experiments']
-                            if auto_export_path is not None:
-                                fname = os.path.join(
-                                    auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
-                                self.export_csv(
-                                    fname, self.design['table'], True)
-                        elif type_ == 'simulate':
-                            self.gen = result['campaign']['gen']
-                            self.remaining = result['campaign']['remaining']
-                            self.completed = result['campaign']['completed']
-                            self.validated_params = result['params']
-                            self.experiments_history = result['experimentsHistory']
-                            if auto_export_path is not None:
-                                fname = os.path.join(
-                                    auto_export_path, 'auto_history.csv')
-                                self.export_experiments_history_csv(fname)
-                        elif type_ == 'analytics':
-                            self.analytics = result['analytics']
-                            if auto_export_path is not None:
-                                self.download_all_analytics_files(
-                                    self.analytics, auto_export_path, True)
+
+                # A task's status can be 'new', 'running', 'success', 'failed', or 'canceled'.
+                # Process result on 'success', otherwise just return.
+                if status == 'success' and 'result' in data['currentTask'] and data['currentTask']['result'] is not None:
+                    result = data['currentTask']['result']
+                    auto_export_path = self.options.get('auto_export_path')
+                    type_ = data['currentTask']['type']
+                    if type_ == 'space':
+                        self.gen = result['campaign']['gen']
+                        self.remaining = result['campaign']['remaining']
+                        self.completed = result['campaign']['completed']
+                        self.validated_params = result['params']
+                        if auto_export_path is not None:
+                            fname = os.path.join(
+                                auto_export_path, 'auto_validated_space.csv')
+                            self.export_csv(
+                                fname, self.validated_params['space']['table'], False)
+                    elif type_ == 'update':
+                        self.gen = result['campaign']['gen']
+                        self.remaining = result['campaign']['remaining']
+                        self.completed = result['campaign']['completed']
+                        self.design = result['experiments']
+                        if auto_export_path is not None and self.design is not None:
+                            fname = os.path.join(
+                                auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
+                            self.export_csv(
+                                fname, self.design['table'], True)
+                        if self.options.get('auto_generate_next_design'):
+                            if self.remaining is None or self.remaining > 0:
+                                # FIXME: Possible race condition while 'update' task is still active?
+                                # Generate task may fail, when it finds that the 'update' task is not archived.
+                                time.sleep(0.2)
+                                task_data = self.generate_design()
+                                data['currentTask']['autoGenerateTask'] = task_data['generateDesign']
+                    elif type_ == 'generate':
+                        self.gen = result['campaign']['gen']
+                        self.remaining = result['campaign']['remaining']
+                        self.completed = result['campaign']['completed']
+                        self.design = result['experiments']
+                        if auto_export_path is not None and self.design is not None:
+                            fname = os.path.join(
+                                auto_export_path, 'auto_gen{0}_design.csv'.format(self.gen))
+                            self.export_csv(
+                                fname, self.design['table'], True)
+                    elif type_ == 'simulate':
+                        self.gen = result['campaign']['gen']
+                        self.remaining = result['campaign']['remaining']
+                        self.completed = result['campaign']['completed']
+                        self.validated_params = result['params']
+                        self.experiments_history = result['experimentsHistory']
+                        if auto_export_path is not None:
+                            fname = os.path.join(
+                                auto_export_path, 'auto_history.csv')
+                            self.export_experiments_history_csv(fname)
+                    elif type_ == 'analytics':
+                        self.analytics = result['analytics']
+                        if auto_export_path is not None:
+                            self.download_all_analytics_files(
+                                self.analytics, auto_export_path, True)
         else:
             data = {'currentTask': None}
         return (data, errors)
 
     def wait_for_current_task(self, task_type=None, timeout=None):
         """Wraps poll_for_current_task in a loop. Repeat until task disappears,
-        when `status` is `success` or `failure`.
+        when `status` is `success`, `failed`, or `canceled`.
 
         # Arguments
         task_type (`DapticsTaskType`, optional):
@@ -2590,17 +2617,17 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                     if retry > 0:
                         sys.stdout.write('\n')
                     print('Task was canceled!  Messages are:')
-                    errors = data['currentTask']['errors']
-                    for ee in errors[0]:
-                        print(ee, '\t', errors[0][ee])
+                    for i, error in enumerate(data['currentTask']['errors']):
+                        for ee in error:
+                            print('[{}] {}:\t{}'.format(i, ee, error[ee]))
                     return (data, errors)
-                elif status == 'error':
+                elif status == 'failed':
                     if retry > 0:
                         sys.stdout.write('\n')
-                    print('Task had an error!  Messages are:')
-                    errors = data['currentTask']['errors']
-                    for ee in errors[0]:
-                        print(ee, '\t', errors[0][ee])
+                    print('Task failed with error(s)!  Messages are:')
+                    for i, error in enumerate(data['currentTask']['errors']):
+                        for ee in error:
+                            print('[{}] {}:\t{}'.format(i, ee, error[ee]))
                     return (data, errors)
                 elif status == 'success':
                     if retry > 0:

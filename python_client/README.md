@@ -1,95 +1,49 @@
-# Jupyter Notebooks
+# daptics_client - Python Client Package for the daptics API 
 
-This folder of Python Jupyter notebooks gives a brief interactive introduction
-to using the daptics API with a freely distributed Python API client.
+`daptics_client` encapsulates the GraphQL daptics API, a powerful
+system for optimizing the design of experiments. Using `daptics_client`
+you can integrate the daptics iterative optimizations into 
+lab automation processes.
 
-See the documentation at [https://jupyter.org](https://jupyter.org) if you have never used
-Jupyter notebooks before.
+daptics allows you to specify complex experimental design spaces,
+consisting of many numerical or categorical parameters, and uses
+highly-tuned machine learning algorithms to produce sequential
+batches of experimental designs (called "generations"), 
+in an iterative process. 
 
-Please note that to use the daptics API, you must first have a daptics account.
-To create an account, or to get help or information on daptics, please visit or contact us:
+After performing the designed experiments in a batch 
+and scoring the assay results of each experiment in the batch
+as a numeric response value, you upload these response values
+via the API to produce the next generation of designs.
 
-* On the web at <a href="https://daptics.ai">https://daptics.ai    
-* By email at [support@daptics.ai](mailto:support@daptics.ai)
+As the process continues, daptics explores the experimental
+space to find potential optimal experiments for the next
+batch.
 
+For a detailed look at the underlying mathematics, 
+see this white paper: https://daptics.ai/pdf/White.pdf
 
 ## Installation
 
-Before opening the `01_README.ipynb` notebook, install IPython, Jupyter and required packages.
+Use `setuptools` to install the API modules on your Python system.
 
-a) with conda:
-
-```
-conda install -c conda-forge requests gql ipython jupyter
+```sh
+python3 setup.py install
 ```
 
-or b) with pip:
+Installation via `pip` coming soon!
 
-```
-# first, always upgrade pip!
-pip install --upgrade pip
-pip install --upgrade requests gql ipython jupyter
-```
+## Examples - Jupyter Notebooks
 
-Start the notebook in the tutorial directory:
+Example tutorial Jupyter notebooks and more information are available from the 
+repository website at https://github.com/ProtoLife/daptics-api
 
-```
-cd tutorials
-jupyter notebook
-```
+## Python Client and GraphQL API Reference Documentation
 
-Then open the Introduction.ipynb notebook. If running the cells in the notebook have
-problems with library imports, see this article for how you might have to import the
-correct versions of the required `requests` and `gql` libraries:
+Documentation for both the client package and the low-level
+GraphQL API can be found at https://protolife.github.io/daptics-api
 
-[https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter](https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter)
+## Web Access to the daptics System
 
-
-## Tutorial Notebooks
-
-This folder contains a series of Jupyter notebooks to explain operation of the daptics API, with explicit examples:
-
-* 01_README.ipynb
-* 02_Terminology.ipynb
-* 03_SimpleTutorial.ipynb
-* 04_GetAnalytics.ipynb
-* 05_RestartSession.ipynb
-* 06_AutomationWorkflow.ipynb
-
-If you are familiar with daptics from the web interface, you could jump directly to `03_SimpleTutorial.ipynb` to get started.
-
-Make sure to copy all the files in this folder into your
-Jupyter server directory (the directory from which you start `jupyter notebook`), especially the daptics_client.py file that the all notebooks using the daptics API  will import.
-
-There are also several example experimental space definition CSV files in this
-folder that you can use to try out different parameters.
-
-```python
-# Here's an example of using conda to update the required libraries in Jupyter-land.
-
-import sys
-print(sys.path)
-print('Using {} to run pip'.format(sys.executable))
-!{sys.executable} -m pip install requests gql
-```
-
-## Copyright Notice
-
-Daptics API Version 0.12.0  
-Copyright (c) 2020 Daptics Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), the rights to use, copy, modify, merge,
-publish, and/or distribute, copies of the Software, and to permit persons to whom the Software
-is furnished to do so, subject to the following conditions:
-
-You do not have the right to sub-license or sell copies of the Software.
-
-The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+A web interface to the system, together with more documentation and online help,
+is available at https://daptics.ai

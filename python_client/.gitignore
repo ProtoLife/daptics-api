@@ -1,0 +1,20 @@
+# Compilation and setuptools artifacts
+build/
+dist/
+*.egg-info/
+*.pyo
+*.pyc
+__pycache__
+.ipynb_checkpoints
+
+# jupytext-generated python files
+python/
+
+# Files generated when notebooks are run
+output/
+session.json
+gen*.csv
+initial*.csv
+simulated*.csv
+validated*.csv
+*.pdf

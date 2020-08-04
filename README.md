@@ -1,12 +1,11 @@
 # daptics API <a class="tocSkip"></a>
 
-This is the README documentation for the daptics design of experiments GraphQL API
+This is the README documentation for the daptics Design of Experiments GraphQL API
 and the Python API client.
-
 
 ## Links
 
-* The Python API client module and several tutorial Jupyter notebooks are available
+* The Python API client package and several tutorial Jupyter notebooks are available
 from the daptics-api GitHub repository at
 [https://github.com/ProtoLife/daptics-api](https://github.com/ProtoLife/daptics-api)
 * Auto-generated documentation for the API and the client is available from the
@@ -18,15 +17,14 @@ of the daptics website at [https://daptics.ai](https://daptics.ai)
 To use the daptics API, you must first register at the [https://daptics.ai](https://daptics.ai)
 to establish your login and password for API authentication.
 
-
 ## Python Client <a class="tocSkip"></a>
 
-The `python_client` folder contains the Python GraphQL client, daptics_client.py,
+The `python_client` folder contains the Python GraphQL client package module 
+sources (in the `daptics_client`, `phoenix`, and `syncasync` folders),
 and several interactive Python notebooks for experimenting with the API.
 
-Follow the instructions in the README.md file in that folder to set up a local Jupyter Notebook
+Follow the instructions in the README-NOTEBOOKS.md file in that folder to set up a local Jupyter Notebook
 server if you do not have access to a server that can open `.ipynb` files.
-
 
 ## GraphQL API Documentation <a class="tocSkip"></a>
 
@@ -39,7 +37,6 @@ graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife
 ```
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>
-
 
 1. Install these tools in order: 
 
@@ -56,7 +53,6 @@ graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife
 where the `mkdocs.yml` configuration file is located, run: `mkdocs build`
 
 Html and Markdown files will be produced in the `docs` folder.
-
 
 ## Using Jupytext to Extract and Sync to Python Source Files <a class="tocSkip"></a>
 

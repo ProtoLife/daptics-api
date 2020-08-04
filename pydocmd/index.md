@@ -20,14 +20,14 @@ The [daptics-api GitHub repository](https://github.com/ProtoLife/daptics-api)
 contains the following public resources in the `python_client` folder for you
 to download, examine and use:
 
-1. The `daptics_client.py` Python API client module exposes the `DapticsClient` class,
+1. The `daptics_client` Python API client package exposes the `DapticsClient` class,
 that allows you to create or connect to a session, set up your experimental
 space, generate optimized experiments, and obtain analytics results.
 
 2. There are six interactive Jupyter notebooks in `.ipynb` files that
 provide how-tos on installation, explanations of the terminology used by
 daptics, and tutorials that explore design of experiments solutions
-using the Python API client module.
+using the Python API client package.
 
 
 ## Documentation

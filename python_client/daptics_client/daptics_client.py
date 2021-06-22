@@ -354,6 +354,9 @@ class DapticsClient(object):
     a coroutine (callback) function.
     """
 
+    SSL_CERT_VERIFICATION = False
+    """Set to `False` to disable checking of the API server's SSL certificate."""
+
     REQUIRED_SPACE_PARAMS = frozenset(
         ('populationSize', 'replicates', 'space'))
     """The names of required experimental space parameters."""
@@ -1027,7 +1030,10 @@ subscription TaskUpdated($sessionId: String!) {
             ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
             http = gql.transport.requests.RequestsHTTPTransport(
-                self.api_url, auth=self.auth, use_json=True)
+                self.api_url, 
+                auth=self.auth, 
+                use_json=True, 
+                verify=self.SSL_CERT_VERIFICATION)
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 
@@ -1095,7 +1101,8 @@ subscription TaskUpdated($sessionId: String!) {
 
         # Notes
         On successful authentication, the user id and access token
-        are stored in the client's `user_id` and `auth` attributes.
+        are stored in the client's `user_id` and `auth` attributes. On failure
+        the value of the `login` item in the returned dict will be `None`. 
         """
 
         if email is None or password is None:

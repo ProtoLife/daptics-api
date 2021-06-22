@@ -8,7 +8,7 @@ please visit or contact daptics:
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
 Daptics API Version 0.12.0
-Copyright (c) 2020 Daptics Inc.
+Copyright (c) 2021 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -49,6 +49,7 @@ import time
 import sys
 import json
 import logging
+import urllib.parse
 from phoenix import Phoenix, Absinthe
 
 # Authentication object used to authorize DapticsClient requests
@@ -95,6 +96,13 @@ class NoHostError(Exception):
 
     def __init__(self):
         self.message = 'No host or configuration file specified.'
+
+
+class IncompatibleApiError(Exception):
+    """An error raised if the API at `host` is not compatible with this client."""
+
+    def __init__(host, client_version_required):
+        self.message = 'The API at {} requires a minimum client version of {}. Please upgrade or use a compatible host.'.format(host, client_version_required)
 
 
 class NoCredentialsError(Exception):
@@ -440,6 +448,10 @@ fragment TaskFragment on Task {
 """
 
     def __init__(self, host=None, config=None):
+        self.client_version = '0.12.0'
+        """The version number of this client.
+        """
+
         self.host = host
         """The host part of the API endpoint, as read from configuration, or set manually
         prior to calling `connect`.
@@ -572,6 +584,7 @@ fragment TaskFragment on Task {
 
     def print(self):
         """Prints out debugging information about the session."""
+        print('client_version = ', self.client_version)
         print('host = ', self.host)
         print('credentials = ', self.credentials)
         print('options = ', self.options)
@@ -986,7 +999,13 @@ subscription TaskUpdated($sessionId: String!) {
         `api_url` attribute, and attempts to connect to the introspection interface.
         The `gql.Client` value is stored in the client's `gql` attribute.
 
+        # Returns
+        Nothing
+
         # Raises
+        IncompatibleApiError
+            If the API at `self.host` requires a higher client version number.
+
         MissingConfigError
             If the config file specified does not exist.
 
@@ -999,9 +1018,6 @@ subscription TaskUpdated($sessionId: String!) {
 
         requests.exceptions.ConnectionError
             If the connection cannot be made.
-
-        # Notes
-        There is nothing returned by this method.
         """
         if self.gql is None:
             self.init_config()
@@ -1015,6 +1031,37 @@ subscription TaskUpdated($sessionId: String!) {
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 
+        compat = self.check_api_compatibility()
+        if compat['compatible'] is not None and not compat['compatible']:
+            raise IncompatibleApiError(self.host, compat['minimumClientVersion'])
+
+    def check_api_compatibility(self):
+        """Checks the version of this client against the requirements of
+        the api at the connected host.
+
+        # Returns
+        dict containing `minimumClientVersion` and compatibility information.
+
+        # Raises
+        Exception if the (older) API does not support checking version 
+        compatibility.
+        """
+
+        vars = {
+            'clientVersion': self.client_version
+        }
+        doc = gql.gql("""
+        query ClientCompatibility($clientVersion:String!) {
+            clientCompatibility(clientVersion:$clientVersion) {
+                version minimumClientVersion compatible changes {
+                    path message level safe
+                }
+            }
+        }
+        """)
+        data = self.execute_query(doc, vars)
+        return data['clientCompatibility']
+        
     def login(self, email=None, password=None):
         """Authenticates to a user record in the database as identified in the client's
         `email` and `password` attributes, and create an access token.
@@ -2775,13 +2822,10 @@ mutation CreateAnalytics($sessionId:String!) {
             gen = analytics.get('gen')
             path = os.path.abspath(directory)
 
-            # Access token is added as query string
-            params = {}
-            if self.auth and self.auth.token:
-                params['token'] = self.auth.token
             for file in analytics['files']:
                 if 'url' in file and 'filename' in file:
-                    response = requests.get(file['url'], params=params)
+                    url, params = self.download_url_and_params(file['url'])
+                    response = requests.get(url, params=params)
                     if response.status_code == requests.codes.ok and response.content is not None:
                         if file_count == 0:
                             os.makedirs(path, exist_ok=True)
@@ -2795,7 +2839,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
         return file_count
 
-    def download_analytics_file(self, url, fname):
+    def download_analytics_file(self, file_url, fname):
         """Gets the contents of an analytics file. Once a URL to a particular analytics file
         has been obtained from the result of an "analytics" task, specify the `url` and `filename`
         values from the result as the arguments to this convenience method to request the file's
@@ -2821,15 +2865,39 @@ mutation CreateAnalytics($sessionId:String!) {
              file system location.
         """
 
-        # Access token is added as query string
-        params = {}
-        if self.auth and self.auth.token:
-            params['token'] = self.auth.token
+        url, params = self.download_url_and_params(file_url)
         response = requests.get(url, params=params)
         if response.status_code == requests.codes.ok and response.content is not None:
             with open(fname, "wb") as pdf_file:
                 pdf_file.write(response.content)
         return response
+
+    def download_url_and_params(self, url):
+        """Strips the query string from the given url, then checks to see if
+        there is a 'token' entry in it. If not, uses the client's authentication 
+        token if it exists.
+
+        # Arguments
+        url (str):
+            The download url, usually with query string containing an encrpyted token.
+
+        # Returns
+        (url, params):
+            A 2-tuple containing the url minus the query string, and a params
+            Python dictionary, containing the token.
+        """
+        # Extract params as a Dict, insert token if necessary
+        params = {}
+        parsed = urllib.parse.urlparse(url, allow_fragments=False)
+        if len(parsed.query) > 0:
+            params = urllib.parse.parse_qs(parsed.query)
+        if 'token' not in params and self.auth and self.auth.token:
+            params['token'] = self.auth.token
+
+        # Rebuild url with empty params, query, and fragment
+        url_without_query = (parsed.scheme, parsed.netloc,
+                             parsed.path, '', '', '')
+        return (urllib.parse.urlunparse(url_without_query), params)
 
     def export_csv(self, fname, table, headers=True):
         """Writes an experimental space or experiments table to a CSV file on disk.

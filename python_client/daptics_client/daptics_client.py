@@ -8,7 +8,7 @@ please visit or contact daptics:
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
 Daptics API Version 0.12.0
-Copyright (c) 2020 Daptics Inc.
+Copyright (c) 2021 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -49,6 +49,7 @@ import time
 import sys
 import json
 import logging
+import urllib.parse
 from phoenix import Phoenix, Absinthe
 
 # Authentication object used to authorize DapticsClient requests
@@ -95,6 +96,13 @@ class NoHostError(Exception):
 
     def __init__(self):
         self.message = 'No host or configuration file specified.'
+
+
+class IncompatibleApiError(Exception):
+    """An error raised if the API at `host` is not compatible with this client."""
+
+    def __init__(host, client_version_required):
+        self.message = 'The API at {} requires a minimum client version of {}. Please upgrade or use a compatible host.'.format(host, client_version_required)
 
 
 class NoCredentialsError(Exception):
@@ -301,6 +309,8 @@ class DapticsClient(object):
 
     `run_tasks_async` - see `options` below
 
+    `verify_ssl_certificates` - see `options` below
+
     If `config is set to None, configuration can be read from OS environment
     variables, if they exist. The environment variable names are:
 
@@ -317,6 +327,8 @@ class DapticsClient(object):
     `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
     `DAPTICS_RUN_TASKS_ASYNC` - see `options` below
+
+    `DAPTICS_VERIFY_SSL_CERTIFICATES` - see `options` below
 
     options (dict):
         A Python `dict` containing runtime options. As of this version, there
@@ -344,6 +356,11 @@ class DapticsClient(object):
     and `create_analytics`) will be run in an asynchronous event loop. Normally
     you will only set this flag if you want to receive progress information via
     a coroutine (callback) function.
+
+    `verify_ssl_certificates` - If set (True), strict checking of
+    the validity of the API server's SSL certificates will be done when the
+    `connect` method is called. Set this to False, with extreme caution, to
+    disable this check.
     """
 
     REQUIRED_SPACE_PARAMS = frozenset(
@@ -440,6 +457,12 @@ fragment TaskFragment on Task {
 """
 
     def __init__(self, host=None, config=None):
+        self._check_gql_version()
+
+        self.client_version = '0.12.0'
+        """The version number of this client.
+        """
+
         self.host = host
         """The host part of the API endpoint, as read from configuration, or set manually
         prior to calling `connect`.
@@ -454,7 +477,10 @@ fragment TaskFragment on Task {
             'auto_export_path': None,
             'auto_generate_next_design': False,
             'auto_task_timeout': None,
-            'run_tasks_async': False
+            'run_tasks_async': False,
+            # TODO: This should default to True, but apparently ZeroSSL 
+            # certificates are not trusted by the Python requests module (!)
+            'verify_ssl_certificates': False
         }
         """A Python `dict` containing the runtime options."""
 
@@ -570,8 +596,19 @@ fragment TaskFragment on Task {
         have been simulated, as updated by the result of a "simulate" task.
         """
 
+    def _check_gql_version(self):
+        if '__version__' in gql.__dict__:
+            gql_version = gql.__version__.split('.')
+            gql_major_version = int(gql_version[0])
+            if gql_major_version < 2 or gql_major_version > 2:
+                raise Exception(f'Incorrect gql version {gql_version}. Please install version 2.')
+        else:
+            # assume pre-3 versions are OK
+            pass
+
     def print(self):
         """Prints out debugging information about the session."""
+        print('client_version = ', self.client_version)
         print('host = ', self.host)
         print('credentials = ', self.credentials)
         print('options = ', self.options)
@@ -651,10 +688,6 @@ fragment TaskFragment on Task {
             The `data` item of the GraphQL response, a Python `dict` with an
             item whose key is the GraphQL query name for the request.
 
-        errors (list):
-            The `errors` item of the GraphQL response. Each item in the list
-            is guaranteed to have a `message` item.
-
         # Raises
         GraphQLError
             If no data was returned by the query request, a `GraphQLError` is raised,
@@ -663,12 +696,9 @@ fragment TaskFragment on Task {
         if self.gql.schema:
             self.gql.validate(document)
 
-        try:
-            result = self.gql._get_result(
-                document, variable_values=vars, timeout=timeout)
-            return result.data
-        except Exception as e:
-            raise GraphQLError(str(e))
+        data, errors = self.call_api(document, vars, timeout=timeout)
+        self._raise_exception_on_error(data, errors)
+        return data
 
     def call_api(self, document, vars, timeout=None):
         """Performs validation on the GraphQL query or mutation document and then
@@ -948,12 +978,8 @@ subscription TaskUpdated($sessionId: String!) {
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    self.options['auto_export_path'] = config.get(
-                        'auto_export_path', self.options['auto_export_path'])
-                    self.options['auto_generate_next_design'] = config.get(
-                        'auto_generate_next_design', self.options['auto_generate_next_design'])
-                    self.options['auto_task_timeout'] = config.get(
-                        'auto_task_timeout', self.options['auto_task_timeout'])
+                    for optname in self.options.keys():
+                        self.options[optname] = config.get(optname, self.options[optname])
                     return True
             except:
                 raise InvalidConfigError(config_path)
@@ -971,14 +997,26 @@ subscription TaskUpdated($sessionId: String!) {
                 self.credentials = (username, password)
         self.options['auto_export_path'] = os.getenv(
             'DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
-        auto_generate_next_design = os.getenv(
-            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN')
-        if auto_generate_next_design is not None:
-            self.options['auto_generate_next_design'] = auto_generate_next_design.lower(
-            ) in ("true", "t", "yes", "y", "on", "enabled", "1")
-        auto_task_timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
-        if auto_task_timeout is not None:
-            self.options['auto_task_timeout'] = float(auto_task_timeout)
+        self.options['auto_generate_next_design'] = self._boolean_env_var(
+            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN', self.options['auto_generate_next_design'])
+        self.options['auto_task_timeout'] = self._float_env_var(
+            'DAPTICS_AUTO_TASK_TIMEOUT', self.options['auto_task_timeout'])
+        self.options['run_tasks_async'] = self._boolean_env_var(
+            'DAPTICS_RUN_TASKS_ASYNC', self.options['run_tasks_async'])
+        self.options['verify_ssl_certificates'] = self._boolean_env_var(
+            'DAPTICS_VERIFY_SSL_CERTIFICATES', self.options['verify_ssl_certificates'])
+
+    def _float_env_var(self, varname, default):
+        value = os.getenv(varname)
+        if value is None:
+            return default
+        return float(value)
+
+    def _boolean_env_var(self, varname, default):
+        value = os.getenv(varname)
+        if value is None:
+            return default
+        return value.lower() in ('true', 't', 'yes', 'y', 'on', 'enabled', '1')
 
     def connect(self):
         """Reads and processes client configuration, and instantiates the client if it has not
@@ -986,7 +1024,13 @@ subscription TaskUpdated($sessionId: String!) {
         `api_url` attribute, and attempts to connect to the introspection interface.
         The `gql.Client` value is stored in the client's `gql` attribute.
 
+        # Returns
+        Nothing
+
         # Raises
+        IncompatibleApiError
+            If the API at `self.host` requires a higher client version number.
+
         MissingConfigError
             If the config file specified does not exist.
 
@@ -999,9 +1043,6 @@ subscription TaskUpdated($sessionId: String!) {
 
         requests.exceptions.ConnectionError
             If the connection cannot be made.
-
-        # Notes
-        There is nothing returned by this method.
         """
         if self.gql is None:
             self.init_config()
@@ -1011,10 +1052,44 @@ subscription TaskUpdated($sessionId: String!) {
             ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
             http = gql.transport.requests.RequestsHTTPTransport(
-                self.api_url, auth=self.auth, use_json=True)
+                self.api_url, 
+                auth=self.auth, 
+                use_json=True, 
+                verify=self.options['verify_ssl_certificates'])
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 
+        compat = self.check_api_compatibility()
+        if compat['compatible'] is not None and not compat['compatible']:
+            raise IncompatibleApiError(self.host, compat['minimumClientVersion'])
+
+    def check_api_compatibility(self):
+        """Checks the version of this client against the requirements of
+        the api at the connected host.
+
+        # Returns
+        dict containing `minimumClientVersion` and compatibility information.
+
+        # Raises
+        Exception if the (older) API does not support checking version 
+        compatibility.
+        """
+
+        vars = {
+            'clientVersion': self.client_version
+        }
+        doc = gql.gql("""
+        query ClientCompatibility($clientVersion:String!) {
+            clientCompatibility(clientVersion:$clientVersion) {
+                version minimumClientVersion compatible changes {
+                    path message level safe
+                }
+            }
+        }
+        """)
+        data = self.execute_query(doc, vars)
+        return data['clientCompatibility']
+        
     def login(self, email=None, password=None):
         """Authenticates to a user record in the database as identified in the client's
         `email` and `password` attributes, and create an access token.
@@ -1048,7 +1123,8 @@ subscription TaskUpdated($sessionId: String!) {
 
         # Notes
         On successful authentication, the user id and access token
-        are stored in the client's `user_id` and `auth` attributes.
+        are stored in the client's `user_id` and `auth` attributes. On failure
+        the value of the `login` item in the returned dict will be `None`. 
         """
 
         if email is None or password is None:
@@ -2775,13 +2851,10 @@ mutation CreateAnalytics($sessionId:String!) {
             gen = analytics.get('gen')
             path = os.path.abspath(directory)
 
-            # Access token is added as query string
-            params = {}
-            if self.auth and self.auth.token:
-                params['token'] = self.auth.token
             for file in analytics['files']:
                 if 'url' in file and 'filename' in file:
-                    response = requests.get(file['url'], params=params)
+                    url, params = self.download_url_and_params(file['url'])
+                    response = requests.get(url, params=params)
                     if response.status_code == requests.codes.ok and response.content is not None:
                         if file_count == 0:
                             os.makedirs(path, exist_ok=True)
@@ -2795,7 +2868,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
         return file_count
 
-    def download_analytics_file(self, url, fname):
+    def download_analytics_file(self, file_url, fname):
         """Gets the contents of an analytics file. Once a URL to a particular analytics file
         has been obtained from the result of an "analytics" task, specify the `url` and `filename`
         values from the result as the arguments to this convenience method to request the file's
@@ -2821,15 +2894,39 @@ mutation CreateAnalytics($sessionId:String!) {
              file system location.
         """
 
-        # Access token is added as query string
-        params = {}
-        if self.auth and self.auth.token:
-            params['token'] = self.auth.token
+        url, params = self.download_url_and_params(file_url)
         response = requests.get(url, params=params)
         if response.status_code == requests.codes.ok and response.content is not None:
             with open(fname, "wb") as pdf_file:
                 pdf_file.write(response.content)
         return response
+
+    def download_url_and_params(self, url):
+        """Strips the query string from the given url, then checks to see if
+        there is a 'token' entry in it. If not, uses the client's authentication 
+        token if it exists.
+
+        # Arguments
+        url (str):
+            The download url, usually with query string containing an encrpyted token.
+
+        # Returns
+        (url, params):
+            A 2-tuple containing the url minus the query string, and a params
+            Python dictionary, containing the token.
+        """
+        # Extract params as a Dict, insert token if necessary
+        params = {}
+        parsed = urllib.parse.urlparse(url, allow_fragments=False)
+        if len(parsed.query) > 0:
+            params = urllib.parse.parse_qs(parsed.query)
+        if 'token' not in params and self.auth and self.auth.token:
+            params['token'] = self.auth.token
+
+        # Rebuild url with empty params, query, and fragment
+        url_without_query = (parsed.scheme, parsed.netloc,
+                             parsed.path, '', '', '')
+        return (urllib.parse.urlunparse(url_without_query), params)
 
     def export_csv(self, fname, table, headers=True):
         """Writes an experimental space or experiments table to a CSV file on disk.

@@ -1,5 +1,94 @@
 # Changelog
 
+## v0.12.0 (15/07/2021)
+
+* Updated URL to new server (v0.14) at https://api.daptics.ai, with new
+task API for "create", "update" and "analytics" tasks.
+* GraphQL schema breaking changes:
+    ❌ Type `Loadavg` was removed
+    ❌ Type `SessionAuth` was removed
+    ❌ Type `FinalizeTaskResult` was removed
+    ❌ Type `Server` was removed
+    ❌ Input Field `passwordConfirmation` removed from input type `NewUserInput`
+    ❌ Field `regDate` was removed from object type `User`
+    ❌ Field `finalizeCampaign` was removed from object type `RootMutationType`
+    ❌ Field `saveSessionParameters` was removed from object type `RootMutationType`
+    ❌ Field `verifyUser` was removed from object type `RootMutationType`
+    ❌ Field `saveExperiments` was removed from object type `RootMutationType`
+    ❌ `RootMutationType.createAnalytics` type changed from `Analytics` to `Task`
+    ❌ Field `userLevel` was removed from object type `UserSummary`
+    ❌ Field `regDate` was removed from object type `UserSummary`
+    ❌ Field `regDate` was removed from object type `UserCreated`
+    ❌ Field `startedAt` was removed from object type `Session`
+    ❌ Field `path` was removed from object type `Session`
+    ❌ Field `restartedAt` was removed from object type `Session`
+    ❌ `Session.auth` type changed from `SessionAuth` to `AuthenticationToken`
+    ❌ Field `path` was removed from object type `SessionSummary`
+    ❌ Field `campaign` was removed from object type `SessionSummary`
+    ❌ Field `params` was removed from object type `SessionSummary`
+    ❌ Field `user` was removed from object type `SessionSummary`
+    ❌ Field `server` was removed from object type `RootQueryType`
+    ❌ Field `servers` was removed from object type `RootQueryType`
+    ❌ Removed argument `includeArchivedTasks` from `RootQueryType.tasks`
+    ❌ Field `regDate` was removed from object type `UserProfile`
+    ❌ Input Field `type: String!` was added to input type `ExperimentsInput`
+    ❌ Input Field `passwordConfirmation` removed from input type `ChangePasswordInput`
+    ❌ Union member `FinalizeTaskResult` was removed from `TaskResult` Union type
+    ❌ Schema subscription root has changed from `None` to `RootSubscriptionType`
+* Dangerous changes:
+    ⚠️ Union member `AnalyticsTaskResult` was added to `TaskResult` Union type
+    ⚠️ Union member `UpdateTaskResult` was added to `TaskResult` Union type
+    ⚠️ Union member `CreateTaskResult` was added to `TaskResult` Union type
+* Non-breaking changes:
+    ✔️ Type `SchemaChange` was added
+    ✔️ Type `SchemaVersionInfo` was added
+    ✔️ Type `RootSubscriptionType` was added
+    ✔️ Type `SessionUpdated` was added
+    ✔️ Type `AnalyticsTaskResult` was added
+    ✔️ Type `UpdateSessionInput` was added
+    ✔️ Type `CreateTaskResult` was added
+    ✔️ Type `UpdateTaskResult` was added
+    ✔️ Field `confirmedAt` was added to object type `User`
+    ✔️ Field `lastActiveSession` was added to object type `User`
+    ✔️ Field `termsVersionAgreed` was added to object type `User`
+    ✔️ Field `disabledAt` was added to object type `User`
+    ✔️ Field `registeredAt` was added to object type `User`
+    ✔️ Field `path` was added to object type `CategorizedError`
+    ✔️ Field `gen` was added to object type `TaskSummary`
+    ✔️ Field `archived` was added to object type `TaskSummary`
+    ✔️ Field `putExperimentalParameters` was added to object type `RootMutationType`
+    ✔️ Field `confirmUser` was added to object type `RootMutationType`
+    ✔️ Field `agreeToTerms` was added to object type `RootMutationType`
+    ✔️ Field `generateDesign` was added to object type `RootMutationType`
+    ✔️ Field `putExperiments` was added to object type `RootMutationType`
+    ✔️ Field `updateSession` was added to object type `RootMutationType`
+    ✔️ Field `lastActiveSession` was added to object type `UserSummary`
+    ✔️ Field `registeredAt` was added to object type `UserSummary`
+    ✔️ Field `termsVersionAgreed` was added to object type `UserSummary`
+    ✔️ Field `registeredAt` was added to object type `UserCreated`
+    ✔️ Field `lastStartedAt` was added to object type `Session`
+    ✔️ Field `designedExperimentsCount` was added to object type `Session`
+    ✔️ Field `extraExperimentsCount` was added to object type `Session`
+    ✔️ Field `totalCost` was added to object type `Session`
+    ✔️ Field `parameterCount` was added to object type `SessionSummary`
+    ✔️ Field `totalCost` was added to object type `SessionSummary`
+    ✔️ Field `userId` was added to object type `SessionSummary`
+    ✔️ Field `lastStartedAt` was added to object type `SessionSummary`
+    ✔️ Field `spaceType` was added to object type `SessionSummary`
+    ✔️ Field `gen` was added to object type `SessionSummary`
+    ✔️ Field `designedExperimentsCount` was added to object type `SessionSummary`
+    ✔️ Field `extraExperimentsCount` was added to object type `SessionSummary`
+    ✔️ Field `designCost` was added to object type `SessionSummary`
+    ✔️ Field `gen` was added to object type `Task`
+    ✔️ Field `clientCompatibility` was added to object type `RootQueryType`
+    ✔️ Argument `active: Boolean` added to `RootQueryType.sessions`
+    ✔️ Argument `demo: Boolean` added to `RootQueryType.sessions`
+    ✔️ Argument `includeArchived: Boolean` added to `RootQueryType.tasks`
+    ✔️ Field `termsVersionAgreed` was added to object type `UserProfile`
+    ✔️ Field `updatedAt` was added to object type `UserProfile`
+    ✔️ Field `status` was added to object type `UserProfile`
+    ✔️ Field `registeredAt` was added to object type `UserProfile`
+
 
 ## v0.9.3 (23/01/2020)
 

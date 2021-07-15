@@ -13,6 +13,24 @@
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>clientCompatibility</strong></td>
+<td valign="top"><a href="#schemaversioninfo">SchemaVersionInfo</a></td>
+<td>
+
+Check to see if the Python API client is compatible with the current schema
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">clientVersion</td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+A semantic version to check against (like '0.8')
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>currentTask</strong></td>
 <td valign="top"><a href="#task">Task</a></td>
 <td>
@@ -103,56 +121,11 @@ The session's id.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>server</strong></td>
-<td valign="top"><a href="#server">Server</a></td>
-<td>
-
-Get the server by id. Admin-level users only.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">serverId</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The server's id (unique name, like 'localhost').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>servers</strong></td>
-<td valign="top">[<a href="#server">Server</a>]</td>
-<td>
-
-Search all servers. Admin-level users only.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">q</td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-A string to filter search on. If provided, will limit the response to matches on a server's name or url.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">status</td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-Status to filter search on ('up' or 'down'). If provided, will limit the response to matches on a server's current runtime status.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>session</strong></td>
 <td valign="top"><a href="#session">Session</a></td>
 <td>
 
-Get PDT session information. For admin-level user, get the session by id. For non-admin user, get the session only if it is owned by the user.
+Get session information. For admin-level user, get the session by id. For non-admin user, get the session only if it is owned by the user.
 
 </td>
 </tr>
@@ -387,6 +360,34 @@ A string to filter search on. If provided, will limit the response to matches on
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>agreeToTerms</strong></td>
+<td valign="top"><a href="#userprofile">UserProfile</a></td>
+<td>
+
+Confirm acceptance that a user has agreed to a version of the daptics terms and conditions.
+If successful (version is valid), return the user account profile.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">userId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The user's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">version</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The version of the terms and conditions that the user is agreeing to, a semantic version string like '1.0.0'
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>changePassword</strong></td>
 <td valign="top"><a href="#passwordchanged">PasswordChanged</a></td>
 <td>
@@ -414,6 +415,25 @@ The user's id, required if not authenticating via token.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>confirmUser</strong></td>
+<td valign="top"><a href="#userprofile">UserProfile</a></td>
+<td>
+
+Confirm and activate an inactive user account. If successful (token matches
+and has not expired and user account is inactive), return the user account profile.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">token</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The confirmation token that was emailed to the user.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>createAnalytics</strong></td>
 <td valign="top"><a href="#task">Task</a></td>
 <td>
@@ -436,7 +456,7 @@ The session's id.
 <td valign="top"><a href="#session">Session</a></td>
 <td>
 
-Create and start a new PDT session on a server, installing and initializing required application and user data files on the server.
+Create and start a new session on a server, installing and initializing required application and user data files on the server.
 
 </td>
 </tr>
@@ -454,7 +474,7 @@ The target server, the session's name and description, and whether this is a dem
 <td valign="top"><a href="#usercreated">UserCreated</a></td>
 <td>
 
-Create an unverified user account. The account's email address must be verified before it is activated.
+Create an unconfirmed user account. The account's email address must be confirmed before it is activated.
 
 </td>
 </tr>
@@ -463,7 +483,7 @@ Create an unverified user account. The account's email address must be verified 
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If true, an email message with a verification link will be mailed to the user.
+If true, an email message with a confirmation link will be mailed to the user.
 
 </td>
 </tr>
@@ -517,7 +537,7 @@ The session's id.
 <td valign="top"><a href="#haltsessionresult">HaltSessionResult</a></td>
 <td>
 
-Disconnect from a previously created PDT session.
+Disconnect from a previously created session.
 
 </td>
 </tr>
@@ -634,7 +654,7 @@ The session's id.
 <td valign="top"><a href="#session">Session</a></td>
 <td>
 
-Restart a previously created PDT session, re-initializing application and user data files.
+Restart a previously created session, re-initializing application and user data files.
 
 </td>
 </tr>
@@ -688,7 +708,7 @@ The session's id.
 <td valign="top"><a href="#tokensent">TokenSent</a></td>
 <td>
 
-Create and send a new verification or password reset token to a user.
+Create and send a new confirmation or password reset token to a user.
 
 </td>
 </tr>
@@ -706,7 +726,7 @@ The user's email address.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The type of token requested (`verify` or `reset`).
+The type of token requested (`confirm` or `reset`).
 
 </td>
 </tr>
@@ -734,6 +754,33 @@ Generate simulated experiment responses for the current generation.
 <td>
 
 The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>updateSession</strong></td>
+<td valign="top"><a href="#sessionupdated">SessionUpdated</a></td>
+<td>
+
+Update the name, description and/or active status for an existing session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">changes</td>
+<td valign="top"><a href="#updatesessioninput">UpdateSessionInput</a></td>
+<td>
+
+Fields to be updated in the sesssion.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">sessionId</td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The sesssion's id.
 
 </td>
 </tr>
@@ -788,28 +835,6 @@ The first name, last name, email address and other information about the user.
 <td>
 
 The user's id.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>verifyUser</strong></td>
-<td valign="top"><a href="#userprofile">UserProfile</a></td>
-<td>
-
-Verify and activate an inactive user account. If successful (token matches
-and has not expired and user account is inactive), return the user account profile.
-Normally, verification tokens are sent to a non-API endpoint, but this
-mutation can also be used.
-
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">token</td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The verification token that was emailed to the user.
 
 </td>
 </tr>
@@ -899,7 +924,7 @@ The file's title, like 'Response Barplot Time Series'.
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The file's url, like 'http://localhost:4041/session/sess_id/analytics/gen/1/RespSortBarplotSequence.pdf'.
+The file's url, like 'https://api-files.daptics.ai/session/session_id/analytics/gen/1/RespSortBarplotSequence.pdf'.
 
 </td>
 </tr>
@@ -908,7 +933,7 @@ The file's url, like 'http://localhost:4041/session/sess_id/analytics/gen/1/Resp
 
 ### AnalyticsTaskResult
 
-Result of a create analyticss task.
+Result of a create analytics task.
 
 <table>
 <thead>
@@ -1632,50 +1657,6 @@ The current connection status of the session.
 </tbody>
 </table>
 
-### Loadavg
-
-Process loadavg statistics for a linux server.
-
-<table>
-<thead>
-<tr>
-<th align="left">Field</th>
-<th align="right">Argument</th>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td colspan="2" valign="top"><strong>load1</strong></td>
-<td valign="top"><a href="#float">Float</a></td>
-<td>
-
-1 minute loadavg.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>load15</strong></td>
-<td valign="top"><a href="#float">Float</a></td>
-<td>
-
-15 minute loadavg.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>load5</strong></td>
-<td valign="top"><a href="#float">Float</a></td>
-<td>
-
-5 minute loadavg.
-
-</td>
-</tr>
-</tbody>
-</table>
-
 ### PasswordChanged
 
 Confirming information for a password change.
@@ -1735,9 +1716,9 @@ Filter by session: the id of the session whose tasks are to be be monitored.
 </tbody>
 </table>
 
-### Server
+### SchemaChange
 
-Information about a PDT server.
+Information about a change to the schema.
 
 <table>
 <thead>
@@ -1750,101 +1731,100 @@ Information about a PDT server.
 </thead>
 <tbody>
 <tr>
-<td colspan="2" valign="top"><strong>bindir</strong></td>
+<td colspan="2" valign="top"><strong>level</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The server's filesystem path to basic executable scripts (deprecated).
+The criticality of the change: `breaking`, `dangerous` or `non_breaking`.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>cores</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-The number of cores reported for the server.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>cost</strong></td>
-<td valign="top"><a href="#float">Float</a></td>
-<td>
-
-The last calulated cost metric for the server.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>host</strong></td>
+<td colspan="2" valign="top"><strong>message</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The server's fully qualified hostname.
+A description of the change.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>loadavg</strong></td>
-<td valign="top"><a href="#loadavg">Loadavg</a></td>
-<td>
-
-The last reported loadavg statistics for the server.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>procs</strong></td>
-<td valign="top"><a href="#int">Int</a></td>
-<td>
-
-The last reported number of processes running on the server.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>serverId</strong></td>
+<td colspan="2" valign="top"><strong>path</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The server's id (a unique nickname or unqualified hostname).
+The path to the changed field.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>sshHost</strong></td>
+<td colspan="2" valign="top"><strong>safe</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if the change will not break existing contracts.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### SchemaVersionInfo
+
+Information about the current schema version.
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>changes</strong></td>
+<td valign="top">[<a href="#schemachange">SchemaChange</a>]!</td>
+<td>
+
+Descriptions of any changes since the specified client version.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>compatible</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+True if there are no breaking or dangerous changes with the specified client version.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>maximumClientVersion</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The maximum Python client version required, if applicable.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>minimumClientVersion</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The server's SSH hostname (deprecated).
+The minimum Python client version required.
 
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>status</strong></td>
+<td colspan="2" valign="top"><strong>version</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The server's current runtime status ('up' or 'down').
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>updatedAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a>!</td>
-<td>
-
-The date and time that the data for the server was last updated.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>url</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The server's root URL.
+The current API schema version number.
 
 </td>
 </tr>
@@ -1920,6 +1900,15 @@ The session's description.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>designedExperimentsCount</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total number of designed experiments submitted, if available.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>didCrash</strong></td>
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
@@ -1947,11 +1936,29 @@ Designed experiments for current generation.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>extraExperimentsCount</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total number of initial and extra experiments submitted, if available.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>host</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
 The id for the server associated with the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>lastStartedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a></td>
+<td>
+
+The date and time that this session was last started.
 
 </td>
 </tr>
@@ -2010,15 +2017,6 @@ Experimental space parameter templates that can be used as examples.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>startedAt</strong></td>
-<td valign="top"><a href="#datetime">DateTime</a></td>
-<td>
-
-The date and time that this session was last started.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>tag</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
@@ -2033,6 +2031,15 @@ The session's (unique) tag.
 <td>
 
 Non-archived tasks, active or completed, in this session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>totalCost</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total daptics credit charges for the campaign, if available.
 
 </td>
 </tr>
@@ -2059,7 +2066,7 @@ The build version for the session, if available.
 
 ### SessionParameters
 
-Information about the experimental space parameters for a PDT session.
+Information about the experimental space parameters for a session.
 
 <table>
 <thead>
@@ -2076,7 +2083,7 @@ Information about the experimental space parameters for a PDT session.
 <td valign="top"><a href="#int">Int</a></td>
 <td>
 
-If the experimental space has been validated, the cost in PDT credits for each design generation.
+If the experimental space has been validated, the cost in daptic credits for each design generation.
 
 </td>
 </tr>
@@ -2143,11 +2150,172 @@ True if this is an active (non-archived) session.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>campaign</strong></td>
-<td valign="top"><a href="#campaigninfo">CampaignInfo</a></td>
+<td colspan="2" valign="top"><strong>demo</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-Generation information, if available.
+True if this was created as a demo session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>description</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's description.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>designCost</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+The cost in daptic credits for each design generation, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>designedExperimentsCount</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total number of designed experiments submitted, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>extraExperimentsCount</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total number of initial and extra experiments submitted, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>gen</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+The current generation number, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>host</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The id for the server associated with the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>lastStartedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a></td>
+<td>
+
+The date and time that this session was last started.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>name</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's name (unique for the associated user).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>parameterCount</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+The number of experimental space parameters, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sessionId</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's id.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>spaceType</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+Space type, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>tag</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The session's (unique) tag.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>totalCost</strong></td>
+<td valign="top"><a href="#int">Int</a></td>
+<td>
+
+Total daptics credit charges for the campaign, if available.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>userId</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The id of the user associated with the session.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>version</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The build version for the session, if available.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### SessionUpdated
+
+Confirming information for a session update (name, description and/or active status).
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>active</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if this is an active (non-archived) session.
 
 </td>
 </tr>
@@ -2188,15 +2356,6 @@ The session's name (unique for the associated user).
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>params</strong></td>
-<td valign="top"><a href="#sessionparameters">SessionParameters</a></td>
-<td>
-
-Current unvalidated or validated experimental space parameters, if available.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>sessionId</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
@@ -2215,11 +2374,11 @@ The session's (unique) tag.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>user</strong></td>
-<td valign="top"><a href="#userprofile">UserProfile</a></td>
+<td colspan="2" valign="top"><strong>updatedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a>!</td>
 <td>
 
-The user profile associated with the session.
+The time that the session was updated.
 
 </td>
 </tr>
@@ -2450,7 +2609,7 @@ Progress message reported by a currently executing task.
 <td valign="top"><a href="#taskresult">TaskResult</a></td>
 <td>
 
-The validated session parameters or generated experimental design result returned by a completed task.
+The result returned if the task has completed (null otherwise).
 
 </td>
 </tr>
@@ -2561,11 +2720,29 @@ Summary information on a long-running task in a daptics session.
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>archived</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td>
+
+True if the task is no longer active and has been flagged as archived.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>description</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
 The task's description.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>gen</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The generation number when the task was started.
 
 </td>
 </tr>
@@ -2619,7 +2796,7 @@ The task's type ('space', 'update', 'generate', 'simulate', or 'analytics').
 
 ### TokenSent
 
-Confirming information returned when a verification code was sent to an unverified user.
+Confirming information returned when a confirmation code was sent to an unconfirmed user.
 
 <table>
 <thead>
@@ -2689,7 +2866,7 @@ The amount of the transaction (debit as negative, credit as positive), in cents.
 <td valign="top"><a href="#int">Int</a>!</td>
 <td>
 
-The amount of the transaction (debit as negative, credit as positive), in PDT credits.
+The amount of the transaction (debit as negative, credit as positive), in daptic credits.
 
 </td>
 </tr>
@@ -2752,7 +2929,7 @@ The user account's remaining available balance, in cents, after this transaction
 <td valign="top"><a href="#int">Int</a></td>
 <td>
 
-The user account's remaining available balance, in PDT credits, after this transaction.
+The user account's remaining available balance, in daptic credits, after this transaction.
 
 </td>
 </tr>
@@ -2980,6 +3157,15 @@ The user's company.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>confirmedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a></td>
+<td>
+
+The date and time that the user's account was confirmed.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>country</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -3002,7 +3188,16 @@ The currently available balance for the user's account, in cemts.
 <td valign="top"><a href="#int">Int</a>!</td>
 <td>
 
-The currently available balance for the user's account, in PDT credits.
+The currently available balance for the user's account, in daptic credits.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>disabledAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a></td>
+<td>
+
+The date and time that the user's account was disabled.
 
 </td>
 </tr>
@@ -3038,7 +3233,7 @@ The session id of the last active session.
 <td valign="top"><a href="#datetime">DateTime</a></td>
 <td>
 
-The date and time that the user account last logged into a PDT session.
+The date and time that the user account last logged into a session.
 
 </td>
 </tr>
@@ -3061,7 +3256,7 @@ The user's telephone number.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>regDate</strong></td>
+<td colspan="2" valign="top"><strong>registeredAt</strong></td>
 <td valign="top"><a href="#datetime">DateTime</a>!</td>
 <td>
 
@@ -3092,7 +3287,7 @@ The user's state or province code (3 characters maximum).
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The user's account status ('unverified', 'active', or 'disabled').
+The user's account status ('unconfirmed', 'active', or 'disabled').
 
 </td>
 </tr>
@@ -3102,6 +3297,15 @@ The user's account status ('unverified', 'active', or 'disabled').
 <td>
 
 The user's suffix (`Jr.`, etc.).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>termsVersionAgreed</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The version of the terms and conditions that the user has agreed to.
 
 </td>
 </tr>
@@ -3204,7 +3408,7 @@ The promotion code applied to the new user account.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>regDate</strong></td>
+<td colspan="2" valign="top"><strong>registeredAt</strong></td>
 <td valign="top"><a href="#datetime">DateTime</a>!</td>
 <td>
 
@@ -3320,7 +3524,7 @@ The user's telephone number.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>regDate</strong></td>
+<td colspan="2" valign="top"><strong>registeredAt</strong></td>
 <td valign="top"><a href="#datetime">DateTime</a>!</td>
 <td>
 
@@ -3338,6 +3542,15 @@ The user's state or province code (3 characters maximum).
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>status</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The user's account status ('unconfirmed', 'active', or 'disabled').
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>suffix</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -3347,11 +3560,29 @@ The user's suffix (`Jr.`, etc.).
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>termsVersionAgreed</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The version of the terms and conditions that the user has agreed to.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>title</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
 
 The user's title (`Mr.`, etc.).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>updatedAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a>!</td>
+<td>
+
+The date and time that the user's account was last modified.
 
 </td>
 </tr>
@@ -3458,7 +3689,7 @@ The currently available balance for the user's account, in cemts.
 <td valign="top"><a href="#int">Int</a>!</td>
 <td>
 
-The currently available balance for the user's account, in PDT credits.
+The currently available balance for the user's account, in daptic credits.
 
 </td>
 </tr>
@@ -3494,7 +3725,7 @@ The session id of the last active session.
 <td valign="top"><a href="#datetime">DateTime</a></td>
 <td>
 
-The date and time that the user account last logged into a PDT session.
+The date and time that the user account last logged into a session.
 
 </td>
 </tr>
@@ -3517,7 +3748,7 @@ The user's telephone number.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>regDate</strong></td>
+<td colspan="2" valign="top"><strong>registeredAt</strong></td>
 <td valign="top"><a href="#datetime">DateTime</a>!</td>
 <td>
 
@@ -3539,7 +3770,7 @@ The user's state or province code (3 characters maximum).
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
 
-The user's account status ('unverified', 'active', or 'disabled').
+The user's account status ('unconfirmed', 'active', or 'disabled').
 
 </td>
 </tr>
@@ -3549,6 +3780,15 @@ The user's account status ('unverified', 'active', or 'disabled').
 <td>
 
 The user's suffix (`Jr.`, etc.).
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>termsVersionAgreed</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+The version of the terms and conditions that the user has agreed to.
 
 </td>
 </tr>
@@ -3668,15 +3908,6 @@ The cleartext password for the user account.
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top"><strong>passwordConfirmation</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The cleartext password, again, for the user account.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" valign="top"><strong>token</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -3776,7 +4007,7 @@ The type of experiments being submitted, 'initial', 'designed', or 'final'.
 
 ### NewSessionInput
 
-Input fields for create a new PDT session.
+Input fields for creating a new session.
 
 <table>
 <thead>
@@ -3881,15 +4112,6 @@ The user's last name.
 <td>
 
 The cleartext password for the user account.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>passwordConfirmation</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
-<td>
-
-The cleartext password, again, for the user account.
 
 </td>
 </tr>
@@ -4037,6 +4259,49 @@ To cancel this task, set the `status` field to 'canceled'.
 <td>
 
 The task's id.
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### UpdateSessionInput
+
+Input fields for updating a session.
+
+<table>
+<thead>
+<tr>
+<th colspan="2" align="left">Field</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>active</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If provided, whether the session should be listed as active.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>description</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, the updated description for the  sesssion.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>name</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If provided, the updated name for the sesssion.
 
 </td>
 </tr>
@@ -4198,12 +4463,6 @@ timezone. The DateTime appears in a JSON response as an ISO8601 formatted
 string, including UTC timezone ("Z"). The parsed date and time string will
 be converted to UTC if there is an offset.
 
-### Float
-
-The `Float` scalar type represents signed double-precision fractional
-values as specified by
-[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
-
 ### Int
 
 The `Int` scalar type represents non-fractional signed whole numeric values.
@@ -4217,3 +4476,42 @@ The `String` scalar type represents textual data, represented as UTF-8
 character sequences. The String type is most often used by GraphQL to
 represent free-form human-readable text.
 
+
+## Unions
+
+### TaskResult
+
+The result returned by a completed task.
+
+<table>
+<thead>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</thead>
+<tbody>
+<tr>
+<td valign="top"><strong><a href="#analyticstaskresult">AnalyticsTaskResult</a></strong></td>
+<td valign="top">Result of a create analytics task.</td>
+</tr>
+<tr>
+<td valign="top"><strong><a href="#createtaskresult">CreateTaskResult</a></strong></td>
+<td valign="top">Result of a create session task.</td>
+</tr>
+<tr>
+<td valign="top"><strong><a href="#generatetaskresult">GenerateTaskResult</a></strong></td>
+<td valign="top">Result of a validate experiments task.</td>
+</tr>
+<tr>
+<td valign="top"><strong><a href="#simulatetaskresult">SimulateTaskResult</a></strong></td>
+<td valign="top">Result of a simulate experiments task.</td>
+</tr>
+<tr>
+<td valign="top"><strong><a href="#spacetaskresult">SpaceTaskResult</a></strong></td>
+<td valign="top">Result of a validate experimental space parameters task.</td>
+</tr>
+<tr>
+<td valign="top"><strong><a href="#updatetaskresult">UpdateTaskResult</a></strong></td>
+<td valign="top">Result of a put experiments task.</td>
+</tr>
+</tbody>
+</table>

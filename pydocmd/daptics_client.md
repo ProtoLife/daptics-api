@@ -1,6 +1,6 @@
 ---
 description: |
-    API documentation for modules: daptics_client.
+    API documentation for modules: daptics_client, daptics_client.daptics_client.
 
 lang: en
 
@@ -12,6 +12,18 @@ linkcolor: blue
 links-as-notes: true
 ...
 
+
+
+
+    
+## Sub-modules
+
+* [daptics_client.daptics_client](#daptics_client.daptics_client)
+
+
+
+
+
 # Python API Client
 
 See comments and docstrings for the DapticsClient class in the code below
@@ -22,7 +34,7 @@ please visit or contact daptics:
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
 Daptics API Version 0.12.0
-Copyright (c) 2020 Daptics Inc.
+Copyright (c) 2021 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -62,15 +74,15 @@ IN THE SOFTWARE.
 Helper function to see if a future is done or canceled.
 
     
-### Function `default_task_coroutine`
+### Function `log_task_coroutine`
 
 
 
     
-> `async def default_task_coroutine(task, **kwargs)`
+> `async def log_task_coroutine(task, **kwargs)`
 
 
-The default coroutine (callback) that will be called asynchronously if the
+A useful coroutine (callback) that can be be called asynchronously if the
 "run_tasks_async" option has been set in the client. This coroutine logs
 progress information to a file named <code>daptics\_task.log</code> in the current directory.
 
@@ -142,6 +154,8 @@ config (str):
 
 <code>run\_tasks\_async</code> - see <code>options</code> below
 
+<code>verify\_ssl\_certificates</code> - see <code>options</code> below
+
 If `config is set to None, configuration can be read from OS environment
 variables, if they exist. The environment variable names are:
 
@@ -158,6 +172,8 @@ variables, if they exist. The environment variable names are:
 <code>DAPTICS\_AUTO\_TASK\_TIMEOUT</code> - see <code>options</code> below
 
 <code>DAPTICS\_RUN\_TASKS\_ASYNC</code> - see <code>options</code> below
+
+<code>DAPTICS\_VERIFY\_SSL\_CERTIFICATES</code> - see <code>options</code> below
 
 options (dict):
     A Python <code>dict</code> containing runtime options. As of this version, there
@@ -185,6 +201,11 @@ just once. The default, None, means that the user wants to explicitly call
 and <code>create\_analytics</code>) will be run in an asynchronous event loop. Normally
 you will only set this flag if you want to receive progress information via
 a coroutine (callback) function.
+
+<code>verify\_ssl\_certificates</code> - If set (True), strict checking of
+the validity of the API server's SSL certificates will be done when the
+<code>connect</code> method is called. Set this to False, with extreme caution, to
+disable this check.
 
 
     
@@ -227,6 +248,11 @@ The full API endpoint URL.
 
 A <code>requests.auth</code> object used to insert the required authorization
 header in API requests. The auth object's <code>token</code> attribute is set by the <code>login</code> method.
+
+    
+##### Variable `client_version`
+
+The version number of this client.
 
     
 ##### Variable `completed`
@@ -308,6 +334,11 @@ The session id for a connected Daptics session, as set by the <code>create\_sess
 The name of the connected Daptics session, as set by the <code>create\_session</code> method.
 
     
+##### Variable `session_tag`
+
+The tag (a read-only identifier) of the connected Daptics session, as set by the <code>create\_session</code> method.
+
+    
 ##### Variable `task_info`
 
 A Python <code>dict</code> that holds information about the polling status for
@@ -329,7 +360,7 @@ current task. Generally, you should return <code>False</code> if the <code>statu
 value of the task does not have the value "running", meaning that the
 the task has completed or failed.
 
-Here's a simple example of a coroutine. See the code for <code>[default\_task\_coroutine()](#daptics\_client.default\_task\_coroutine)</code>
+Here's a simple example of a coroutine. See the code for <code>[log\_task\_coroutine()](#daptics\_client.daptics\_client.log\_task\_coroutine)</code>
 in this module for another example.
 
 ```
@@ -409,6 +440,25 @@ Either <code>data</code> or <code>errors</code> may be <code>None</code>. Except
 request are converted into an item in the <code>errors</code> list.
 
     
+##### Method `check_api_compatibility`
+
+
+
+    
+> `def check_api_compatibility(self)`
+
+
+Checks the version of this client against the requirements of
+the api at the connected host.
+
+##### Returns
+dict containing <code>minimumClientVersion</code> and compatibility information.
+
+##### Raises
+Exception if the (older) API does not support checking version 
+compatibility.
+
+    
 ##### Method `connect`
 
 
@@ -422,7 +472,13 @@ been done before. Creates an HTTP transport instance from the client's
 <code>api\_url</code> attribute, and attempts to connect to the introspection interface.
 The <code>gql.Client</code> value is stored in the client's <code>gql</code> attribute.
 
+##### Returns
+Nothing
+
 ##### Raises
+IncompatibleApiError
+    If the API at <code>self.host</code> requires a higher client version number.
+
 MissingConfigError
     If the config file specified does not exist.
 
@@ -435,9 +491,6 @@ NoHostError
 
 requests.exceptions.ConnectionError
     If the connection cannot be made.
-
-##### Notes
-There is nothing returned by this method.
 
     
 ##### Method `create_session`
@@ -508,7 +561,7 @@ PermissionError
 
 
     
-> `def download_analytics_file(self, url, fname)`
+> `def download_analytics_file(self, file_url, fname)`
 
 
 Gets the contents of an analytics file. Once a URL to a particular analytics file
@@ -534,6 +587,28 @@ response (<code>requests.Response</code>)
 PermissionError
      If the user does not have permission to create a file at the specified
      file system location.
+
+    
+##### Method `download_url_and_params`
+
+
+
+    
+> `def download_url_and_params(self, url)`
+
+
+Strips the query string from the given url, then checks to see if
+there is a 'token' entry in it. If not, uses the client's authentication 
+token if it exists.
+
+##### Arguments
+url (str):
+    The download url, usually with query string containing an encrpyted token.
+
+##### Returns
+(url, params):
+    A 2-tuple containing the url minus the query string, and a params
+    Python dictionary, containing the token.
 
     
 ##### Method `error_messages`
@@ -565,7 +640,7 @@ message (str or list):
 
 
 Performs validation on the GraphQL query or mutation document and then
-executes the query. Converts errors returned by <code>gql</code> into <code>[GraphQLError](#daptics\_client.GraphQLError)</code>
+executes the query. Converts errors returned by <code>gql</code> into <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code>
 errors.
 
 ##### Arguments
@@ -583,13 +658,9 @@ data (dict):
     The <code>data</code> item of the GraphQL response, a Python <code>dict</code> with an
     item whose key is the GraphQL query name for the request.
 
-errors (list):
-    The <code>errors</code> item of the GraphQL response. Each item in the list
-    is guaranteed to have a <code>message</code> item.
-
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
     
@@ -808,7 +879,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ###### # Notes
@@ -930,7 +1001,7 @@ table (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
     
@@ -955,7 +1026,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
@@ -1047,7 +1118,7 @@ status (str):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
     
@@ -1102,7 +1173,7 @@ data (list):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
     
@@ -1159,12 +1230,13 @@ user (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
 On successful authentication, the user id and access token
-are stored in the client's <code>user\_id</code> and <code>auth</code> attributes.
+are stored in the client's <code>user\_id</code> and <code>auth</code> attributes. On failure
+the value of the <code>login</code> item in the returned dict will be <code>None</code>.
 
     
 ##### Method `poll_for_current_task`
@@ -1179,7 +1251,7 @@ If there is a currently running task saved in the client, poll the
 session to see if a result is ready.
 
 ##### Arguments
-task_type (<code>[DapticsTaskType](#daptics\_client.DapticsTaskType)</code>):
+task_type (<code>[DapticsTaskType](#daptics\_client.daptics\_client.DapticsTaskType)</code>):
     <code>SPACE</code>, <code>UPDATE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, <code>ANALYTICS</code>, or None.
 If None is supplied (the default), find the most recently started task of any type.
 
@@ -1399,7 +1471,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
@@ -1631,7 +1703,7 @@ for the current generation in the session. This method, or the
 next design, or finalizing the campaign.
 
 ##### Arguments
-experiments_type (<code>[DapticsExperimentsType](#daptics\_client.DapticsExperimentsType)</code>):
+experiments_type (<code>[DapticsExperimentsType](#daptics\_client.daptics\_client.DapticsExperimentsType)</code>):
     Describes the types of experiments that are being added to the session.
 
 If you wish to submit calibrating or existing experimental responses prior
@@ -1674,7 +1746,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
@@ -1733,7 +1805,7 @@ for the current generation in the session. This method, or the
 next design, or finalizing the campaign.
 
 ##### Arguments
-experiments_type (<code>[DapticsExperimentsType](#daptics\_client.DapticsExperimentsType)</code>):
+experiments_type (<code>[DapticsExperimentsType](#daptics\_client.daptics\_client.DapticsExperimentsType)</code>):
     Describes the types of experiments that are being added to the session.
 
     If you wish to submit calibrating or existing experimental responses prior
@@ -1916,7 +1988,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
@@ -1977,13 +2049,17 @@ will find one of the lower peaks.
 
 ##### Arguments
 experiments (dict):
-    A "table" of experiments that includes columns,
+    An optional "table" of experiments that includes columns,
     defined in the <code>colHeaders</code> value of the table, for each of the defined
     space parameters, and a column named 'Response' to record the result of
     experiments.
 
 Each row in the <code>data</code> value for the table represents
-an individual experiment.
+an individual experiment. If <code>experiments</code> is set to <code>None</code>, and 
+a generated design exists in the session (gen number is greater than zero),
+simulated responses for the design will be created and returned.
+It is an error to set <code>experiments</code> to <code>None</code> if no design has been
+generated in the session (gen number is less than or equal to zero).
 
 ##### Returns
 data (dict):
@@ -1993,7 +2069,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
     
@@ -2103,7 +2179,7 @@ data (dict):
 
 ##### Raises
 GraphQLError
-    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.GraphQLError)</code> is raised,
+    If no data was returned by the query request, a <code>[GraphQLError](#daptics\_client.daptics\_client.GraphQLError)</code> is raised,
     containing the message for the first item in the GraphQL response's <code>errors</code> list.
 
 ##### Notes
@@ -2231,10 +2307,10 @@ see the documentation for the <code>put\_experimental\_parameters</code> method.
 
 
 Wraps poll_for_current_task in a loop. Repeat until task disappears,
-when <code>status</code> is <code>success</code> or <code>failure</code>.
+when <code>status</code> is <code>success</code>, <code>failed</code>, or <code>canceled</code>.
 
 ##### Arguments
-task_type (<code>[DapticsTaskType](#daptics\_client.DapticsTaskType)</code>, optional):
+task_type (<code>[DapticsTaskType](#daptics\_client.daptics\_client.DapticsTaskType)</code>, optional):
     <code>SPACE</code>, <code>UPDATE</code>, <code>GENERATE</code>, <code>SIMULATE</code>, <code>ANALYTICS</code>, or None.
     If None is supplied (the default), find the most recently started task of any type.
 
@@ -2278,6 +2354,12 @@ session via the <code>put\_experiments</code> or <code>put\_experiments\_csv</co
 
 The experiments submitted are designed experiments, and may also include optional
 extra experiments.
+
+    
+##### Variable `FINAL_EXTRAS_ONLY`
+
+Indicates that the experiments being submitted are final experiments.
+Not used in current API version.
 
     
 ##### Variable `INITIAL_EXTRAS_ONLY`
@@ -2343,6 +2425,20 @@ or <code>put\_experimens\_csv</code> methods.
 
 
 An error raised by converting the first item in the <code>errors</code> item of the GraphQL response.
+
+
+
+
+
+    
+### Class `IncompatibleApiError`
+
+
+
+> `class IncompatibleApiError(client_version_required)`
+
+
+An error raised if the API at <code>host</code> is not compatible with this client.
 
 
 
@@ -2555,4 +2651,4 @@ token (str):
 
 
 -----
-Generated by *pdoc* 0.8.3 (<https://pdoc3.github.io>).
+Generated by *pdoc* 0.9.2 (<https://pdoc3.github.io>).

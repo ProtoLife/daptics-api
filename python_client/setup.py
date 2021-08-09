@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='daptics_client',
-    version='0.12.0',
+    version='0.14.0',
     author='Peter Zingg',
     author_email='peter@daptics.ai',
     description='Python client for the daptics API',
@@ -31,6 +31,6 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'requests>=2.22', 'gql>=2,<3', 'async-timeout>=3', 'websockets>=9'
+        'requests>=2.22', 'graphql-core==3.1.5', 'gql==3.0.0a6', 'async-timeout>=3', 'websockets>=9'
     ]
 )

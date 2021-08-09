@@ -7,7 +7,7 @@ please visit or contact daptics:
 * On the web at <a href="https://daptics.ai">https://daptics.ai
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
-Daptics API Version 0.12.0
+Daptics API Version 0.14.0
 Copyright (c) 2021 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -36,9 +36,9 @@ import asyncio
 from async_timeout import timeout as atimeout
 import csv
 import enum
+import graphql
+from graphql import GraphQLError
 from graphql.language.printer import print_ast
-import gql
-import gql.transport.requests
 import os
 import json
 import pprint
@@ -194,13 +194,6 @@ class SpaceOrDesignRequiredError(Exception):
 
     def __init__(self):
         self.message = 'To generate random experiments you must supply experimental space or design.'
-
-
-class GraphQLError(Exception):
-    """An error raised by converting the first item in the `errors` item of the GraphQL response."""
-
-    def __init__(self, message):
-        self.message = message
 
 
 # Enums used by the DapticsClient class
@@ -459,7 +452,7 @@ fragment TaskFragment on Task {
     def __init__(self, host=None, config=None):
         self._check_gql_version()
 
-        self.client_version = '0.12.0'
+        self.client_version = '0.14.0'
         """The version number of this client.
         """
 
@@ -480,7 +473,7 @@ fragment TaskFragment on Task {
             'run_tasks_async': False,
             # TODO: This should default to True, but apparently ZeroSSL 
             # certificates are not trusted by the Python requests module (!)
-            'verify_ssl_certificates': False
+            'verify_ssl_certificates': True
         }
         """A Python `dict` containing the runtime options."""
 
@@ -597,14 +590,24 @@ fragment TaskFragment on Task {
         """
 
     def _check_gql_version(self):
-        if '__version__' in gql.__dict__:
-            gql_version = gql.__version__.split('.')
-            gql_major_version = int(gql_version[0])
-            if gql_major_version < 2 or gql_major_version > 2:
-                raise Exception(f'Incorrect gql version {gql_version}. Please install version 2.')
-        else:
-            # assume pre-3 versions are OK
-            pass
+        try:
+            graphql_version = graphql.__version__
+        except:
+            raise Exception(f'Cannot read graphql version. Please re-install with "pip install graphql-core=3.1.5"')
+        if graphql_version != '3.1.5':
+            raise Exception(f'Incorrect graphql version {graphql_version}. Please install with "pip install graphql-core=3.1.5".')
+
+        try:
+            import gql
+            gql_version = gql.__version__
+        except:
+            raise Exception(f'Could not import gql. Please install with "pip install gql=3.0.0a6".')
+        gql_major_version = int(gql_version.split('.')[0])
+        if gql_major_version < 3:
+            raise Exception(f'Incorrect gql version {gql_version}. Please install with "pip install gql=3.0.0a6".')
+        
+        import gql.transport.requests
+
 
     def print(self):
         """Prints out debugging information about the session."""
@@ -670,8 +673,7 @@ fragment TaskFragment on Task {
 
     def execute_query(self, document, vars, timeout=None):
         """Performs validation on the GraphQL query or mutation document and then
-        executes the query. Converts errors returned by `gql` into `GraphQLError`
-        errors.
+        executes the query.
 
         # Arguments
         document (str):
@@ -733,11 +735,19 @@ fragment TaskFragment on Task {
             self.gql.validate(document)
 
         try:
-            result = self.gql._get_result(
+            # This is how gql 3.0 does it for sync transports.
+            # gql will assert that data is not None if there were
+            # no errors.
+            data = self.gql.execute(
                 document, variable_values=vars, timeout=timeout)
-            return (result.data, result.errors)
+        except TransportQueryError as tqe:
+            # TransportQueryError has a message (first error) and 
+            # all the GraphQLErrors in its `errors` member.
+            return (None, tqe.errors)
         except Exception as e:
-            return (None, [{'message': str(e)}])
+            # Some other error
+            return (None, [GraphQLError(f'Error in execution: {e}')])
+        return (data, [])
 
     def run_task_async(self, document, vars):
         """Performs validation on the GraphQL mutation document and then
@@ -846,18 +856,22 @@ subscription TaskUpdated($sessionId: String!) {
                 pass
 
     def _successful(self, data):
-        if data is None:
+        try:
+            keys = list(data.keys())
+        except:
             return False
-        keys = list(data)
-        if len(keys) != 1:
+        if len(keys) < 1:
             return False
         return data[keys[0]] is not None
 
     def _raise_exception_on_error(self, data, errors):
         if not self._successful(data):
-            if errors:
-                # This is what gql does with errors
-                raise GraphQLError(str(errors[0]['message']))
+            if errors is not None and len(errors) > 0:
+                if isinstance(errors[0], Exception):
+                    # Raise the first GraphQLError in errors
+                    raise errors[0]
+                else:
+                    raise GraphQLError(str(errors[0]))
             else:
                 raise GraphQLError('Unknown error')
 
@@ -1045,13 +1059,19 @@ subscription TaskUpdated($sessionId: String!) {
             If the connection cannot be made.
         """
         if self.gql is None:
+            global gql
+            import gql
+            global TransportQueryError
+            from gql.transport.exceptions import TransportQueryError
+            from gql.transport.requests import RequestsHTTPTransport
+
             self.init_config()
             if self.host is None:
                 raise NoHostError()
             self.api_url = '{0}/api'.format(self.host)
             ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
-            http = gql.transport.requests.RequestsHTTPTransport(
+            http = RequestsHTTPTransport(
                 self.api_url, 
                 auth=self.auth, 
                 use_json=True, 

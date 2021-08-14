@@ -50,7 +50,11 @@ import sys
 import json
 import logging
 import urllib.parse
-from phoenix import Phoenix, Absinthe
+import gql
+from gql.transport.aiohttp import AIOHTTPTransport
+from gql.transport.phoenix_channel_websockets import PhoenixChannelWebsocketsTransport
+from gql.transport.requests import RequestsHTTPTransport
+from gql.transport.exceptions import TransportQueryError
 
 # Authentication object used to authorize DapticsClient requests
 
@@ -243,6 +247,57 @@ class DapticsExperimentsType(enum.Enum):
     Not used in current API version.
     """
 
+def success_data_key(data):
+    """Checks to see if data is a dict with something at its first key.
+    If there is, return the key, otherwise None.
+    """
+    try:
+        keys = list(data.keys())
+    except:
+        return None
+    if len(keys) < 1 or data[keys[0]] is None:
+        return None
+    return keys[0]
+
+def raise_exception_on_error(data, errors):
+    """If there is no data, raise a GraphQLError."""
+    if success_data_key(data) is None:
+        if errors is not None and len(errors) > 0:
+            if isinstance(errors[0], Exception):
+                # Raise the first GraphQLError in errors
+                raise errors[0]
+            else:
+                raise GraphQLError(str(errors[0]))
+        else:
+            raise GraphQLError('Unknown error')
+
+def error_messages(self, errors):
+    """Extracts the `message` values from the `errors` list returned in a GraphQL response.
+
+    # Arguments
+    errors (list):
+        The list of GraphQL errors. Each error must have a `message` value, and
+        can optionally have `key`, `path` and `locations` values.
+
+    # Returns
+    message (str or list):
+        The message (or messages) extracted from the GraphQL response.
+    """
+    messages = []
+    for e in errors:
+        if e and 'message' in e:
+            if 'key' in e:
+                messages.append('{} {}'.format(e['key'], e['message']))
+            else:
+                messages.append(e['message'])
+
+    if len(messages) == 0:
+        return 'No error information is available.'
+    elif len(messages) == 1:
+        return messages[0]
+    return messages
+
+
 
 async def log_task_coroutine(task, **kwargs):
     """A useful coroutine (callback) that can be be called asynchronously if the
@@ -251,27 +306,25 @@ async def log_task_coroutine(task, **kwargs):
     """
     with open('daptics_task.log', mode='a') as log_file:
         if 'progress' in task:
-            print('gen {} {} task progress {}'.format(
-                task['gen'], task['type'], task['progress']['message']), file=log_file)
+            line = 'gen {} {} task progress {}'.format(
+                task['gen'], task['type'], task['progress']['message'])
+            print(line, file=log_file)
+            print(line)
 
-        if task['status'] == 'running':
-            # Return True to continue
-            return True
+        line = 'gen {} {} task status {}'.format(
+            task['gen'], task['type'], task['status'])
+        print(line, file=log_file)
+        print(line)
 
-        print('gen {} {} task status {}'.format(
-            task['gen'], task['type'], task['status']), file=log_file)
-        # Return False to cancel
-        return False
+        # Return False to stop subscription when a result is available
+        if task['status'] in ['success', 'failed', 'canceled']:
+            return False
+        
+        if 'result' in task and task['result'] is not None:
+            return False
 
-
-def can_set_result(future):
-    """Helper function to see if a future is done or canceled.
-    """
-    if future.done():
-        return (False, "done")
-    if future.cancelled():
-        return (False, "cancelled")
-    return (True, "")
+        # Keep going
+        return True
 
 
 # The main DapticsClient class
@@ -488,7 +541,7 @@ fragment TaskFragment on Task {
         self.websocket_url = None
         """The full websocket endpoint URL."""
 
-        self.task_updated_coroutine = None
+        self.task_updated_coroutine = log_task_coroutine
         """A user-specified coroutine (callback) that will be called with information
         on task progress.  The coroutine will be called with a Python `dict` containing
         `progress` and `status` items. Optional keyword arguments that the coroutine
@@ -699,7 +752,7 @@ fragment TaskFragment on Task {
             self.gql.validate(document)
 
         data, errors = self.call_api(document, vars, timeout=timeout)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
         return data
 
     def call_api(self, document, vars, timeout=None):
@@ -757,149 +810,88 @@ fragment TaskFragment on Task {
         eventually passing task progress and status information to the coroutine
         specified by the client's `task_updated_coroutine` attribute.
         """
-        loop = asyncio.get_event_loop()
-        task_future = asyncio.Future()
-        loop.run_until_complete(self._do_run_async(
-            document, vars, loop, task_future))
-        return task_future.result()
 
-    # Just unpack the `task` dict from the subscription message
-    # and call the user-specified coroutine. Stop the callbacks
-    # if no user coroutine was supplied.
-    async def _task_updated_message_coroutine(self, message, **kwargs):
-        # print('_task_updated_message_coroutine: {}'.format(message.payload))
+        async def await_tasks():
+            mutation_task = asyncio.create_task(self._run_task_mutation(document, vars))
+            subscription_task = asyncio.create_task(self._get_task_updates())
+            return await asyncio.gather(mutation_task, subscription_task)
 
-        user_coro = kwargs.get('user_coro')
-        if user_coro is None:
-            # print('_task_updated_message_coroutine returning False')
-            return False
+        # TODO: handle errors (TransportQueryError, ...) 
+        mutation_result, subscription_result = asyncio.run(await_tasks())
+        query_name = success_data_key(mutation_result)
+        count, last_data = subscription_result
+        print(f'got {count} updates, last result was {last_data}')
+        return ({query_name: last_data['taskUpdated']}, [])
 
-        task = message.payload['result']['data']['taskUpdated']
+    async def _run_task_mutation(self, document, vars):
+        """Starts the task via aysnc gql 3.0."""
+        aiohttp_transport = AIOHTTPTransport(
+            url=self.api_url, 
+            headers={'Authorization': f'Bearer {self.auth.token}'}
+        )
+        aiohttp_client = gql.Client(transport=aiohttp_transport, schema=self.gql.schema)
 
-        # print('_task_updated_message_coroutine running user_coro with task')
-        return await user_coro(task, **kwargs)
+        # TODO: Validate against schema?
+        # TODO: handle errors (TransportQueryError, ...) 
+        async with aiohttp_client as session:
+            return await session.execute(document, variable_values=vars)
 
-    # Make an authenticated websocket connection, join the Absinthe channel that
-    # handles our GraphQL communications, subcribe to the "taskUpdated"
-    # GraphQL subscription, and then send the task-creating mutation.
-    # If the task was successfully created, listen for incoming messages
-    # on the subscription. Finally, unsubscribe, leave the Absinthe channel,
-    # and disconnect.
-    async def _do_run_async(self, document, vars, loop, task_future):
-        if self.session_id is None:
-            task_future.set_result((None, [{'message': 'No session_id'}],))
-            return
-
-        if self.gql.schema:
-            self.gql.validate(document)
-
+    async def _get_task_updates(self):
+        """Runs the 'taskUpdated' gql 3.0 subscription over Phoenix Channels."""
         kwargs = self.task_updated_kwargs
         if kwargs is None:
             kwargs = {}
         if self.task_updated_coroutine is not None:
             kwargs['user_coro'] = self.task_updated_coroutine
 
-        subscription_vars = {
+        vars = {
             'sessionId': self.session_id
         }
 
-        subscription_doc = self.TASK_FRAGMENT + """
-subscription TaskUpdated($sessionId: String!) {
-    taskUpdated(sessionId: $sessionId) {
-        ... TaskFragment
-    }
-}
+        doc = gql.gql(
+            self.TASK_FRAGMENT + 
+            """
+            subscription TaskUpdated($sessionId: String!) {
+                taskUpdated(sessionId: $sessionId) {
+                    ... TaskFragment
+                }
+            }
+            """
+        )
+
+        authed_url = self.websocket_url + f'?token={self.auth.token}'
+        phoenix_transport = PhoenixChannelWebsocketsTransport(url=authed_url)
+        phoenix_client = gql.Client(transport=phoenix_transport, schema=self.gql.schema)
+
+        # TODO: Validate against schema?
+        # TODO: handle errors (TransportQueryError, ...) 
+        count = 0
+        last_result = None        
+        async with phoenix_client as session:
+            async for result in session.subscribe(doc, variable_values=vars):
+                count += 1
+                last_result = result
+                get_next = await self._task_updated_result_coroutine(result, **kwargs)
+                # print(f'count {count}, result {result}, get_next {get_next}')
+                if not get_next:
+                    break
+
+        return (count, last_result)
+
+    async def _task_updated_result_coroutine(self, result, **kwargs):
+        """Gets the `taskUpdated` dict from the subscription data result
+        and call the user-specified coroutine. Stop the callbacks
+        after the first result if no user coroutine was supplied.
         """
-
-        try:
-            async with Phoenix(self.websocket_url, params={'token': self.auth.token}, loop=loop) as socket:
-                async with Absinthe(socket) as absinthe:
-                    sub_id = await absinthe.subscribe(
-                        self._task_updated_message_coroutine,
-                        subscription_doc, variables=subscription_vars, **kwargs)
-                    mutation_doc = print_ast(document)
-                    response = await absinthe.push_doc(mutation_doc, variables=vars)
-                    if 'response' in response:
-                        response = response['response']
-                        can_set, _why_not = can_set_result(task_future)
-                        if can_set:
-                            task_future.set_result(
-                                (response.get('data'), response.get('errors'), ))
-                        else:
-                            # print('_do_run_async subscription response received ({})'.format(_why_not))
-                            pass
-                        if self._successful(response.get('data')):
-                            await absinthe.run_subscription(sub_id)
-                    else:
-                        can_set, _why_not = can_set_result(task_future)
-                        if can_set:
-                            task_future.set_result(
-                                (None, [{'message': 'No response'}],))
-                        else:
-                            # print('_do_run_async no subscrip[tion response ({})'.format(_why_not))
-                            pass
-
-        except asyncio.TimeoutError:
-            can_set, _why_not = can_set_result(task_future)
-            if can_set:
-                task_future.set_result((None, [{'message': 'Timed out'}],))
-            else:
-                # print('_do_run_async TimeoutError ({})'.format(_why_not))
-                pass
-
-        except Exception as e:
-            can_set, _why_not = can_set_result(task_future)
-            if can_set:
-                task_future.set_result((None, [{'message': str(e)}],))
-            else:
-                # print('_do_run_async Exception {} ({})'.format(e, _why_not))
-                pass
-
-    def _successful(self, data):
-        try:
-            keys = list(data.keys())
-        except:
+        user_coro = kwargs.get('user_coro')
+        if user_coro is None:
             return False
-        if len(keys) < 1:
+
+        task = result.get('taskUpdated')
+        if task is None:
             return False
-        return data[keys[0]] is not None
 
-    def _raise_exception_on_error(self, data, errors):
-        if not self._successful(data):
-            if errors is not None and len(errors) > 0:
-                if isinstance(errors[0], Exception):
-                    # Raise the first GraphQLError in errors
-                    raise errors[0]
-                else:
-                    raise GraphQLError(str(errors[0]))
-            else:
-                raise GraphQLError('Unknown error')
-
-    def error_messages(self, errors):
-        """Extracts the `message` values from the `errors` list returned in a GraphQL response.
-
-        # Arguments
-        errors (list):
-            The list of GraphQL errors. Each error must have a `message` value, and
-            can optionally have `key`, `path` and `locations` values.
-
-        # Returns
-        message (str or list):
-            The message (or messages) extracted from the GraphQL response.
-        """
-        messages = []
-        for e in errors:
-            if e and 'message' in e:
-                if 'key' in e:
-                    messages.append('{} {}'.format(e['key'], e['message']))
-                else:
-                    messages.append(e['message'])
-
-        if len(messages) == 0:
-            return 'No error information is available.'
-        elif len(messages) == 1:
-            return messages[0]
-        return messages
+        return await user_coro(task, **kwargs)
 
     def save(self, fname):
         """Saves the user and session id to a JSON file.
@@ -1059,25 +1051,20 @@ subscription TaskUpdated($sessionId: String!) {
             If the connection cannot be made.
         """
         if self.gql is None:
-            global gql
-            import gql
-            global TransportQueryError
-            from gql.transport.exceptions import TransportQueryError
-            from gql.transport.requests import RequestsHTTPTransport
-
             self.init_config()
             if self.host is None:
                 raise NoHostError()
-            self.api_url = '{0}/api'.format(self.host)
             ws_host = self.host.replace('http', 'ws', 1)
+            self.api_url = '{0}/api'.format(self.host)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
-            http = RequestsHTTPTransport(
+            
+            requests_transport = RequestsHTTPTransport(
                 self.api_url, 
                 auth=self.auth, 
                 use_json=True, 
                 verify=self.options['verify_ssl_certificates'])
             self.gql = gql.Client(
-                transport=http, fetch_schema_from_transport=True)
+                transport=requests_transport, fetch_schema_from_transport=True)
 
         compat = self.check_api_compatibility()
         if compat['compatible'] is not None and not compat['compatible']:
@@ -1570,7 +1557,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         if 'putExperimentalParameters' in data and data['putExperimentalParameters'] is not None:
             task_id = data['putExperimentalParameters']['taskId']
@@ -2051,7 +2038,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         if 'putExperiments' in data and data['putExperiments'] is not None:
             task_id = data['putExperiments']['taskId']
@@ -2206,7 +2193,7 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         if 'generateDesign' in data and data['generateDesign'] is not None:
             task_id = data['generateDesign']['taskId']
@@ -2300,7 +2287,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         if 'runSimulation' in data and data['runSimulation'] is not None:
             task_id = data['runSimulation']['taskId']
@@ -2758,7 +2745,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
 
         data, errors = self.wait_for_current_task(
             task_type=None, timeout=timeout)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         return data['currentTask']
 
@@ -2827,7 +2814,7 @@ mutation CreateAnalytics($sessionId:String!) {
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
-        self._raise_exception_on_error(data, errors)
+        raise_exception_on_error(data, errors)
 
         if 'createAnalytics' in data and data['createAnalytics'] is not None:
             task_id = data['createAnalytics']['taskId']

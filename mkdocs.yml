@@ -1,9 +1,10 @@
 # To generate graphql_api.md, go to the pydocmd folder and run:
-# graphql-markdown http://inertia.protolife.com:8080/api >graphql_api.md
+# graphql-markdown --no-toc --title 'Daptics GraphQL API' api-<version>.json >graphql_api.md
 #
 # To generate python_client.md, go to the python_client folder and run:
 # pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md
 site_name: Daptics Python Client
+site_url: https://protolife.github.io/daptics-api/
 nav:
   - Daptics API Index: index.md
   - Python API Client: daptics_client.md

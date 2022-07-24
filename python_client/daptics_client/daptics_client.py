@@ -309,6 +309,8 @@ class DapticsClient(object):
 
     `run_tasks_async` - see `options` below
 
+    `verify_ssl_certificates` - see `options` below
+
     If `config is set to None, configuration can be read from OS environment
     variables, if they exist. The environment variable names are:
 
@@ -325,6 +327,8 @@ class DapticsClient(object):
     `DAPTICS_AUTO_TASK_TIMEOUT` - see `options` below
 
     `DAPTICS_RUN_TASKS_ASYNC` - see `options` below
+
+    `DAPTICS_VERIFY_SSL_CERTIFICATES` - see `options` below
 
     options (dict):
         A Python `dict` containing runtime options. As of this version, there
@@ -352,10 +356,12 @@ class DapticsClient(object):
     and `create_analytics`) will be run in an asynchronous event loop. Normally
     you will only set this flag if you want to receive progress information via
     a coroutine (callback) function.
-    """
 
-    SSL_CERT_VERIFICATION = False
-    """Set to `False` to disable checking of the API server's SSL certificate."""
+    `verify_ssl_certificates` - If set (True), strict checking of
+    the validity of the API server's SSL certificates will be done when the
+    `connect` method is called. Set this to False, with extreme caution, to
+    disable this check.
+    """
 
     REQUIRED_SPACE_PARAMS = frozenset(
         ('populationSize', 'replicates', 'space'))
@@ -451,6 +457,8 @@ fragment TaskFragment on Task {
 """
 
     def __init__(self, host=None, config=None):
+        self._check_gql_version()
+
         self.client_version = '0.12.0'
         """The version number of this client.
         """
@@ -469,7 +477,10 @@ fragment TaskFragment on Task {
             'auto_export_path': None,
             'auto_generate_next_design': False,
             'auto_task_timeout': None,
-            'run_tasks_async': False
+            'run_tasks_async': False,
+            # TODO: This should default to True, but apparently ZeroSSL 
+            # certificates are not trusted by the Python requests module (!)
+            'verify_ssl_certificates': False
         }
         """A Python `dict` containing the runtime options."""
 
@@ -585,6 +596,16 @@ fragment TaskFragment on Task {
         have been simulated, as updated by the result of a "simulate" task.
         """
 
+    def _check_gql_version(self):
+        if '__version__' in gql.__dict__:
+            gql_version = gql.__version__.split('.')
+            gql_major_version = int(gql_version[0])
+            if gql_major_version < 2 or gql_major_version > 2:
+                raise Exception(f'Incorrect gql version {gql_version}. Please install version 2.')
+        else:
+            # assume pre-3 versions are OK
+            pass
+
     def print(self):
         """Prints out debugging information about the session."""
         print('client_version = ', self.client_version)
@@ -667,10 +688,6 @@ fragment TaskFragment on Task {
             The `data` item of the GraphQL response, a Python `dict` with an
             item whose key is the GraphQL query name for the request.
 
-        errors (list):
-            The `errors` item of the GraphQL response. Each item in the list
-            is guaranteed to have a `message` item.
-
         # Raises
         GraphQLError
             If no data was returned by the query request, a `GraphQLError` is raised,
@@ -679,12 +696,9 @@ fragment TaskFragment on Task {
         if self.gql.schema:
             self.gql.validate(document)
 
-        try:
-            result = self.gql._get_result(
-                document, variable_values=vars, timeout=timeout)
-            return result.data
-        except Exception as e:
-            raise GraphQLError(str(e))
+        data, errors = self.call_api(document, vars, timeout=timeout)
+        self._raise_exception_on_error(data, errors)
+        return data
 
     def call_api(self, document, vars, timeout=None):
         """Performs validation on the GraphQL query or mutation document and then
@@ -964,12 +978,8 @@ subscription TaskUpdated($sessionId: String!) {
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    self.options['auto_export_path'] = config.get(
-                        'auto_export_path', self.options['auto_export_path'])
-                    self.options['auto_generate_next_design'] = config.get(
-                        'auto_generate_next_design', self.options['auto_generate_next_design'])
-                    self.options['auto_task_timeout'] = config.get(
-                        'auto_task_timeout', self.options['auto_task_timeout'])
+                    for optname in self.options.keys():
+                        self.options[optname] = config.get(optname, self.options[optname])
                     return True
             except:
                 raise InvalidConfigError(config_path)
@@ -987,14 +997,26 @@ subscription TaskUpdated($sessionId: String!) {
                 self.credentials = (username, password)
         self.options['auto_export_path'] = os.getenv(
             'DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
-        auto_generate_next_design = os.getenv(
-            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN')
-        if auto_generate_next_design is not None:
-            self.options['auto_generate_next_design'] = auto_generate_next_design.lower(
-            ) in ("true", "t", "yes", "y", "on", "enabled", "1")
-        auto_task_timeout = os.getenv('DAPTICS_AUTO_TASK_TIMEOUT')
-        if auto_task_timeout is not None:
-            self.options['auto_task_timeout'] = float(auto_task_timeout)
+        self.options['auto_generate_next_design'] = self._boolean_env_var(
+            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN', self.options['auto_generate_next_design'])
+        self.options['auto_task_timeout'] = self._float_env_var(
+            'DAPTICS_AUTO_TASK_TIMEOUT', self.options['auto_task_timeout'])
+        self.options['run_tasks_async'] = self._boolean_env_var(
+            'DAPTICS_RUN_TASKS_ASYNC', self.options['run_tasks_async'])
+        self.options['verify_ssl_certificates'] = self._boolean_env_var(
+            'DAPTICS_VERIFY_SSL_CERTIFICATES', self.options['verify_ssl_certificates'])
+
+    def _float_env_var(self, varname, default):
+        value = os.getenv(varname)
+        if value is None:
+            return default
+        return float(value)
+
+    def _boolean_env_var(self, varname, default):
+        value = os.getenv(varname)
+        if value is None:
+            return default
+        return value.lower() in ('true', 't', 'yes', 'y', 'on', 'enabled', '1')
 
     def connect(self):
         """Reads and processes client configuration, and instantiates the client if it has not
@@ -1033,7 +1055,7 @@ subscription TaskUpdated($sessionId: String!) {
                 self.api_url, 
                 auth=self.auth, 
                 use_json=True, 
-                verify=self.SSL_CERT_VERIFICATION)
+                verify=self.options['verify_ssl_certificates'])
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 

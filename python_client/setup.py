@@ -29,8 +29,8 @@ setuptools.setup(
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     install_requires=[
-        'requests', 'gql', 'async_timeout', 'websockets'
+        'requests>=2.22', 'gql>=2,<3', 'async-timeout>=3', 'websockets>=9'
     ]
 )

@@ -33,8 +33,28 @@ server if you do not have access to a server that can open `.ipynb` files.
 2. Then in the `pydocmd` folder, run:
 
 ```
-graphql-markdown --no-toc --title 'Daptics GraphQL API' http://inertia.protolife.com:8080/api >graphql_api.md
+NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-markdown --no-toc --title 'Daptics GraphQL API' https://api.daptics.ai/api >graphql_api.md
 ```
+
+Notes: 
+
+1. The `NODE_TLS_REJECT_UNAUTHORIZED=0` is to handle our ZeroSSL certificates.
+
+2. If this fails, you can use the appropriate JSON schema file to generate
+the docs, with this command:
+
+```
+graphql-markdown --no-toc --title 'Daptics GraphQL API' api-0.14.1.json >graphql_api.md
+```
+
+2. If using `yarn` to manage node packages, try this:
+
+```
+yarn bin graphql-markdown
+```
+
+to get the location of the `graphql-markdown` executable.
+
 
 ## Python Client Documentation and MkDocs Build <a class="tocSkip"></a>
 

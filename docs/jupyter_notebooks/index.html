@@ -20,7 +20,7 @@
     // Current page data
     var mkdocs_page_name = "Jupyter Notebooks";
     var mkdocs_page_input_path = "jupyter_notebooks.md";
-    var mkdocs_page_url = null;
+    var mkdocs_page_url = "/daptics-api/jupyter_notebooks/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js" defer></script>
@@ -83,6 +83,13 @@
     
       
 
+  <li class="toctree-l1 current with-children">
+    <a href="#daptics_client-python-client-package-for-the-daptics-api">
+      daptics_client - Python Client Package for the daptics API
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
 
 
   <li class="toctree-l1 current">
@@ -95,12 +102,17 @@
     
       
         <li class="toctree-l2">
-          <a class="toctree-l3" href="#tutorial-notebooks">Tutorial Notebooks</a>
+          <a class="toctree-l3" href="#examples-jupyter-notebooks">Examples - Jupyter Notebooks</a>
         </li>
     
       
         <li class="toctree-l2">
-          <a class="toctree-l3" href="#copyright-notice">Copyright Notice</a>
+          <a class="toctree-l3" href="#python-client-and-graphql-api-reference-documentation">Python Client and GraphQL API Reference Documentation</a>
+        </li>
+    
+      
+        <li class="toctree-l2">
+          <a class="toctree-l3" href="#web-access-to-the-daptics-system">Web Access to the daptics System</a>
         </li>
     
     </ul>
@@ -141,76 +153,39 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="jupyter-notebooks">Jupyter Notebooks</h1>
-<p>This folder of Python Jupyter notebooks gives a brief interactive introduction
-to using the daptics API with a freely distributed Python API client.</p>
-<p>See the documentation at <a href="https://jupyter.org">https://jupyter.org</a> if you have never used
-Jupyter notebooks before.</p>
-<p>Please note that to use the daptics API, you must first have a daptics account.
-To create an account, or to get help or information on daptics, please visit or contact us:</p>
-<ul>
-<li>On the web at <a href="https://daptics.ai">https://daptics.ai    </li>
-<li>By email at <a href="mailto:support@daptics.ai">support@daptics.ai</a></li>
-</ul>
+                <h1 id="daptics_client-python-client-package-for-the-daptics-api">daptics_client - Python Client Package for the daptics API</h1>
+<p><code>daptics_client</code> encapsulates the GraphQL daptics API, a powerful
+system for optimizing the design of experiments. Using <code>daptics_client</code>
+you can integrate the daptics iterative optimizations into 
+lab automation processes.</p>
+<p>daptics allows you to specify complex experimental design spaces,
+consisting of many numerical or categorical parameters, and uses
+highly-tuned machine learning algorithms to produce sequential
+batches of experimental designs (called "generations"), 
+in an iterative process. </p>
+<p>After performing the designed experiments in a batch 
+and scoring the assay results of each experiment in the batch
+as a numeric response value, you upload these response values
+via the API to produce the next generation of designs.</p>
+<p>As the process continues, daptics explores the experimental
+space to find potential optimal experiments for the next
+batch.</p>
+<p>For a detailed look at the underlying mathematics, 
+see this white paper: https://daptics.ai/pdf/White.pdf</p>
 <h2 id="installation">Installation</h2>
-<p>Before opening the <code>01_README.ipynb</code> notebook, install IPython, Jupyter and required packages.</p>
-<p>a) with conda:</p>
-<pre><code>conda install -c conda-forge requests gql ipython jupyter
+<p>Use <code>setuptools</code> to install the API modules on your Python system.</p>
+<pre><code class="language-sh">python3 setup.py install
 </code></pre>
-
-<p>or b) with pip:</p>
-<pre><code># first, always upgrade pip!
-pip install --upgrade pip
-pip install --upgrade requests gql ipython jupyter
-</code></pre>
-
-<p>Start the notebook in the tutorial directory:</p>
-<pre><code>cd tutorials
-jupyter notebook
-</code></pre>
-
-<p>Then open the Introduction.ipynb notebook. If running the cells in the notebook have
-problems with library imports, see this article for how you might have to import the
-correct versions of the required <code>requests</code> and <code>gql</code> libraries:</p>
-<p><a href="https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter">https://jakevdp.github.io/blog/2017/12/05/installing-python-packages-from-jupyter</a></p>
-<h2 id="tutorial-notebooks">Tutorial Notebooks</h2>
-<p>This folder contains a series of Jupyter notebooks to explain operation of the daptics API, with explicit examples:</p>
-<ul>
-<li>01_README.ipynb</li>
-<li>02_Terminology.ipynb</li>
-<li>03_SimpleTutorial.ipynb</li>
-<li>04_GetAnalytics.ipynb</li>
-<li>05_RestartSession.ipynb</li>
-<li>06_AutomationWorkflow.ipynb</li>
-</ul>
-<p>If you are familiar with daptics from the web interface, you could jump directly to <code>03_SimpleTutorial.ipynb</code> to get started.</p>
-<p>Make sure to copy all the files in this folder into your
-Jupyter server directory (the directory from which you start <code>jupyter notebook</code>), especially the daptics_client.py file that the all notebooks using the daptics API  will import.</p>
-<p>There are also several example experimental space definition CSV files in this
-folder that you can use to try out different parameters.</p>
-<pre><code class="python"># Here's an example of using conda to update the required libraries in Jupyter-land.
-
-import sys
-print(sys.path)
-print('Using {} to run pip'.format(sys.executable))
-!{sys.executable} -m pip install requests gql
-</code></pre>
-
-<h2 id="copyright-notice">Copyright Notice</h2>
-<p>Daptics API Version 0.12.0<br />
-Copyright (c) 2020 Daptics Inc.</p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), the rights to use, copy, modify, merge,
-publish, and/or distribute, copies of the Software, and to permit persons to whom the Software
-is furnished to do so, subject to the following conditions:</p>
-<p>You do not have the right to sub-license or sell copies of the Software.</p>
-<p>The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.</p>
-<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<p>Installation via <code>pip</code> coming soon!</p>
+<h2 id="examples-jupyter-notebooks">Examples - Jupyter Notebooks</h2>
+<p>Example tutorial Jupyter notebooks and more information are available from the 
+repository website at https://github.com/ProtoLife/daptics-api</p>
+<h2 id="python-client-and-graphql-api-reference-documentation">Python Client and GraphQL API Reference Documentation</h2>
+<p>Documentation for both the client package and the low-level
+GraphQL API can be found at https://protolife.github.io/daptics-api</p>
+<h2 id="web-access-to-the-daptics-system">Web Access to the daptics System</h2>
+<p>A web interface to the system, together with more documentation and online help,
+is available at https://daptics.ai</p>
               
             </div>
           </div>

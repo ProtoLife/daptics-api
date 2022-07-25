@@ -357,10 +357,6 @@ class DapticsClient(object):
     you will only set this flag if you want to receive progress information via
     a coroutine (callback) function.
 
-    `verify_ssl_certificates` - If set (True), strict checking of
-    the validity of the API server's SSL certificates will be done when the
-    `connect` method is called. Set this to False, with extreme caution, to
-    disable this check.
     """
 
     REQUIRED_SPACE_PARAMS = frozenset(
@@ -1051,11 +1047,7 @@ subscription TaskUpdated($sessionId: String!) {
             self.api_url = '{0}/api'.format(self.host)
             ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
-            http = gql.transport.requests.RequestsHTTPTransport(
-                self.api_url, 
-                auth=self.auth, 
-                use_json=True, 
-                verify=self.options['verify_ssl_certificates'])
+            http = gql.transport.requests.RequestsHTTPTransport(self.api_url, auth=self.auth, use_json=True)
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 
@@ -1123,8 +1115,7 @@ subscription TaskUpdated($sessionId: String!) {
 
         # Notes
         On successful authentication, the user id and access token
-        are stored in the client's `user_id` and `auth` attributes. On failure
-        the value of the `login` item in the returned dict will be `None`. 
+        are stored in the client's `user_id` and `auth` attributes.
         """
 
         if email is None or password is None:

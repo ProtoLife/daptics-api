@@ -1,7 +1,0 @@
-Quench,categorical,Yes,No,,,
-StepNum,numerical,1,2,3,,
-Duration,numerical,60,120,180,,
-Buffer,numerical,7000,7900,8850,10550,
-DNAType,categorical,A,B,C,D,
-AmphiLogRatio,numerical,-1.1,-0.22,1.23,1.89,3.2
-Catalizer,numerical,100,180,260,311,400

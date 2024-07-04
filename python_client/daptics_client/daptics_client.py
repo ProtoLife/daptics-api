@@ -7,8 +7,8 @@ please visit or contact daptics:
 * On the web at <a href="https://daptics.ai">https://daptics.ai
 * By email at [support@daptics.ai](mailto:support@daptics.ai)
 
-Daptics API Version 0.12.0
-Copyright (c) 2021 Daptics Inc.
+Daptics API Version 0.15.1
+Copyright (c) 2024 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -455,7 +455,7 @@ fragment TaskFragment on Task {
     def __init__(self, host=None, config=None):
         self._check_gql_version()
 
-        self.client_version = '0.12.0'
+        self.client_version = '0.15.1'
         """The version number of this client.
         """
 
@@ -474,7 +474,7 @@ fragment TaskFragment on Task {
             'auto_generate_next_design': False,
             'auto_task_timeout': None,
             'run_tasks_async': False,
-            # TODO: This should default to True, but apparently ZeroSSL 
+            # TODO: This should default to True, but apparently ZeroSSL
             # certificates are not trusted by the Python requests module (!)
             'verify_ssl_certificates': False
         }
@@ -1063,7 +1063,7 @@ subscription TaskUpdated($sessionId: String!) {
         dict containing `minimumClientVersion` and compatibility information.
 
         # Raises
-        Exception if the (older) API does not support checking version 
+        Exception if the (older) API does not support checking version
         compatibility.
         """
 
@@ -1081,7 +1081,7 @@ subscription TaskUpdated($sessionId: String!) {
         """)
         data = self.execute_query(doc, vars)
         return data['clientCompatibility']
-        
+
     def login(self, email=None, password=None):
         """Authenticates to a user record in the database as identified in the client's
         `email` and `password` attributes, and create an access token.
@@ -1181,7 +1181,7 @@ mutation Login($email:String!, $password:String!) {
         doc = gql.gql("""
 mutation CreateSession($session:NewSessionInput!) {
     createSession(session:$session) {
-        sessionId version tag name description host active demo 
+        sessionId version tag name description host active demo
         campaign {
             gen remaining completed
         }
@@ -1253,7 +1253,7 @@ mutation CreateSession($session:NewSessionInput!) {
         # The 'sessions' query will return a list of sessions.
         doc = gql.gql("""
 query GetSessions($userId:String, $q:String) {
-    sessions(userId:$userId, q:$q) { 
+    sessions(userId:$userId, q:$q) {
         sessionId version tag name description host active demo
         gen spaceType parameterCount designCost
         totalCost designedExperimentsCount extraExperimentsCount lastStartedAt
@@ -1292,7 +1292,7 @@ query GetSessions($userId:String, $q:String) {
         doc = gql.gql("""
 query GetSession($sessionId:String!) {
     session(sessionId:$sessionId) {
-        sessionId version tag name description host active demo 
+        sessionId version tag name description host active demo
         campaign {
             gen remaining completed
         }
@@ -1826,7 +1826,7 @@ query GetExperimentsHistory($sessionId:String!){
             experiments.
 
         Each row in the `data` value for the table represents
-        an individual experiment. If `experiments` is set to `None`, and 
+        an individual experiment. If `experiments` is set to `None`, and
         a generated design exists in the session (gen number is greater than zero),
         simulated responses for the design will be created and returned.
         It is an error to set `experiments` to `None` if no design has been
@@ -2894,7 +2894,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
     def download_url_and_params(self, url):
         """Strips the query string from the given url, then checks to see if
-        there is a 'token' entry in it. If not, uses the client's authentication 
+        there is a 'token' entry in it. If not, uses the client's authentication
         token if it exists.
 
         # Arguments

@@ -1,5 +1,5 @@
 """
-Copyright (c) 2021 Daptics Inc.
+Copyright (c) 2024 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), the
@@ -44,7 +44,7 @@ class Subscription:
         return {'channel': self.channel, 'timeout': self.timeout}
 
     def __str__(self):
-        return 'Subscription on {0!s} with timeout {1}'.format(self.channel, self.timeout)        
+        return 'Subscription on {0!s} with timeout {1}'.format(self.channel, self.timeout)
 
     async def run(self):
         """

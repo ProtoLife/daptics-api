@@ -202,6 +202,11 @@ and <code>create\_analytics</code>) will be run in an asynchronous event loop. N
 you will only set this flag if you want to receive progress information via
 a coroutine (callback) function.
 
+<code>verify\_ssl\_certificates</code> - If set (True), strict checking of
+the validity of the API server's SSL certificates will be done when the
+<code>connect</code> method is called. Set this to False, with extreme caution, to
+disable this check.
+
 
     
 #### Class variables

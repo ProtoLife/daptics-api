@@ -357,6 +357,10 @@ class DapticsClient(object):
     you will only set this flag if you want to receive progress information via
     a coroutine (callback) function.
 
+    `verify_ssl_certificates` - If set (True), strict checking of
+    the validity of the API server's SSL certificates will be done when the
+    `connect` method is called. Set this to False, with extreme caution, to
+    disable this check.
     """
 
     REQUIRED_SPACE_PARAMS = frozenset(

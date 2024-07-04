@@ -1641,6 +1641,10 @@ just once. The default, None, means that the user wants to explicitly call
 and <code>create_analytics</code>) will be run in an asynchronous event loop. Normally
 you will only set this flag if you want to receive progress information via
 a coroutine (callback) function.</p>
+<p><code>verify_ssl_certificates</code> - If set (True), strict checking of
+the validity of the API server's SSL certificates will be done when the
+<code>connect</code> method is called. Set this to False, with extreme caution, to
+disable this check.</p>
 <h4 id="class-variables">Class variables</h4>
 <h5 id="variable-default_config">Variable <code>DEFAULT_CONFIG</code></h5>
 <p>The default location for the option configuration file.</p>

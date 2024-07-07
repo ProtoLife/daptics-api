@@ -58,8 +58,8 @@ if you do not have access to a server that can open `.ipynb` files.
 
 ## Copyright Notice
 
-Daptics API Version 0.12.0  
-Copyright (c) 2021 Daptics Inc.
+Daptics API Version 0.15.1  
+Copyright (c) 2024 Daptics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 and associated documentation files (the "Software"), the rights to use, copy, modify, merge,

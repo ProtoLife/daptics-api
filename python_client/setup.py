@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='daptics_client',
-    version='0.12.0',
+    version='0.15.1',
     author='Peter Zingg',
     author_email='peter@daptics.ai',
     description='Python client for the daptics API',

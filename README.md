@@ -67,7 +67,7 @@ to get the location of the `graphql-markdown` executable.
 
 2. Create Markdown documentation for the `daptics_client.py` file using `pdoc3`. In the
 `python_client` folder, run:
-`pdoc --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md`
+`pdoc3 --pdf --force --template-dir ../pdoc/templates daptics_client >../pydocmd/daptics_client.md`
 
 3. Then build the entire "Read the Docs" site, using `mkdocs`. In the root project folder,
 where the `mkdocs.yml` configuration file is located, run: `mkdocs build`

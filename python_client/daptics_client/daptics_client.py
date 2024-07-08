@@ -54,13 +54,13 @@ GQL_INSTALL = 'Please install with "pip install gql>=3.4.0".'
 try:
     import graphql
 except:
-    raise Exception('Cannot read graphql version. ' . GRAPHQL_INSTALL)
+    raise Exception('Cannot read graphql version. ' + GRAPHQL_INSTALL)
 try:
     graphql_version = tuple(map(int, graphql.__version__.split('.')))
-    if graphql_version <= (3, 1, 5):
-        raise Exception(f'Incorrect graphql version {graphql_version}. ' . GRAPHQL_INSTALL)
 except:
-    pass
+    graphql_version = (0, 0, 0)
+if graphql_version <= (3, 1, 5):
+    raise Exception(f'Incorrect graphql version {graphql_version}. ' + GRAPHQL_INSTALL)
 
 from graphql import GraphQLError
 from graphql.language.printer import print_ast
@@ -68,13 +68,13 @@ from graphql.language.printer import print_ast
 try:
     import gql
 except:
-    raise Exception(f'Could not import gql. ' . GQL_INSTALL)
+    raise Exception(f'Could not import gql. ' + GQL_INSTALL)
 try:
     gql_version = tuple(map(int, gql.__version__.split('.')))
-    if gql_version < (3, 4, 0):
-        raise Exception(f'Incorrect gql version {gql_version}. ' . GQL_INSTALL)
 except:
-    pass
+    gql_version = (0, 0, 0)
+if gql_version < (3, 4, 0):
+    raise Exception(f'Incorrect gql version {gql_version}. ' + GQL_INSTALL)
 
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.phoenix_channel_websockets import PhoenixChannelWebsocketsTransport

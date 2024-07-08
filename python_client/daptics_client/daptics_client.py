@@ -105,7 +105,7 @@ class NoHostError(Exception):
 class IncompatibleApiError(Exception):
     """An error raised if the API at `host` is not compatible with this client."""
 
-    def __init__(host, client_version_required):
+    def __init__(self, host, client_version_required):
         self.message = 'The API at {} requires a minimum client version of {}. Please upgrade or use a compatible host.'.format(host, client_version_required)
 
 
@@ -319,7 +319,7 @@ async def log_task_coroutine(task, **kwargs):
         # Return False to stop subscription when a result is available
         if task['status'] in ['success', 'failed', 'canceled']:
             return False
-        
+
         if 'result' in task and task['result'] is not None:
             return False
 
@@ -524,7 +524,7 @@ fragment TaskFragment on Task {
             'auto_generate_next_design': False,
             'auto_task_timeout': None,
             'run_tasks_async': False,
-            # TODO: This should default to True, but apparently ZeroSSL 
+            # TODO: This should default to True, but apparently ZeroSSL
             # certificates are not trusted by the Python requests module (!)
             'verify_ssl_certificates': True
         }
@@ -644,11 +644,11 @@ fragment TaskFragment on Task {
 
     def _check_gql_version(self):
         try:
-            graphql_version = graphql.__version__
+            graphql_version = tuple(map(int, graphql.__version__.split('.')))
         except:
-            raise Exception(f'Cannot read graphql version. Please re-install with "pip install graphql-core=3.1.5"')
-        if graphql_version != '3.1.5':
-            raise Exception(f'Incorrect graphql version {graphql_version}. Please install with "pip install graphql-core=3.1.5".')
+            raise Exception(f'Cannot read graphql version. Please re-install with "pip install graphql-core>=3.1.5"')
+        if graphql_version <= (3, 1, 5):
+            raise Exception(f'Incorrect graphql version {graphql_version}. Please install with "pip install graphql-core>=3.1.5".')
 
         try:
             import gql
@@ -658,7 +658,7 @@ fragment TaskFragment on Task {
         gql_major_version = int(gql_version.split('.')[0])
         if gql_major_version < 3:
             raise Exception(f'Incorrect gql version {gql_version}. Please install with "pip install gql=3.0.0a6".')
-        
+
         import gql.transport.requests
 
 
@@ -794,7 +794,7 @@ fragment TaskFragment on Task {
             data = self.gql.execute(
                 document, variable_values=vars, timeout=timeout)
         except TransportQueryError as tqe:
-            # TransportQueryError has a message (first error) and 
+            # TransportQueryError has a message (first error) and
             # all the GraphQLErrors in its `errors` member.
             return (None, tqe.errors)
         except Exception as e:
@@ -816,7 +816,7 @@ fragment TaskFragment on Task {
             subscription_task = asyncio.create_task(self._get_task_updates())
             return await asyncio.gather(mutation_task, subscription_task)
 
-        # TODO: handle errors (TransportQueryError, ...) 
+        # TODO: handle errors (TransportQueryError, ...)
         mutation_result, subscription_result = asyncio.run(await_tasks())
         query_name = success_data_key(mutation_result)
         count, last_data = subscription_result
@@ -826,13 +826,13 @@ fragment TaskFragment on Task {
     async def _run_task_mutation(self, document, vars):
         """Starts the task via aysnc gql 3.0."""
         aiohttp_transport = AIOHTTPTransport(
-            url=self.api_url, 
+            url=self.api_url,
             headers={'Authorization': f'Bearer {self.auth.token}'}
         )
         aiohttp_client = gql.Client(transport=aiohttp_transport, schema=self.gql.schema)
 
         # TODO: Validate against schema?
-        # TODO: handle errors (TransportQueryError, ...) 
+        # TODO: handle errors (TransportQueryError, ...)
         async with aiohttp_client as session:
             return await session.execute(document, variable_values=vars)
 
@@ -849,7 +849,7 @@ fragment TaskFragment on Task {
         }
 
         doc = gql.gql(
-            self.TASK_FRAGMENT + 
+            self.TASK_FRAGMENT +
             """
             subscription TaskUpdated($sessionId: String!) {
                 taskUpdated(sessionId: $sessionId) {
@@ -864,9 +864,9 @@ fragment TaskFragment on Task {
         phoenix_client = gql.Client(transport=phoenix_transport, schema=self.gql.schema)
 
         # TODO: Validate against schema?
-        # TODO: handle errors (TransportQueryError, ...) 
+        # TODO: handle errors (TransportQueryError, ...)
         count = 0
-        last_result = None        
+        last_result = None
         async with phoenix_client as session:
             async for result in session.subscribe(doc, variable_values=vars):
                 count += 1
@@ -1057,11 +1057,11 @@ fragment TaskFragment on Task {
             ws_host = self.host.replace('http', 'ws', 1)
             self.api_url = '{0}/api'.format(self.host)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
-            
+
             requests_transport = RequestsHTTPTransport(
-                self.api_url, 
-                auth=self.auth, 
-                use_json=True, 
+                self.api_url,
+                auth=self.auth,
+                use_json=True,
                 verify=self.options['verify_ssl_certificates'])
             self.gql = gql.Client(
                 transport=requests_transport, fetch_schema_from_transport=True)
@@ -1078,7 +1078,7 @@ fragment TaskFragment on Task {
         dict containing `minimumClientVersion` and compatibility information.
 
         # Raises
-        Exception if the (older) API does not support checking version 
+        Exception if the (older) API does not support checking version
         compatibility.
         """
 
@@ -1096,7 +1096,7 @@ fragment TaskFragment on Task {
         """)
         data = self.execute_query(doc, vars)
         return data['clientCompatibility']
-        
+
     def login(self, email=None, password=None):
         """Authenticates to a user record in the database as identified in the client's
         `email` and `password` attributes, and create an access token.
@@ -1131,7 +1131,7 @@ fragment TaskFragment on Task {
         # Notes
         On successful authentication, the user id and access token
         are stored in the client's `user_id` and `auth` attributes. On failure
-        the value of the `login` item in the returned dict will be `None`. 
+        the value of the `login` item in the returned dict will be `None`.
         """
 
         if email is None or password is None:
@@ -1197,7 +1197,7 @@ mutation Login($email:String!, $password:String!) {
         doc = gql.gql("""
 mutation CreateSession($session:NewSessionInput!) {
     createSession(session:$session) {
-        sessionId version tag name description host active demo 
+        sessionId version tag name description host active demo
         campaign {
             gen remaining completed
         }
@@ -1269,7 +1269,7 @@ mutation CreateSession($session:NewSessionInput!) {
         # The 'sessions' query will return a list of sessions.
         doc = gql.gql("""
 query GetSessions($userId:String, $q:String) {
-    sessions(userId:$userId, q:$q) { 
+    sessions(userId:$userId, q:$q) {
         sessionId version tag name description host active demo
         gen spaceType parameterCount designCost
         totalCost designedExperimentsCount extraExperimentsCount lastStartedAt
@@ -1308,7 +1308,7 @@ query GetSessions($userId:String, $q:String) {
         doc = gql.gql("""
 query GetSession($sessionId:String!) {
     session(sessionId:$sessionId) {
-        sessionId version tag name description host active demo 
+        sessionId version tag name description host active demo
         campaign {
             gen remaining completed
         }
@@ -1842,7 +1842,7 @@ query GetExperimentsHistory($sessionId:String!){
             experiments.
 
         Each row in the `data` value for the table represents
-        an individual experiment. If `experiments` is set to `None`, and 
+        an individual experiment. If `experiments` is set to `None`, and
         a generated design exists in the session (gen number is greater than zero),
         simulated responses for the design will be created and returned.
         It is an error to set `experiments` to `None` if no design has been
@@ -2910,7 +2910,7 @@ mutation CreateAnalytics($sessionId:String!) {
 
     def download_url_and_params(self, url):
         """Strips the query string from the given url, then checks to see if
-        there is a 'token' entry in it. If not, uses the client's authentication 
+        there is a 'token' entry in it. If not, uses the client's authentication
         token if it exists.
 
         # Arguments

@@ -101,7 +101,7 @@ class NoHostError(Exception):
 class IncompatibleApiError(Exception):
     """An error raised if the API at `host` is not compatible with this client."""
 
-    def __init__(host, client_version_required):
+    def __init__(self, host, client_version_required):
         self.message = 'The API at {} requires a minimum client version of {}. Please upgrade or use a compatible host.'.format(host, client_version_required)
 
 

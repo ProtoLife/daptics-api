@@ -36,13 +36,11 @@ import asyncio
 from async_timeout import timeout as atimeout
 import csv
 import enum
-from graphql.language.printer import print_ast
-import gql
-import gql.transport.requests
 import os
 import json
 import pprint
 import random
+import re
 import requests
 import requests.auth
 import time
@@ -52,8 +50,37 @@ import logging
 import urllib.parse
 from phoenix import Phoenix, Absinthe
 
-# Authentication object used to authorize DapticsClient requests
+GRAPHQL_INSTALL = 'Please install with "pip install graphql-core>=2.3.2,<3".'
+GQL_INSTALL = 'Please install with "pip install gql>=2,<3".'
 
+try:
+    import graphql
+except:
+    raise Exception('Cannot read graphql version. ' + GRAPHQL_INSTALL)
+try:
+    graphql_version = tuple(map(int, graphql.__version__.split('.')))
+except:
+    graphql_version = (0, 0, 0)
+if graphql_version < (2, 3, 2) or graphql_version >= (3, 0, 0):
+    raise Exception(f'Incorrect graphql version {graphql_version}. ' + GRAPHQL_INSTALL)
+
+from graphql.language.printer import print_ast
+
+try:
+    import gql
+except:
+    raise Exception(f'Could not import gql. ' + GQL_INSTALL)
+try:
+    # Note gql.__version__ only added in 3.0.0
+    gql_version = tuple(map(int, gql.__version__.split('.')))
+except:
+    gql_version = (2, 0, 0)
+if gql_version < (2, 0, 0) or gql_version >= (3, 0, 0):
+    raise Exception(f'Incorrect gql version {gql_version}. ' + GQL_INSTALL)
+
+import gql.transport.requests
+
+# Authentication object used to authorize DapticsClient requests
 
 class TokenAuth(requests.auth.AuthBase):
     """A callable authentication object for the Python `requests` moudule.
@@ -457,8 +484,6 @@ fragment TaskFragment on Task {
 """
 
     def __init__(self, host=None, config=None):
-        self._check_gql_version()
-
         self.client_version = '0.15.1'
         """The version number of this client.
         """
@@ -535,6 +560,12 @@ fragment TaskFragment on Task {
         self.gql = None
         """The `gql.Client` object used to make GraphQL requests to the API."""
 
+        self.gql_version = None
+        """The gql library version, as a 3-tuple, e.g. `(3, 4, 0)`."""
+
+        self.graphql_version = tuple(map(int, graphql.__version__.split('.')))
+        """The graphql library version, as a 3-tuple, e.g. `(3, 1, 5)`."""
+
         self.auth = TokenAuth()
         """A `requests.auth` object used to insert the required authorization
         header in API requests. The auth object's `token` attribute is set by the `login` method.
@@ -596,15 +627,11 @@ fragment TaskFragment on Task {
         have been simulated, as updated by the result of a "simulate" task.
         """
 
-    def _check_gql_version(self):
-        if '__version__' in gql.__dict__:
-            gql_version = gql.__version__.split('.')
-            gql_major_version = int(gql_version[0])
-            if gql_major_version < 2 or gql_major_version > 2:
-                raise Exception(f'Incorrect gql version {gql_version}. Please install version 2.')
-        else:
-            # assume pre-3 versions are OK
-            pass
+        try:
+            # Note gql.__version__ only added in 3.0.0
+            self.gql_version = tuple(map(int, gql.__version__.split('.')))
+        except:
+            self.gql_version = (2, 0, 0)
 
     def print(self):
         """Prints out debugging information about the session."""
@@ -1048,9 +1075,11 @@ subscription TaskUpdated($sessionId: String!) {
             self.init_config()
             if self.host is None:
                 raise NoHostError()
+
+            ws_host = re.sub(r'^http', 'ws', self.host)
             self.api_url = '{0}/api'.format(self.host)
-            ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
+
             http = gql.transport.requests.RequestsHTTPTransport(
                 self.api_url,
                 auth=self.auth,

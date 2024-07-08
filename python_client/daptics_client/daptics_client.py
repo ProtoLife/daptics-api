@@ -40,6 +40,7 @@ import os
 import json
 import pprint
 import random
+import re
 import requests
 import requests.auth
 import time
@@ -70,9 +71,10 @@ try:
 except:
     raise Exception(f'Could not import gql. ' + GQL_INSTALL)
 try:
+    # Note gql.__version__ only added in 3.0.0
     gql_version = tuple(map(int, gql.__version__.split('.')))
 except:
-    gql_version = (0, 0, 0)
+    gql_version = (2, 0, 0)
 if gql_version < (3, 4, 0):
     raise Exception(f'Incorrect gql version {gql_version}. ' + GQL_INSTALL)
 
@@ -603,7 +605,7 @@ fragment TaskFragment on Task {
         self.gql = None
         """The `gql.Client` object used to make GraphQL requests to the API."""
 
-        self.gql_version = tuple(map(int, gql.__version__.split('.')))
+        self.gql_version = None
         """The gql library version, as a 3-tuple, e.g. `(3, 4, 0)`."""
 
         self.graphql_version = tuple(map(int, graphql.__version__.split('.')))
@@ -669,6 +671,12 @@ fragment TaskFragment on Task {
         """A list of Python `dict`s containing all the experiments and responses that
         have been simulated, as updated by the result of a "simulate" task.
         """
+
+        try:
+            # Note gql.__version__ only added in 3.0.0
+            self.gql_version = tuple(map(int, gql.__version__.split('.')))
+        except:
+            self.gql_version = (2, 0, 0)
 
     def print(self):
         """Prints out debugging information about the session."""
@@ -1063,7 +1071,7 @@ fragment TaskFragment on Task {
             if self.host is None:
                 raise NoHostError()
 
-            ws_host = self.host.replace('http', 'ws', 1)
+            ws_host = re.sub(r'^http', 'ws', self.host)
             self.api_url = '{0}/api'.format(self.host)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
 

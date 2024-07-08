@@ -101,7 +101,7 @@ class NoHostError(Exception):
 class IncompatibleApiError(Exception):
     """An error raised if the API at `host` is not compatible with this client."""
 
-    def __init__(host, client_version_required):
+    def __init__(self, host, client_version_required):
         self.message = 'The API at {} requires a minimum client version of {}. Please upgrade or use a compatible host.'.format(host, client_version_required)
 
 
@@ -1051,7 +1051,11 @@ subscription TaskUpdated($sessionId: String!) {
             self.api_url = '{0}/api'.format(self.host)
             ws_host = self.host.replace('http', 'ws', 1)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)
-            http = gql.transport.requests.RequestsHTTPTransport(self.api_url, auth=self.auth, use_json=True)
+            http = gql.transport.requests.RequestsHTTPTransport(
+                self.api_url,
+                auth=self.auth,
+                use_json=True,
+                verify=self.options['verify_ssl_certificates'])
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 

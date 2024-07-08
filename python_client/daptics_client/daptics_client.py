@@ -36,9 +36,6 @@ import asyncio
 from async_timeout import timeout as atimeout
 import csv
 import enum
-import graphql
-from graphql import GraphQLError
-from graphql.language.printer import print_ast
 import os
 import json
 import pprint
@@ -50,14 +47,41 @@ import sys
 import json
 import logging
 import urllib.parse
-import gql
+
+GRAPHQL_INSTALL = 'Please install with "pip install graphql-core>=3.1.5".'
+GQL_INSTALL = 'Please install with "pip install gql>=3.4.0".'
+
+try:
+    import graphql
+except:
+    raise Exception('Cannot read graphql version. ' . GRAPHQL_INSTALL)
+try:
+    graphql_version = tuple(map(int, graphql.__version__.split('.')))
+    if graphql_version <= (3, 1, 5):
+        raise Exception(f'Incorrect graphql version {graphql_version}. ' . GRAPHQL_INSTALL)
+except:
+    pass
+
+from graphql import GraphQLError
+from graphql.language.printer import print_ast
+
+try:
+    import gql
+except:
+    raise Exception(f'Could not import gql. ' . GQL_INSTALL)
+try:
+    gql_version = tuple(map(int, gql.__version__.split('.')))
+    if gql_version < (3, 4, 0):
+        raise Exception(f'Incorrect gql version {gql_version}. ' . GQL_INSTALL)
+except:
+    pass
+
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.phoenix_channel_websockets import PhoenixChannelWebsocketsTransport
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.exceptions import TransportQueryError
 
 # Authentication object used to authorize DapticsClient requests
-
 
 class TokenAuth(requests.auth.AuthBase):
     """A callable authentication object for the Python `requests` moudule.
@@ -503,8 +527,6 @@ fragment TaskFragment on Task {
 """
 
     def __init__(self, host=None, config=None):
-        self._check_gql_version()
-
         self.client_version = '0.14.0'
         """The version number of this client.
         """
@@ -581,6 +603,12 @@ fragment TaskFragment on Task {
         self.gql = None
         """The `gql.Client` object used to make GraphQL requests to the API."""
 
+        self.gql_version = tuple(map(int, gql.__version__.split('.')))
+        """The gql library version, as a 3-tuple, e.g. `(3, 4, 0)`."""
+
+        self.graphql_version = tuple(map(int, graphql.__version__.split('.')))
+        """The graphql library version, as a 3-tuple, e.g. `(3, 1, 5)`."""
+
         self.auth = TokenAuth()
         """A `requests.auth` object used to insert the required authorization
         header in API requests. The auth object's `token` attribute is set by the `login` method.
@@ -641,26 +669,6 @@ fragment TaskFragment on Task {
         """A list of Python `dict`s containing all the experiments and responses that
         have been simulated, as updated by the result of a "simulate" task.
         """
-
-    def _check_gql_version(self):
-        try:
-            graphql_version = tuple(map(int, graphql.__version__.split('.')))
-        except:
-            raise Exception(f'Cannot read graphql version. Please re-install with "pip install graphql-core>=3.1.5"')
-        if graphql_version <= (3, 1, 5):
-            raise Exception(f'Incorrect graphql version {graphql_version}. Please install with "pip install graphql-core>=3.1.5".')
-
-        try:
-            import gql
-            gql_version = gql.__version__
-        except:
-            raise Exception(f'Could not import gql. Please install with "pip install gql=3.0.0a6".')
-        gql_major_version = int(gql_version.split('.')[0])
-        if gql_major_version < 3:
-            raise Exception(f'Incorrect gql version {gql_version}. Please install with "pip install gql=3.0.0a6".')
-
-        import gql.transport.requests
-
 
     def print(self):
         """Prints out debugging information about the session."""
@@ -1054,6 +1062,7 @@ fragment TaskFragment on Task {
             self.init_config()
             if self.host is None:
                 raise NoHostError()
+
             ws_host = self.host.replace('http', 'ws', 1)
             self.api_url = '{0}/api'.format(self.host)
             self.websocket_url = '{0}/socket/websocket'.format(ws_host)

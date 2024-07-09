@@ -1045,6 +1045,38 @@ subscription TaskUpdated($sessionId: String!) {
             return default
         return value.lower() in ('true', 't', 'yes', 'y', 'on', 'enabled', '1')
 
+    def set_options(self, opts):
+        """Updates the runtime options. See `options` for a list of
+        available options.
+
+        # Arguments
+        opts (dict):
+            A dictionary of runtime options to be set on the client.
+
+        # Returns
+        Nothing
+        """
+        for optname in self.options.keys():
+            if optname in opts:
+                self.options[optname] = opts[optname]
+
+    def set_option(self, optname, optvalue):
+        """Updates the runtime options. See `options` for a list of
+        available options.
+
+        # Arguments
+        optname (str):
+            The runtime option name to be set on the client.
+
+        optvalue:
+            The runtime option value to be set on the client.
+
+        # Returns
+        Nothing
+        """
+        if optname in self.options.keys():
+            self.options[optname] = optvalue
+
     def connect(self):
         """Reads and processes client configuration, and instantiates the client if it has not
         been done before. Creates an HTTP transport instance from the client's

@@ -13,6 +13,15 @@
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>apiServerStats</strong></td>
+<td valign="top"><a href="#apiserverstats">ApiServerStats</a></td>
+<td>
+
+Get information about the API server.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>clientCompatibility</strong></td>
 <td valign="top"><a href="#schemaversioninfo">SchemaVersionInfo</a></td>
 <td>
@@ -77,10 +86,10 @@ Get the designed or completed experiments for the current or a previous generati
 </tr>
 <tr>
 <td colspan="2" align="right" valign="top">designOnly</td>
-<td valign="top"><a href="#boolean">Boolean</a>!</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If this argument is `true`, return only the designed experiments, not any extra experiments, and without responses.
+If provided and set to `true`, return only the designed experiments, not any extra experiments, and without responses.
 
 </td>
 </tr>
@@ -170,7 +179,7 @@ Search sessions. For Admin-level users, returns search over all sessions.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If provided, list only active or inactive sessions.
+If provided and set to `true`, list only active or inactive sessions.
 
 </td>
 </tr>
@@ -179,7 +188,7 @@ If provided, list only active or inactive sessions.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If provided, list only demo or standard (not demo) sessions.
+If provided and set to `true`, list only demo or standard (not demo) sessions.
 
 </td>
 </tr>
@@ -215,7 +224,7 @@ Get list of all, or just un-archived tasks in the session. For non-admin users, 
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-If omitted or false, limits the response to tasks that have not completed.
+If set to `true`, return tasks that have completed, as well as those still active.
 
 </td>
 </tr>
@@ -479,24 +488,6 @@ Create an unconfirmed user account. The account's email address must be confirme
 </td>
 </tr>
 <tr>
-<td colspan="2" align="right" valign="top">createToken</td>
-<td valign="top"><a href="#boolean">Boolean</a></td>
-<td>
-
-If true, an email message with a confirmation link will be mailed to the user.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="right" valign="top">promotionCode</td>
-<td valign="top"><a href="#string">String</a></td>
-<td>
-
-If present, the promotion code that will be applied to the new user.
-
-</td>
-</tr>
-<tr>
 <td colspan="2" align="right" valign="top">user</td>
 <td valign="top"><a href="#newuserinput">NewUserInput</a>!</td>
 <td>
@@ -578,6 +569,15 @@ The user's password (in cleartext).
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>loginAsGuest</strong></td>
+<td valign="top"><a href="#authenticationtoken">AuthenticationToken</a></td>
+<td>
+
+Log in as a guest user. Use the returned token to authenticate other requests. Use the returned user_id to create new sessions.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>logout</strong></td>
 <td valign="top"><a href="#authenticationtoken">AuthenticationToken</a></td>
 <td>
@@ -655,6 +655,15 @@ The session's id.
 <td>
 
 Restart a previously created session, re-initializing application and user data files.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="right" valign="top">clean</td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If provided and set to `true`, remove all previously run experiments (including initial and extra experiments).
 
 </td>
 </tr>
@@ -1037,6 +1046,59 @@ The URL for the session user to use to log in.
 </tbody>
 </table>
 
+### ApiServerStats
+
+API server statistics
+
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="right">Argument</th>
+<th align="left">Type</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2" valign="top"><strong>requestsPerMinute</strong></td>
+<td valign="top"><a href="#float">Float</a>!</td>
+<td>
+
+The average number of requests per minute.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>sampledAt</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a>!</td>
+<td>
+
+When the rate was last sampled.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>upSince</strong></td>
+<td valign="top"><a href="#datetime">DateTime</a>!</td>
+<td>
+
+The date and time of the last server restart.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>version</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The API version number.
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### AuthenticationToken
 
 A user access (a JWT encoded and signed) token, used to authenticate to the API.
@@ -1136,7 +1198,7 @@ Information on current and remaining generations.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if the campaign has completed (no additional experiments can be generated).
+Set to `true` if the campaign has completed (no additional experiments can be generated).
 
 </td>
 </tr>
@@ -1189,7 +1251,7 @@ The type of error: 'validation', 'execution', 'system'.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-True if the error is fatal.
+Set to `true` if the error is fatal.
 
 </td>
 </tr>
@@ -1216,7 +1278,7 @@ For validation errors, the path to the invalid input field.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-True if the error is an internal system error.
+Set to `true` if the error is an internal system error.
 
 </td>
 </tr>
@@ -1242,7 +1304,7 @@ Result of a create session task.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this is an active (non-archived) session.
+Set to `true` if this is an active (non-archived) session.
 
 </td>
 </tr>
@@ -1251,7 +1313,7 @@ True if this is an active (non-archived) session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this was created as a demo session.
+Set to `true` if this was created as a demo session.
 
 </td>
 </tr>
@@ -1508,7 +1570,7 @@ The generation number for the experiments.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-True if the experiment data in the associated table contains responses.
+Set to `true` if the experiment data in the associated table contains responses.
 
 </td>
 </tr>
@@ -1526,7 +1588,7 @@ The experiment inputs (and possible responses) for the experiments.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-True if the experiment data for this generation has been validated.
+Set to `true` if the experiment data for this generation has been validated.
 
 </td>
 </tr>
@@ -1762,7 +1824,7 @@ The path to the changed field.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if the change will not break existing contracts.
+Set to `true` if the change will not break existing contracts.
 
 </td>
 </tr>
@@ -1797,7 +1859,7 @@ Descriptions of any changes since the specified client version.
 <td valign="top"><a href="#boolean">Boolean</a></td>
 <td>
 
-True if there are no breaking or dangerous changes with the specified client version.
+Set to `true` if there are no breaking or dangerous changes with the specified client version.
 
 </td>
 </tr>
@@ -1850,25 +1912,16 @@ Complete information about a session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this is an active (non-archived) session.
+Set to `true` if this is an active (non-archived) session.
 
 </td>
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>api</strong></td>
-<td valign="top"><a href="#apiparameters">ApiParameters</a>!</td>
+<td valign="top"><a href="#apiparameters">ApiParameters</a></td>
 <td>
 
-API location and key information.
-
-</td>
-</tr>
-<tr>
-<td colspan="2" valign="top"><strong>auth</strong></td>
-<td valign="top"><a href="#authenticationtoken">AuthenticationToken</a></td>
-<td>
-
-Authorization information, if available.
+API location and key information, if available.
 
 </td>
 </tr>
@@ -1886,7 +1939,7 @@ Generation information.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this was created as a demo session.
+Set to `true` if this was created as a demo session.
 
 </td>
 </tr>
@@ -1913,7 +1966,7 @@ Total number of designed experiments submitted, if available.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this session crashed.
+Set to `true` if this session crashed.
 
 </td>
 </tr>
@@ -1922,7 +1975,7 @@ True if this session crashed.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this session was restarted.
+Set to `true` if this session was restarted.
 
 </td>
 </tr>
@@ -1991,7 +2044,7 @@ Current unvalidated or validated experimental space parameters.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>platformMode</strong></td>
-<td valign="top"><a href="#string">String</a>!</td>
+<td valign="top"><a href="#string">String</a></td>
 <td>
 
 Settings for the runtime platform (`development`, `test` or `production`).
@@ -2053,6 +2106,15 @@ The user profile associated with the session.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>userAuth</strong></td>
+<td valign="top"><a href="#authenticationtoken">AuthenticationToken</a></td>
+<td>
+
+Authorization information, if available.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>version</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -2089,7 +2151,7 @@ If the experimental space has been validated, the cost in daptic credits for eac
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>populationSize</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
+<td valign="top"><a href="#int">Int</a></td>
 <td>
 
 The experimental space's population size.
@@ -2098,7 +2160,7 @@ The experimental space's population size.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>replicates</strong></td>
-<td valign="top"><a href="#int">Int</a>!</td>
+<td valign="top"><a href="#int">Int</a></td>
 <td>
 
 The number of replicates for the experimental space.
@@ -2107,7 +2169,7 @@ The number of replicates for the experimental space.
 </tr>
 <tr>
 <td colspan="2" valign="top"><strong>space</strong></td>
-<td valign="top"><a href="#experimentalspace">ExperimentalSpace</a>!</td>
+<td valign="top"><a href="#experimentalspace">ExperimentalSpace</a></td>
 <td>
 
 The experimental space type and parameters.
@@ -2119,7 +2181,7 @@ The experimental space type and parameters.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if the session parameters (including the space) were validated.
+Set to `true` if the session parameters (including the space) were validated.
 
 </td>
 </tr>
@@ -2145,7 +2207,7 @@ Summary information about a session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this is an active (non-archived) session.
+Set to `true` if this is an active (non-archived) session.
 
 </td>
 </tr>
@@ -2154,7 +2216,7 @@ True if this is an active (non-archived) session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this was created as a demo session.
+Set to `true` if this was created as a demo session.
 
 </td>
 </tr>
@@ -2315,7 +2377,7 @@ Confirming information for a session update (name, description and/or active sta
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this is an active (non-archived) session.
+Set to `true` if this is an active (non-archived) session.
 
 </td>
 </tr>
@@ -2324,7 +2386,7 @@ True if this is an active (non-archived) session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this was created as a demo session.
+Set to `true` if this was created as a demo session.
 
 </td>
 </tr>
@@ -2564,7 +2626,7 @@ Information on a long-running task in a daptics session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if the task is no longer active and has been flagged as archived.
+Set to `true` if the task is no longer active and has been flagged as archived.
 
 </td>
 </tr>
@@ -2724,7 +2786,7 @@ Summary information on a long-running task in a daptics session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if the task is no longer active and has been flagged as archived.
+Set to `true` if the task is no longer active and has been flagged as archived.
 
 </td>
 </tr>
@@ -3265,6 +3327,15 @@ The date and time that the user's account was created.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>roles</strong></td>
+<td valign="top">[<a href="#string">String</a>!]!</td>
+<td>
+
+Any special roles for the user, such as 'comped'.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>sessions</strong></td>
 <td valign="top">[<a href="#sessionsummary">SessionSummary</a>]!</td>
 <td>
@@ -3372,6 +3443,24 @@ Confirming information returned when a user account was successfully created.
 </thead>
 <tbody>
 <tr>
+<td colspan="2" valign="top"><strong>currentBalanceInCents</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The currently available balance for the user's account, in cemts.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>currentBalanceInPdt</strong></td>
+<td valign="top"><a href="#int">Int</a>!</td>
+<td>
+
+The currently available balance for the user's account, in daptic credits.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>email</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -3413,6 +3502,15 @@ The promotion code applied to the new user account.
 <td>
 
 The date and time that the new user's account was created.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>status</strong></td>
+<td valign="top"><a href="#string">String</a>!</td>
+<td>
+
+The user's account status ('unconfirmed', 'active', or 'disabled').
 
 </td>
 </tr>
@@ -3757,6 +3855,15 @@ The date and time that the user's account was created.
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>roles</strong></td>
+<td valign="top">[<a href="#string">String</a>!]!</td>
+<td>
+
+Any special roles for the user, such as 'comped'.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>state</strong></td>
 <td valign="top"><a href="#string">String</a></td>
 <td>
@@ -4023,7 +4130,7 @@ Input fields for creating a new session.
 <td valign="top"><a href="#boolean">Boolean</a>!</td>
 <td>
 
-True if this is a demo session.
+Set to `true` if this is a demo session.
 
 </td>
 </tr>
@@ -4055,6 +4162,15 @@ The name of the session (unique for the user).
 </td>
 </tr>
 <tr>
+<td colspan="2" valign="top"><strong>prepareOnly</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If provided and set to `true`, do not start the session, only prepare it.
+
+</td>
+</tr>
+<tr>
 <td colspan="2" valign="top"><strong>userId</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
 <td>
@@ -4079,6 +4195,15 @@ Input fields for creating a new user account.
 </tr>
 </thead>
 <tbody>
+<tr>
+<td colspan="2" valign="top"><strong>createToken</strong></td>
+<td valign="top"><a href="#boolean">Boolean</a></td>
+<td>
+
+If true, an email message with a confirmation link will be mailed to the user.
+
+</td>
+</tr>
 <tr>
 <td colspan="2" valign="top"><strong>email</strong></td>
 <td valign="top"><a href="#string">String</a>!</td>
@@ -4112,6 +4237,15 @@ The user's last name.
 <td>
 
 The cleartext password for the user account.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top"><strong>promotionCode</strong></td>
+<td valign="top"><a href="#string">String</a></td>
+<td>
+
+If present, the promotion code that will be applied to the new user.
 
 </td>
 </tr>
@@ -4463,6 +4597,12 @@ timezone. The DateTime appears in a JSON response as an ISO8601 formatted
 string, including UTC timezone ("Z"). The parsed date and time string will
 be converted to UTC if there is an offset.
 
+### Float
+
+The `Float` scalar type represents signed double-precision fractional
+values as specified by
+[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
+
 ### Int
 
 The `Int` scalar type represents non-fractional signed whole numeric values.
@@ -4476,42 +4616,3 @@ The `String` scalar type represents textual data, represented as UTF-8
 character sequences. The String type is most often used by GraphQL to
 represent free-form human-readable text.
 
-
-## Unions
-
-### TaskResult
-
-The result returned by a completed task.
-
-<table>
-<thead>
-<th align="left">Type</th>
-<th align="left">Description</th>
-</thead>
-<tbody>
-<tr>
-<td valign="top"><strong><a href="#analyticstaskresult">AnalyticsTaskResult</a></strong></td>
-<td valign="top">Result of a create analytics task.</td>
-</tr>
-<tr>
-<td valign="top"><strong><a href="#createtaskresult">CreateTaskResult</a></strong></td>
-<td valign="top">Result of a create session task.</td>
-</tr>
-<tr>
-<td valign="top"><strong><a href="#generatetaskresult">GenerateTaskResult</a></strong></td>
-<td valign="top">Result of a validate experiments task.</td>
-</tr>
-<tr>
-<td valign="top"><strong><a href="#simulatetaskresult">SimulateTaskResult</a></strong></td>
-<td valign="top">Result of a simulate experiments task.</td>
-</tr>
-<tr>
-<td valign="top"><strong><a href="#spacetaskresult">SpaceTaskResult</a></strong></td>
-<td valign="top">Result of a validate experimental space parameters task.</td>
-</tr>
-<tr>
-<td valign="top"><strong><a href="#updatetaskresult">UpdateTaskResult</a></strong></td>
-<td valign="top">Result of a put experiments task.</td>
-</tr>
-</tbody>
-</table>

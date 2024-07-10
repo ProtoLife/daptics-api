@@ -33,11 +33,11 @@ using the Python API client package.
 ## Documentation
 
 Visit the
-[Python API Client](./daptics_client/)
+[Python API Client](./daptics_client.md)
 link for descriptions of the classes and methods exposed by the `daptics_client` Python module.
 
 Visit the
-[Daptics GraphQL API](./graphql_api/)
+[Daptics GraphQL API](./graphql_api.md)
 link for descriptions of all the objects available in the low-level GraphQL API.
 
 
@@ -51,7 +51,7 @@ Please contact [support@daptics.ai](mailto:support@daptics.ai)
 if you need assistance setting up a daptics account.
 
 Visit the
-[Jupyter Notebooks](./jupyter_notebooks/)
+[Jupyter Notebooks](./jupyter_notebooks.md)
 link for instructions on how you can set up a local Jupyter Notebook server
 if you do not have access to a server that can open `.ipynb` files.
 

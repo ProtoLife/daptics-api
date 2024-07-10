@@ -483,6 +483,14 @@ fragment TaskFragment on Task {
 }
 """
 
+    @property
+    def options(self):
+        return self._options
+
+    @options.setter
+    def options(self, value):
+        self.set_options(value)
+
     def __init__(self, host=None, config=None):
         self.client_version = '0.15.1'
         """The version number of this client.
@@ -498,7 +506,7 @@ fragment TaskFragment on Task {
         runtime options.
         """
 
-        self.options = {
+        self._options = {
             'auto_export_path': None,
             'auto_generate_next_design': False,
             'auto_task_timeout': None,
@@ -638,7 +646,7 @@ fragment TaskFragment on Task {
         print('client_version = ', self.client_version)
         print('host = ', self.host)
         print('credentials = ', self.credentials)
-        print('options = ', self.options)
+        print('options = ', self._options)
         print('user_id = ', self.user_id)
         print('session_id = ', self.session_id)
         print('session_name = ', self.session_name)
@@ -1005,8 +1013,8 @@ subscription TaskUpdated($sessionId: String!) {
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    for optname in self.options.keys():
-                        self.options[optname] = config.get(optname, self.options[optname])
+                    for optname in self._options.keys():
+                        self._options[optname] = config.get(optname, self._options[optname])
                     return True
             except:
                 raise InvalidConfigError(config_path)
@@ -1022,16 +1030,16 @@ subscription TaskUpdated($sessionId: String!) {
             password = os.getenv('DAPTICS_PASSWORD')
             if username and password:
                 self.credentials = (username, password)
-        self.options['auto_export_path'] = os.getenv(
-            'DAPTICS_AUTO_EXPORT_PATH', default=self.options['auto_export_path'])
-        self.options['auto_generate_next_design'] = self._boolean_env_var(
-            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN', self.options['auto_generate_next_design'])
-        self.options['auto_task_timeout'] = self._float_env_var(
-            'DAPTICS_AUTO_TASK_TIMEOUT', self.options['auto_task_timeout'])
-        self.options['run_tasks_async'] = self._boolean_env_var(
-            'DAPTICS_RUN_TASKS_ASYNC', self.options['run_tasks_async'])
-        self.options['verify_ssl_certificates'] = self._boolean_env_var(
-            'DAPTICS_VERIFY_SSL_CERTIFICATES', self.options['verify_ssl_certificates'])
+        self._options['auto_export_path'] = os.getenv(
+            'DAPTICS_AUTO_EXPORT_PATH', default=self._options['auto_export_path'])
+        self._options['auto_generate_next_design'] = self._boolean_env_var(
+            'DAPTICS_AUTO_GENERATE_NEXT_DESIGN', self._options['auto_generate_next_design'])
+        self._options['auto_task_timeout'] = self._float_env_var(
+            'DAPTICS_AUTO_TASK_TIMEOUT', self._options['auto_task_timeout'])
+        self._options['run_tasks_async'] = self._boolean_env_var(
+            'DAPTICS_RUN_TASKS_ASYNC', self._options['run_tasks_async'])
+        self._options['verify_ssl_certificates'] = self._boolean_env_var(
+            'DAPTICS_VERIFY_SSL_CERTIFICATES', self._options['verify_ssl_certificates'])
 
     def _float_env_var(self, varname, default):
         value = os.getenv(varname)
@@ -1056,9 +1064,9 @@ subscription TaskUpdated($sessionId: String!) {
         # Returns
         Nothing
         """
-        for optname in self.options.keys():
+        for optname in self._options.keys():
             if optname in opts:
-                self.options[optname] = opts[optname]
+                self._options[optname] = opts[optname]
 
     def set_option(self, optname, optvalue):
         """Updates the runtime options. See `options` for a list of
@@ -1074,8 +1082,8 @@ subscription TaskUpdated($sessionId: String!) {
         # Returns
         Nothing
         """
-        if optname in self.options.keys():
-            self.options[optname] = optvalue
+        if optname in self._options.keys():
+            self._options[optname] = optvalue
 
     def connect(self):
         """Reads and processes client configuration, and instantiates the client if it has not
@@ -1116,7 +1124,7 @@ subscription TaskUpdated($sessionId: String!) {
                 self.api_url,
                 auth=self.auth,
                 use_json=True,
-                verify=self.options['verify_ssl_certificates'])
+                verify=self._options['verify_ssl_certificates'])
             self.gql = gql.Client(
                 transport=http, fetch_schema_from_transport=True)
 
@@ -1606,7 +1614,7 @@ mutation PutExperimentalParameters($sessionId:String!, $params:SessionParameters
     }
 }
         """)
-        if self.options.get('run_tasks_async', False):
+        if self._options.get('run_tasks_async', False):
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
@@ -2087,7 +2095,7 @@ mutation PutExperiments($sessionId:String!, $experiments:ExperimentsInput!) {
     }
 }
         """)
-        if self.options.get('run_tasks_async', False):
+        if self._options.get('run_tasks_async', False):
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
@@ -2242,7 +2250,7 @@ mutation GenerateDesign($sessionId:String!, $gen:Int!) {
     }
 }
         """)
-        if self.options.get('run_tasks_async', False):
+        if self._options.get('run_tasks_async', False):
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
@@ -2336,7 +2344,7 @@ mutation RunSimulation($sessionId:String!, $ngens:Int!, $params:SessionParameter
     }
 }
         """)
-        if self.options.get('run_tasks_async', False):
+        if self._options.get('run_tasks_async', False):
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)
@@ -2652,7 +2660,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                 # Process result on 'success', otherwise just return.
                 if status == 'success' and 'result' in data['currentTask'] and data['currentTask']['result'] is not None:
                     result = data['currentTask']['result']
-                    auto_export_path = self.options.get('auto_export_path')
+                    auto_export_path = self._options.get('auto_export_path')
                     type_ = data['currentTask']['type']
                     if type_ == 'space':
                         self.gen = result['campaign']['gen']
@@ -2674,7 +2682,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
                                 auto_export_path, 'auto_gen{0}_experiments.csv'.format(self.gen))
                             self.export_csv(
                                 fname, self.design['table'], True)
-                        if self.options.get('auto_generate_next_design'):
+                        if self._options.get('auto_generate_next_design'):
                             if self.remaining is None or self.remaining > 0:
                                 # FIXME: Possible race condition while 'update' task is still active?
                                 # Generate task may fail, when it finds that the 'update' task is not archived.
@@ -2792,7 +2800,7 @@ query CurrentTask($sessionId:String!, $taskId:String, $type:String) {
     def _auto_task(self, timeout_override=None):
         timeout = timeout_override
         if timeout is None:
-            timeout = self.options.get('auto_task_timeout')
+            timeout = self._options.get('auto_task_timeout')
         if timeout is None:
             return None
 
@@ -2863,7 +2871,7 @@ mutation CreateAnalytics($sessionId:String!) {
     }
 }
         """)
-        if self.options.get('run_tasks_async', False):
+        if self._options.get('run_tasks_async', False):
             data, errors = self.run_task_async(doc, vars)
         else:
             data, errors = self.call_api(doc, vars)

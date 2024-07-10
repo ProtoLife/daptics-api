@@ -21,7 +21,7 @@ daptics = DapticsClient(args.server)
 # Can set options any of these ways:
 # daptics.set_options({'verify_ssl_certificates': True})
 # daptics.set_option('verify_ssl_certificates', True)
-daptics.options.update({'verify_ssl_certificates': True})
+daptics.options = {'verify_ssl_certificates': True}
 
 # Show the (default) runtime options used by the client object
 print("Client options: ", daptics.options)

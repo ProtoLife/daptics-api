@@ -1013,7 +1013,7 @@ subscription TaskUpdated($sessionId: String!) {
                         password = config.get('password')
                         if username and password:
                             self.credentials = (username, password)
-                    for optname in self._options.keys():
+                    for optname in self._options:
                         self._options[optname] = config.get(optname, self._options[optname])
                     return True
             except:
@@ -1064,7 +1064,7 @@ subscription TaskUpdated($sessionId: String!) {
         # Returns
         Nothing
         """
-        for optname in self._options.keys():
+        for optname in self._options:
             if optname in opts:
                 self._options[optname] = opts[optname]
 
@@ -1082,7 +1082,7 @@ subscription TaskUpdated($sessionId: String!) {
         # Returns
         Nothing
         """
-        if optname in self._options.keys():
+        if optname in self._options:
             self._options[optname] = optvalue
 
     def connect(self):

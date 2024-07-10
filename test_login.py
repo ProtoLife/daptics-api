@@ -24,7 +24,7 @@ daptics = DapticsClient(args.server)
 daptics.options = {'verify_ssl_certificates': True}
 
 # Show the (default) runtime options used by the client object
-print("Client options: ", daptics.options)
+print('Client options: ', daptics.options)
 
 # The `connect` method will attempt to connect to the API server and
 # obtain the GraphQL schema.

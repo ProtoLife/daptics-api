@@ -64,6 +64,7 @@ except:
 if graphql_version < (2, 3, 2) or graphql_version >= (3, 0, 0):
     raise Exception(f'Incorrect graphql version {graphql_version}. ' + GRAPHQL_INSTALL)
 
+from graphql import GraphQLError
 from graphql.language.printer import print_ast
 
 try:
@@ -221,13 +222,6 @@ class SpaceOrDesignRequiredError(Exception):
 
     def __init__(self):
         self.message = 'To generate random experiments you must supply experimental space or design.'
-
-
-class GraphQLError(Exception):
-    """An error raised by converting the first item in the `errors` item of the GraphQL response."""
-
-    def __init__(self, message):
-        self.message = message
 
 
 # Enums used by the DapticsClient class

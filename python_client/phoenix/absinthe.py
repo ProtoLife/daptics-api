@@ -60,7 +60,8 @@ class Subscription:
             loop_count = loop_count + 1
             # print('Waiting for messages ({})'.format(loop_count))
 
-            async with atimeout(self.timeout, loop=self.channel.socket.loop):
+            # Python <3.10 has deprecated loop=self.channel.socket.loop
+            async with atimeout(self.timeout):
                 last_message = await self.channel.receive()
             if last_message.event != AbsintheEvent.subscription_data.value:
                 continue

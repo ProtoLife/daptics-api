@@ -89,7 +89,8 @@ class Phoenix:
             url_with_params = '?'.join(url_parts)
             logger.info('connect to {}'.format(url_with_params))
             self.connected = True
-            async with atimeout(self._timeout_secs * 2, loop=self.loop):
+            # Python <3.10 has deprecated loop=self.loop
+            async with atimeout(self._timeout_secs * 2):
                 self._socket = await websockets.connect(url_with_params,
                                                         ssl=self._ssl,
                                                         loop=self.loop)
@@ -153,7 +154,8 @@ class Phoenix:
 
         for i in range(retry):
             try:
-                async with atimeout(timeout, loop=self.loop):
+                # Python <3.10 has deprecated loop=self.loop
+                async with atimeout(timeout):
                     ref = self.make_ref()
                     if PhoenixEvent.join.value == event:
                         channel.join_ref = ref

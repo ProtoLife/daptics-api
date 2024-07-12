@@ -60,7 +60,8 @@ class Channel:
         self.params = params
         self.join_ref = None
         self.status = State.CLOSED
-        self.messages = asyncio.queues.Queue(max_queue, loop=self.socket.loop)
+        # Python <3.10 has deprecated loop=self.socket.loop
+        self.messages = asyncio.queues.Queue(max_queue)
         self.timeout_secs = timeout_secs
         self.num_retry = num_retry
 
